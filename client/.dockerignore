@@ -1,0 +1,45 @@
+# ---- React frontend .dockerignore ----
+
+# Node dependencies and build output
+node_modules
+build
+dist
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Tests and coverage
+__tests__/
+coverage/
+.jest/
+
+# Docker (avoid recursive copy)
+Dockerfile
+docker-compose*.yml
+# NOTE: nginx.conf is NOT ignored — it is COPY'd in the Dockerfile
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Public folder: keep folder, ignore generated content (if any)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Documentation and license files
+# Include in image
+!*.md
+!LICENSE
