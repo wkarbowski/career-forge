@@ -1,0 +1,296 @@
+# Server Setup Guide
+
+> Installation, configuration, and running the FastAPI backend.
+
+---
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Running the Server](#running-the-server)
+- [Database Setup](#database-setup)
+- [API Documentation](#api-documentation)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Prerequisites
+
+- **Python** ≥ 3.10
+- **pip** (Python package manager)
+- **PostgreSQL** (recommended for production, SQLite for development)
+- **Redis** (optional, for distributed rate limiting)
+
+---
+
+## Installation
+
+```bash
+cd server
+
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate    # Linux/macOS
+# venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `fastapi` | Web framework |
+| `uvicorn[standard]` | ASGI server |
+| `sqlalchemy` | ORM |
+| `psycopg2-binary` | PostgreSQL driver |
+| `python-jose[cryptography]` | JWT tokens |
+| `bcrypt` | Password hashing |
+| `python-multipart` | Form data / file uploads |
+| `pydantic` | Data validation |
+| `pydantic-settings` | Environment-based settings |
+| `email-validator` | Email validation |
+| `alembic` | Database migrations |
+| `redis` | Redis client (optional) |
+| `bleach` | HTML sanitization |
+
+---
+
+## Configuration
+
+Create a `.env` file in the `server/` directory:
+
+```env
+# Application
+APP_NAME=CV App API
+DEBUG=true
+ENVIRONMENT=development
+
+# Database
+DATABASE_URL=sqlite:///./cv_app.db
+
+# Security
+SECRET_KEY=your-secret-key-at-least-32-characters-long
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
+REFRESH_TOKEN_ROTATE=true
+
+# CORS (comma-separated origins)
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# Rate Limiting
+RATE_LIMIT_PER_MINUTE=60
+RATE_LIMIT_AUTH_PER_MINUTE=10
+RATE_LIMIT_BACKEND=memory
+
+# Account Lockout
+ACCOUNT_LOCKOUT_ATTEMPTS=10
+ACCOUNT_LOCKOUT_DURATION=15
+
+# Cookies
+COOKIE_SECURE=false
+COOKIE_SAMESITE=lax
+COOKIE_DOMAIN=
+
+# HTTPS (production only)
+ENFORCE_HTTPS=false
+TRUSTED_HOSTS=
+```
+
+### Environment Variables Reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_NAME` | `CV App API` | Application name |
+| `DEBUG` | `false` | Enable debug mode (Swagger docs) |
+| `ENVIRONMENT` | `development` | `development`, `staging`, or `production` |
+| `DATABASE_URL` | `sqlite:///./cv_app.db` | Database connection string |
+| `SECRET_KEY` | Auto-generated (dev) | JWT signing key (min 32 chars, recommended 64+) |
+| `ALGORITHM` | `HS256` | JWT signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` | Access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
+| `REFRESH_TOKEN_ROTATE` | `true` | Enable token rotation |
+| `CORS_ORIGINS` | `localhost:3000` | Allowed CORS origins |
+| `RATE_LIMIT_PER_MINUTE` | `60` | General rate limit |
+| `RATE_LIMIT_AUTH_PER_MINUTE` | `10` | Auth rate limit |
+| `RATE_LIMIT_BACKEND` | `memory` | `memory` or `redis` |
+| `REDIS_URL` | — | Redis connection URL |
+| `REDIS_PASSWORD` | — | Redis password |
+| `ACCOUNT_LOCKOUT_ATTEMPTS` | `10` | Failed login threshold |
+| `ACCOUNT_LOCKOUT_DURATION` | `15` | Lockout duration (minutes) |
+| `COOKIE_SECURE` | `true` | HTTPS-only cookies |
+| `COOKIE_SAMESITE` | `lax` | Cookie SameSite policy |
+| `COOKIE_DOMAIN` | — | Cookie domain scope |
+| `ENFORCE_HTTPS` | `false` | Force HTTPS redirect |
+| `TRUSTED_HOSTS` | — | Allowed host headers |
+
+> **Important:** In development, if `SECRET_KEY` is not set, one is auto-generated with a warning. In production, always set a strong `SECRET_KEY` (64+ chars). `DEBUG=true` is **fatal** in production environment.
+
+---
+
+## Running the Server
+
+### Development
+
+```bash
+cd server
+source venv/bin/activate
+
+# With auto-reload
+uvicorn app.main:app --reload --port 8000
+
+# Server runs at http://localhost:8000
+```
+
+### Production
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+Or with Gunicorn:
+```bash
+gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+```
+
+---
+
+## Database Setup
+
+### SQLite (Development)
+
+No setup needed. The database file (`cv_app.db`) is created automatically on first run.
+
+### PostgreSQL (Production)
+
+**Option 1: Use the setup script**
+```bash
+chmod +x scripts/setup_postgres.sh
+./scripts/setup_postgres.sh
+```
+
+This creates:
+- Database: `cvapp`
+- User: `cvapp`
+- Outputs the `DATABASE_URL` for your `.env`
+
+**Option 2: Manual setup**
+```bash
+sudo -u postgres psql
+```
+```sql
+CREATE USER cvapp WITH PASSWORD 'your-secure-password';
+CREATE DATABASE cvapp OWNER cvapp;
+GRANT ALL PRIVILEGES ON DATABASE cvapp TO cvapp;
+\q
+```
+
+Update `.env`:
+```env
+DATABASE_URL=postgresql://cvapp:your-secure-password@localhost/cvapp
+```
+
+### Running Migrations
+
+```bash
+cd server
+
+# Apply all migrations
+alembic upgrade head
+
+# Check current migration
+alembic current
+
+# Create new migration from model changes
+alembic revision --autogenerate -m "description of changes"
+```
+
+### Database Backup
+
+```bash
+# Backup
+./scripts/backup_database.sh
+
+# List backups
+./scripts/backup_database.sh --list
+
+# Restore from backup
+./scripts/backup_database.sh --restore backups/cvapp_20260213_120000.sql.gz
+
+# Clean old backups (>7 days)
+./scripts/backup_database.sh --cleanup
+```
+
+Supports both PostgreSQL (`pg_dump`/`psql`) and SQLite (`.backup`).
+
+---
+
+
+
+```bash
+cd server
+source venv/bin/activate
+
+
+
+```
+
+
+---
+
+## API Documentation
+
+When `DEBUG=true`, interactive API documentation is available:
+
+| URL | Format |
+|-----|--------|
+| `http://localhost:8000/api/docs` | Swagger UI |
+| `http://localhost:8000/api/redoc` | ReDoc |
+| `http://localhost:8000/api/openapi.json` | OpenAPI JSON |
+
+> These are automatically disabled in production (`DEBUG=false`).
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Port already in use:**
+```bash
+# Find the process
+lsof -i :8000
+# Kill it
+kill -9 <PID>
+# Or use a different port
+uvicorn app.main:app --reload --port 8001
+```
+
+**Database locked (SQLite):**
+- Ensure only one process is writing to the database
+- Switch to PostgreSQL for production workloads
+
+**CORS errors:**
+- Verify `CORS_ORIGINS` includes your frontend URL (e.g., `http://localhost:3000`)
+- Include both `localhost` and `127.0.0.1` variants
+
+**JWT errors:**
+- Ensure `SECRET_KEY` is consistent between restarts
+- Check token expiry (`ACCESS_TOKEN_EXPIRE_MINUTES`)
+
+**Migration errors:**
+```bash
+# Reset to a specific revision
+alembic downgrade <revision>
+
+# Stamp current state (skip applying migration)
+alembic stamp head
+```
+
+**Redis connection failed:**
+- Rate limiting automatically falls back to in-memory
+- Check `REDIS_URL` and `REDIS_PASSWORD` settings
