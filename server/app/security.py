@@ -814,7 +814,7 @@ class InputSanitizer:
     # Compile patterns for efficiency
     _compiled_patterns = [re.compile(p, re.IGNORECASE) for p in DANGEROUS_PATTERNS]
     
-    # Safe HTML tags for CV rich text fields
+    # Safe HTML tags for document rich text fields
     SAFE_HTML_TAGS = ['b', 'i', 'u', 'strong', 'em', 'br', 'p', 'ul', 'ol', 'li', 'a', 'span', 'div']
     SAFE_HTML_ATTRS = {
         'a': ['href', 'title'],
@@ -845,7 +845,7 @@ class InputSanitizer:
             import bleach
             from bleach.css_sanitizer import CSSSanitizer
 
-            # CSS properties that the CV editor legitimately uses
+            # CSS properties that the document editor legitimately uses
             allowed_css = [
                 'color', 'background-color', 'font-size', 'font-family',
                 'font-weight', 'font-style', 'text-decoration', 'text-align',

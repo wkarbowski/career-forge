@@ -32,7 +32,7 @@ const PrivacyPolicyPage = () => {
           <h2>2. {t('gdpr.s2Title') || 'Data We Collect'}</h2>
           <ul>
             <li><strong>{t('gdpr.s2AccountData') || 'Account data'}</strong> — e-mail address, username, hashed password (collected on registration; legal basis: performance of contract, Art. 6(1)(b) GDPR).</li>
-            <li><strong>{t('gdpr.s2CvData') || 'CV content'}</strong> — all text, formatting, and uploaded profile images you enter into the editor (legal basis: performance of contract).</li>
+            <li><strong>{t('gdpr.s2CvData') || 'Document content'}</strong> — all text, formatting, and uploaded profile images you enter into the editor (legal basis: performance of contract).</li>
             <li><strong>{t('gdpr.s2AuthTokens') || 'Authentication tokens'}</strong> — an access token stored in <code>localStorage</code> and a refresh token stored as an HttpOnly cookie restricted to <code>/api/auth</code>. These are strictly necessary for the service and do not require consent.</li>
             <li><strong>{t('gdpr.s2LocalStorage') || 'Editor state'}</strong> — draft CV content is stored in <code>localStorage</code> for offline resilience. No tracking data is stored.</li>
             <li><strong>{t('gdpr.s2IpLogs') || 'Security logs'}</strong> — IP address and browser User-Agent are recorded for security audit purposes (failed logins, account lockouts) under legitimate interest, Art. 6(1)(f) GDPR.</li>
@@ -60,10 +60,10 @@ const PrivacyPolicyPage = () => {
           <ul>
             <li><strong>Right of access (Art. 15)</strong> — request a copy of your data.</li>
             <li><strong>Right to rectification (Art. 16)</strong> — correct inaccurate data via the editor.</li>
-            <li><strong>Right to erasure (Art. 17)</strong> — permanently delete your account via <em>User Menu → Delete Account</em>. All CVs, profile images, and tokens are deleted immediately.</li>
-            <li><strong>Right to data portability (Art. 20)</strong> — export all your CV data as JSON via <em>User Menu → Export My Data</em>.</li>
+            <li><strong>Right to erasure (Art. 17)</strong> — permanently delete your account via <em>User Menu → Delete Account</em>. All documents, profile images, and tokens are deleted immediately.</li>
+            <li><strong>Right to data portability (Art. 20)</strong> — export all your document data as JSON via <em>User Menu → Export My Data</em>.</li>
             <li><strong>Right to object (Art. 21)</strong> — object to processing based on legitimate interest by contacting the site operator.</li>
-            <li><strong>Right to withdraw consent</strong> — clear your browser's <code>localStorage</code> key <code>gdpr_consent_v1</code> to withdraw consent for Google Fonts at any time.</li>
+            <li><strong>Right to withdraw consent</strong> — clear your browser's <code>localStorage</code> key <code>gdpr_consent_v1</code> to withdraw the privacy acknowledgement at any time.</li>
           </ul>
         </section>
 

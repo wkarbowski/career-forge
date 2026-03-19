@@ -493,7 +493,7 @@ async def delete_account(
     """
     Permanently delete the authenticated user's account and all associated data.
 
-    This implements the GDPR right to erasure (Art. 17 GDPR). All CVs, profile
+    This implements the GDPR right to erasure (Art. 17 GDPR). All documents, profile
     images, refresh tokens, and the user record itself are deleted. The action is
     irreversible.
     """

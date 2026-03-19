@@ -29,7 +29,7 @@ Career Forge follows a **client-server architecture** with a clear separation be
   sessionStorage                                    │
                                             ┌───────┴───────┐
                                             │   Database    │
-                                            │ SQLite / PG   │
+                                            │  PostgreSQL   │
                                             └───────────────┘
 ```
 
@@ -106,9 +106,9 @@ App
 |-------|-----------|-------|-------------|
 | `/` | `HomePage` | None | Landing page |
 | `/templates` | `TemplatesGallery` | None | Browse templates |
-| `/dashboard` | `CVDashboard` | `ProtectedRoute` | CV management |
-| `/editor` | `CVEditor` | `EditorRoute` | New/template CV |
-| `/editor/:cvId` | `CVEditor` | `ProtectedRoute` | Edit saved CV |
+| `/dashboard` | `DocumentDashboard` | `ProtectedRoute` | Document management |
+| `/editor` | `DocumentEditor` | `EditorRoute` | New/template document |
+| `/editor/:cvId` | `DocumentEditor` | `ProtectedRoute` | Edit saved document |
 | `*` | Redirect → `/` | — | Catch-all |
 
 **Route Guards:**
@@ -140,7 +140,7 @@ Incoming Request
 ┌─────────────────────────┐
 │   Route Handlers        │
 │  /api/auth/*            │
-│  /api/cvs/*             │
+│  /api/documents/*       │
 │  /api/admin/*           │
 └────────┬────────────────┘
          │
@@ -160,7 +160,7 @@ Incoming Request
          ▼
 ┌─────────────────────────┐
 │   Database              │
-│  SQLite (dev) / PG      │
+│  PostgreSQL             │
 └─────────────────────────┘
 ```
 
@@ -169,7 +169,7 @@ Incoming Request
 | Module | File | Responsibility |
 |--------|------|---------------|
 | **Entry Point** | `main.py` | App factory, middleware registration, CORS, health check |
-| **Models** | `models.py` | SQLAlchemy ORM models (User, CV, RefreshToken) |
+| **Models** | `models.py` | SQLAlchemy ORM models (User, Document, RefreshToken) |
 | **Schemas** | `schemas.py` | Pydantic request/response validation |
 | **Auth** | `auth.py` | Password hashing, JWT creation/validation, token rotation |
 | **Security** | `security.py` | 7 middleware classes, rate limiting, input sanitization |
@@ -177,14 +177,14 @@ Incoming Request
 | **Config** | `config.py` | Environment-based settings via pydantic-settings |
 | **Database** | `database.py` | Engine, session factory, connection pooling |
 | **Auth Routes** | `routes/auth.py` | Register, login, refresh, logout, preferences |
-| **CV Routes** | `routes/cvs.py` | CRUD, export, import, duplicate, image upload |
+| **Document Routes** | `routes/documents.py` | CRUD, export, import, duplicate, image upload |
 | **Admin Routes** | `routes/admin.py` | Audit log queries, security stats, alerts |
 
 ---
 
 ## Data Flow
 
-### CV Editing & Auto-Save
+### Document Editing & Auto-Save
 
 ```
 User types in EditableText
@@ -205,10 +205,10 @@ State update triggers useEffect in CVEditor
 Debounce 2 seconds
        │
        ▼
-AuthContext.saveCv(cvId, { data, settings, ... })
+AuthContext.saveDocument(docId, { data, settings, ... })
        │
        ▼
-cvApi.update(cvId, payload) → PUT /api/cvs/:id
+documentApi.update(docId, payload) → PUT /api/documents/:id
        │
        ▼
 Server sanitizes (bleach) → SQLAlchemy save

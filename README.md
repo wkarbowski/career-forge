@@ -37,9 +37,9 @@
                   │ HTTP (JSON + HttpOnly cookies)
 ┌─────────────────┴───────────────────────────┐
 │           Server (FastAPI + Python)         │
-│  7-layer middleware · Auth · CVs · Admin    │
-│  SQLAlchemy ORM · Alembic migrations        │
-│  SQLite (dev) · PostgreSQL (production)     │
+│  7-layer middleware · Auth · Documents · Admin │
+│  SQLAlchemy ORM · Alembic migrations           │
+│  PostgreSQL · Redis                            │
 └─────────────────────────────────────────────┘
 ```
 
@@ -48,12 +48,13 @@
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18, React Router v7, CRA 5 |
+| Fonts | 16× @fontsource/* (self-hosted) |
+| Icons | Font Awesome Free 7 (self-hosted) |
 | Sanitization | DOMPurify 3 |
-| Backend | FastAPI 0.115+, Python 3.10+ |
+| Backend | FastAPI 0.115+, Python 3.12+ |
 | ORM / Migrations | SQLAlchemy 2, Alembic |
-| DB (dev) | SQLite |
-| DB (prod) | PostgreSQL |
-| Rate Limiting | In-memory / Redis |
+| Database | PostgreSQL 16 |
+| Cache / Rate Limiting | Redis 7 |
 | Containerization | Docker + Docker Compose |
 
 ---

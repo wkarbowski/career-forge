@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     setIsGuest(false);
     window.sessionStorage.removeItem('isGuest');
-    // Clear CV data to prevent data leakage
+    // Clear document data to prevent data leakage
     resetToInitial();
     window.sessionStorage.removeItem('isTemplate');
     window.sessionStorage.removeItem('selectedTemplateId');
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       setIsGuest(false);
       window.sessionStorage.removeItem('isGuest');
-      // Clear CV data to prevent data leakage
+      // Clear document data to prevent data leakage
       resetToInitial();
       window.sessionStorage.removeItem('isTemplate');
       window.sessionStorage.removeItem('selectedTemplateId');
@@ -118,7 +118,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setDocumentList([]);
     setCurrentDocumentId(null);
-    // Clear CV data to prevent data leakage
+    // Clear document data to prevent data leakage
     resetToInitial();
     window.sessionStorage.removeItem('isTemplate');
     window.sessionStorage.removeItem('selectedTemplateId');

@@ -50,7 +50,7 @@ export const FEATURES = Object.freeze({
   PREMIUM_TEMPLATES: CLOUD,
 
   /**
-   * Public shareable CV links with view-count analytics.
+   * Public shareable document links with view-count analytics.
    * Optional extended feature.
    */
   SHARING: CLOUD,
@@ -68,8 +68,8 @@ export const FEATURES = Object.freeze({
   BILLING: CLOUD,
 
   /**
-   * CV storage limits per tier.
-   * When false, unlimited CVs are allowed (self-host).
+   * Document storage limits per tier.
+   * When false, unlimited documents are allowed (self-host).
    * When true, limits are enforced from the subscription tier.
    */
   CV_LIMITS: CLOUD,

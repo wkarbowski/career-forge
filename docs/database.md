@@ -18,18 +18,18 @@
 
 ```
 ┌───────────────────────┐       ┌───────────────────────┐
-│        users          │       │         cvs           │
+│        users          │       │      documents        │
 ├───────────────────────┤       ├───────────────────────┤
 │ id          PK  INT   │──┐    │ id          PK  INT   │
 │ email       UQ  STR   │  │    │ title           STR   │
-│ username    UQ  STR   │  ├───►│ data            TEXT  │
-│ hashed_password  STR  │  │    │ owner_id    FK  INT   │
-│ is_active      BOOL   │  │    │ is_default     BOOL   │
-│ is_admin       BOOL   │  │    │ profile_image   STR   │
-│ theme          STR    │  │    │ created_at      DT    │
-│ language       STR    │  │    │ updated_at      DT    │
-│ created_at     DT     │  │    └───────────────────────┘
-│ updated_at     DT     │  │
+│ username    UQ  STR   │  ├───►│ document_type   STR   │
+│ hashed_password  STR  │  │    │ data           JSONB  │
+│ is_active      BOOL   │  │    │ owner_id    FK  INT   │
+│ is_admin       BOOL   │  │    │ is_default     BOOL   │
+│ theme          STR    │  │    │ profile_image   STR   │
+│ language       STR    │  │    │ created_at      DT    │
+│ created_at     DT     │  │    │ updated_at      DT    │
+│ updated_at     DT     │  │    └───────────────────────┘
 └───────────────────────┘  │    ┌───────────────────────┐
                            │    │   refresh_tokens      │
                            │    ├───────────────────────┤
@@ -85,22 +85,23 @@
 
 ---
 
-### CV
+### Document
 
-**Table:** `cvs`
+**Table:** `documents`
 
 | Column | Type | Constraints | Default | Description |
 |--------|------|-------------|---------|-------------|
 | `id` | Integer | PK, indexed | auto-increment | Unique identifier |
 | `title` | String(255) | NOT NULL | `"My CV"` | Document title |
-| `data` | Text | NOT NULL | — | JSON string of full CV content |
+| `document_type` | String(20) | NOT NULL | `"resume"` | Type: `resume` or `cover_letter` |
+| `data` | JSONB | NOT NULL | — | Full document content as PostgreSQL JSONB |
 | `owner_id` | Integer | FK → `users.id`, NOT NULL | — | Owner reference |
-| `is_default` | Boolean | — | `False` | Default CV flag |
+| `is_default` | Boolean | — | `False` | Default document flag |
 | `profile_image` | String(255) | Nullable | `None` | Profile image filename |
 | `created_at` | DateTime | — | `utcnow` | Creation timestamp |
 | `updated_at` | DateTime | — | `utcnow` (auto-update) | Last modification |
 
-**Note:** The `data` field stores the entire CV as a JSON string. This includes personal info, experience, education, skills, languages, etc., as well as settings (colors), visible sections, and sidebar order.
+**Note:** The `data` field stores the entire document as a PostgreSQL JSONB column. This includes personal info, experience, education, skills, languages, etc., as well as settings (colors), visible sections, and sidebar order.
 
 ---
 
@@ -156,14 +157,14 @@
 ## Relationships
 
 ```
-User (1) ──── (N) CV
-  │                 "cvs" relationship, cascade: all, delete-orphan
+User (1) ──── (N) Document
+  │                 "documents" relationship, cascade: all, delete-orphan
   │
 User (1) ──── (N) RefreshToken
                     "refresh_tokens" relationship, cascade: all, delete-orphan
 ```
 
-- **User → CV**: One-to-many. Deleting a user cascades to delete all their CVs.
+- **User → Document**: One-to-many. Deleting a user cascades to delete all their documents.
 - **User → RefreshToken**: One-to-many. Deleting a user cascades to delete all their tokens.
 - **AuditLog**: No foreign key to User. `user_id` is stored as a plain integer for historical preservation (logs persist even if the user is deleted).
 
@@ -178,7 +179,7 @@ Managed by **Alembic** (configured in `server/alembic.ini` and `server/alembic/e
 | Revision | Description | Changes |
 |----------|-------------|---------|
 | `ac7b3eec10fe` | Baseline | Empty migration (snapshot of existing schema) |
-| `6104f6581867` | Add profile image | Adds `profile_image` column (String 255, nullable) to `cvs` table |
+| `6104f6581867` | Add profile image | Adds `profile_image` column (String 255, nullable) to `documents` table |
 
 ### Running Migrations
 
@@ -203,29 +204,21 @@ alembic history
 
 ### Configuration
 
-The Alembic `env.py` overrides the database URL from `Settings.database_url`, so `alembic.ini` does not need to contain the connection string. Uses `render_as_batch=True` for SQLite compatibility (SQLite doesn't support `ALTER TABLE` for some operations).
+The Alembic `env.py` overrides the database URL from `Settings.database_url`, so `alembic.ini` does not need to contain the connection string.
 
 ---
 
 ## Database Configuration
 
-### Development (SQLite)
+### PostgreSQL
 
-Default configuration. Database file created automatically.
-
-```env
-DATABASE_URL=sqlite:///./cv_app.db
-```
-
-### Production (PostgreSQL)
-
-Recommended for production. Requires PostgreSQL setup.
+The application requires PostgreSQL (uses JSONB columns).
 
 ```env
-DATABASE_URL=postgresql://cvapp:password@localhost/cvapp
+DATABASE_URL=postgresql://careerforge:password@localhost:5432/careerforge
 ```
 
-**Connection Pooling (PostgreSQL):**
+**Connection Pooling:**
 - Pool type: `QueuePool`
 - Pool size: 5
 - Max overflow: 10
@@ -237,11 +230,11 @@ DATABASE_URL=postgresql://cvapp:password@localhost/cvapp
 | Script | Purpose |
 |--------|---------|
 | `scripts/setup_postgres.sh` | Create PostgreSQL database and user |
-| `scripts/backup_database.sh` | Backup/restore for both SQLite and PostgreSQL |
+| `scripts/backup_database.sh` | Backup/restore PostgreSQL databases |
 
-### CV Data JSON Structure
+### Document Data JSON Structure
 
-The `data` field in the `cvs` table stores a JSON string with this structure:
+The `data` field in the `documents` table stores a JSONB value with this structure:
 
 ```json
 {
