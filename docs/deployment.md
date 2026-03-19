@@ -27,7 +27,7 @@
 - [ ] `COOKIE_SECURE=true`
 - [ ] `COOKIE_SAMESITE=lax` or `strict`
 - [ ] No `localhost` in `CORS_ORIGINS`
-- [ ] PostgreSQL configured (not SQLite)
+- [ ] PostgreSQL configured
 - [ ] Redis configured for rate limiting (recommended)
 - [ ] `TRUSTED_HOSTS` configured
 - [ ] Database migrations applied (`alembic upgrade head`)
@@ -290,7 +290,7 @@ Set up a cron job using the provided backup script:
 ```
 
 The backup script:
-- Detects database type (PostgreSQL or SQLite)
+- Backs up PostgreSQL via `pg_dump`
 - Compresses with gzip
 - Supports `--restore`, `--list`, `--cleanup`
 - Retains 7 days of backups by default
@@ -300,9 +300,6 @@ The backup script:
 ```bash
 # PostgreSQL
 pg_dump cvapp | gzip > backup_$(date +%Y%m%d).sql.gz
-
-# SQLite
-sqlite3 career_forge.db ".backup backup_$(date +%Y%m%d).db"
 ```
 
 ---

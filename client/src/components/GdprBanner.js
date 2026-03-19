@@ -41,7 +41,7 @@ const GdprBanner = () => {
           <strong>{t('gdpr.title') || 'Privacy Notice'}</strong>
           <p>
             {t('gdpr.body') ||
-              'Career Forge stores your CV data on our servers and uses strictly necessary authentication cookies (HttpOnly). All fonts and icons are self-hosted — no data is sent to Google, Cloudflare, or any third party.'}
+              'Career Forge stores your resume and cover letter data on our servers and uses strictly necessary authentication cookies (HttpOnly). All fonts and icons are self-hosted — no data is sent to Google, Cloudflare, or any third party.'}
             {' '}
             <a href="/privacy" target="_blank" rel="noopener noreferrer">
               {t('gdpr.learnMore') || 'Privacy Policy'}

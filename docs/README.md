@@ -67,7 +67,7 @@
 │              └───────┬───────┘                          │
 │              ┌───────┴───────┐                          │
 │              │   Database    │                          │
-│              │ SQLite / PG   │                          │
+│              │  PostgreSQL   │                          │
 │              └───────────────┘                          │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -85,8 +85,8 @@
 | **Backend** | FastAPI | 0.115+ |
 | **ASGI Server** | Uvicorn | 0.32+ |
 | **ORM** | SQLAlchemy | 2.0+ |
-| **DB (Dev)** | SQLite | — |
-| **DB (Prod)** | PostgreSQL | — |
+| **DB (Dev)** | PostgreSQL | 16 |
+| **DB (Prod)** | PostgreSQL | 16 |
 | **Migrations** | Alembic | 1.14+ |
 | **Auth** | JWT (python-jose) + bcrypt | — |
 | **Rate Limit** | In-memory / Redis | — |
@@ -136,9 +136,9 @@ career-forge/
 
 ### Prerequisites
 
-- **Node.js** ≥ 16.x and npm
-- **Python** ≥ 3.10 with pip
-- (Optional) PostgreSQL for production
+- **Node.js** ≥ 18.x and npm
+- **Python** ≥ 3.12 with pip
+- PostgreSQL
 - (Optional) Redis for distributed rate limiting
 
 ### Quick Start

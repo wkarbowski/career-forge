@@ -58,7 +58,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
 
   const handleDeleteAccount = async () => {
     const confirmMsg = t('userMenu.confirmDeleteAccount') ||
-      'This will permanently delete your account and all your CV data. This cannot be undone. Type DELETE to confirm.';
+      'This will permanently delete your account and all your document data. This cannot be undone. Type DELETE to confirm.';
     const input = window.prompt(confirmMsg);
     if (input !== 'DELETE') return;
     setLoggingOut(true);
@@ -73,7 +73,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
   };
 
   const handleExportAllData = async () => {
-    // Export all CVs as a single JSON file for GDPR data portability
+    // Export all documents as a single JSON file for GDPR data portability
     try {
       const exports = await Promise.all(
         documentList.map(doc => documentApi.get(doc.id))

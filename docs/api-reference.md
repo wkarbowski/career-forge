@@ -14,7 +14,7 @@
 
 - [Health Check](#health-check)
 - [Authentication](#authentication)
-- [CVs](#cvs)
+- [Documents](#documents)
 - [Static Files](#static-files)
 - [Error Responses](#error-responses)
 - [Rate Limiting](#rate-limiting)
@@ -30,7 +30,7 @@ Root endpoint. Returns API info.
 **Response** `200 OK`
 ```json
 {
-  "app": "CV App API",
+  "app": "Career Forge API",
   "version": "1.0.0",
   "status": "running"
 }
@@ -252,13 +252,13 @@ Update user preferences (theme, language).
 
 ---
 
-## CVs
+## Documents
 
-All CV endpoints are prefixed with `/api/cvs`. All require `Authorization: Bearer <access_token>`.
+All document endpoints are prefixed with `/api/documents`. All require `Authorization: Bearer <access_token>`.
 
-### `POST /api/cvs/`
+### `POST /api/documents/`
 
-Create a new CV.
+Create a new document.
 
 **Request Body**
 ```json
@@ -268,7 +268,7 @@ Create a new CV.
 }
 ```
 
-> `data` is a JSON string containing the full CV content.
+> `data` is a JSON string containing the full document content.
 
 **Response** `201 Created`
 ```json
@@ -285,9 +285,9 @@ Create a new CV.
 
 ---
 
-### `GET /api/cvs/`
+### `GET /api/documents/`
 
-List all CVs for the authenticated user (lightweight — no `data` field).
+List all documents for the authenticated user (lightweight — no `data` field).
 
 **Response** `200 OK`
 ```json
@@ -313,9 +313,9 @@ List all CVs for the authenticated user (lightweight — no `data` field).
 
 ---
 
-### `GET /api/cvs/{cv_id}`
+### `GET /api/documents/{document_id}`
 
-Get a specific CV with full data.
+Get a specific document with full data.
 
 **Response** `200 OK`
 ```json
@@ -334,9 +334,9 @@ Get a specific CV with full data.
 
 ---
 
-### `PUT /api/cvs/{cv_id}`
+### `PUT /api/documents/{document_id}`
 
-Update a CV.
+Update a document.
 
 **Request Body**
 ```json
@@ -347,33 +347,33 @@ Update a CV.
 }
 ```
 
-All fields are optional. Setting `is_default: true` clears the default flag on all other CVs.
+All fields are optional. Setting `is_default: true` clears the default flag on all other documents.
 
-**Response** `200 OK` — Updated CV object.
+**Response** `200 OK` — Updated document object.
 
 ---
 
-### `DELETE /api/cvs/{cv_id}`
+### `DELETE /api/documents/{document_id}`
 
-Delete a CV.
+Delete a document.
 
 **Response** `204 No Content`
 
 ---
 
-### `GET /api/cvs/default/current`
+### `GET /api/documents/default/current`
 
-Get the user's default CV, or the most recently updated CV if no default is set.
+Get the user's default document, or the most recently updated document if no default is set.
 
-**Response** `200 OK` — Full CV object.
+**Response** `200 OK` — Full document object.
 
-**Errors:** `404` (no CVs exist)
+**Errors:** `404` (no documents exist)
 
 ---
 
-### `GET /api/cvs/{cv_id}/export`
+### `GET /api/documents/{document_id}/export`
 
-Export a CV as JSON with export metadata.
+Export a document as JSON with export metadata.
 
 **Response** `200 OK`
 ```json
@@ -386,9 +386,9 @@ Export a CV as JSON with export metadata.
 
 ---
 
-### `POST /api/cvs/import`
+### `POST /api/documents/import`
 
-Import a CV from exported JSON data.
+Import a document from exported JSON data.
 
 **Request Body**
 ```json
@@ -398,13 +398,13 @@ Import a CV from exported JSON data.
 }
 ```
 
-**Response** `201 Created` — New CV object.
+**Response** `201 Created` — New document object.
 
 ---
 
-### `POST /api/cvs/{cv_id}/duplicate`
+### `POST /api/documents/{document_id}/duplicate`
 
-Create a copy of an existing CV.
+Create a copy of an existing document.
 
 **Response** `201 Created`
 ```json
@@ -419,9 +419,9 @@ Create a copy of an existing CV.
 
 ---
 
-### `POST /api/cvs/{cv_id}/upload-image`
+### `POST /api/documents/{document_id}/upload-image`
 
-Upload a profile image for a CV.
+Upload a profile image for a document.
 
 **Request** `Content-Type: multipart/form-data`
 ```

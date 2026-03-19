@@ -7,7 +7,7 @@ Audit logging
 This file:
   • AuditEventType / AuditSeverity enums
   • AuditLog SQLAlchemy model  (schema — needed for table creation)
-  • AuditLogger service        (write path — called by auth/cv routes)
+  • AuditLogger service        (write path — called by auth/document routes)
   • get_client_ip / get_user_agent helpers
 
 

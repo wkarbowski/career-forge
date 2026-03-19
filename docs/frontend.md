@@ -391,8 +391,8 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 
 - **Dark theme**: Deep backgrounds (#0a0a0b), indigo accent, cyan secondary, glassmorphism effects
 - **Light theme**: Clean white backgrounds, deeper indigo, refined subtle shadows
-- **Fonts**: Inter (body), Rubik (headings) via Google Fonts
-- **Icons**: Font Awesome 6.4 via CDN
+- **Fonts**: 16 self-hosted font families via `@fontsource/*` npm packages
+- **Icons**: Font Awesome 7 self-hosted via `@fortawesome/fontawesome-free`
 
 ---
 
@@ -411,7 +411,7 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 ### Available APIs
 
 ```javascript
-import { authApi, cvApi } from './services/api';
+import { authApi, documentApi } from './services/api';
 
 // Auth
 await authApi.register(email, username, password);
@@ -422,17 +422,17 @@ await authApi.logoutAllDevices();
 await authApi.updatePreferences({ theme, language });
 await authApi.refreshToken();
 
-// CVs
-await cvApi.list();
-await cvApi.get(cvId);
-await cvApi.create(title, data);
-await cvApi.update(cvId, { title, data, is_default });
-await cvApi.delete(cvId);
-await cvApi.getDefault();
-await cvApi.duplicate(cvId);
-await cvApi.exportCv(cvId);
-await cvApi.importCv(title, data);
-await cvApi.uploadProfileImage(cvId, file);
+// Documents
+await documentApi.list();
+await documentApi.get(id);
+await documentApi.create(title, data);
+await documentApi.update(id, { title, data, is_default });
+await documentApi.delete(id);
+await documentApi.getDefault();
+await documentApi.duplicate(id);
+await documentApi.exportDocument(id);
+await documentApi.importDocument(title, data);
+await documentApi.uploadProfileImage(documentId, file);
 ```
 
 ---
@@ -451,13 +451,13 @@ await cvApi.uploadProfileImage(cvId, file);
 
 | File | Scope |
 |------|-------|
-| `App.css` | Global styles, theme variables, CV content styles, print rules |
+| `App.css` | Global styles, theme variables, document content styles, print rules |
 | `index.css` | Base reset |
 | `GlobalHeader.css` | Navigation bar |
 | `HomePage.css` | Landing page |
-| `CVDashboard.css` | Dashboard table |
-| `CVPageContainer.css` | Legacy page container |
+| `DocumentDashboard.css` | Dashboard table |
 | `CVPagesEditor.css` | Multi-page editor |
+| `CoverLetterEditor.css` | Cover letter editor |
 | `TemplatesGallery.css` | Template gallery grid |
 
 ---

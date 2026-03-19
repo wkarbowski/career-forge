@@ -31,9 +31,9 @@ pip install -r requirements.txt
 Create a `.env` file in the server directory:
 
 ```env
-APP_NAME="CV Builder API"
+APP_NAME="Career Forge API"
 DEBUG=true
-DATABASE_URL="sqlite:///./career_forge.db"
+DATABASE_URL="postgresql://careerforge:password@localhost:5432/careerforge"
 SECRET_KEY="your-secret-key-change-in-production"
 CORS_ORIGINS=["http://localhost:3000"]
 ```
@@ -62,19 +62,19 @@ The API will be available at `http://localhost:8000`
 | POST | `/api/auth/login/json` | Login (JSON body) |
 | GET | `/api/auth/me` | Get current user info |
 
-### CVs
+### Documents
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/cvs/` | List all user's CVs |
-| POST | `/api/cvs/` | Create a new CV |
-| GET | `/api/cvs/{id}` | Get a specific CV |
-| PUT | `/api/cvs/{id}` | Update a CV |
-| DELETE | `/api/cvs/{id}` | Delete a CV |
-| GET | `/api/cvs/{id}/export` | Export CV as JSON |
-| POST | `/api/cvs/import` | Import CV from JSON |
-| POST | `/api/cvs/{id}/duplicate` | Duplicate a CV |
-| GET | `/api/cvs/default/current` | Get default/latest CV |
+| GET | `/api/documents/` | List all user's documents |
+| POST | `/api/documents/` | Create a new document |
+| GET | `/api/documents/{id}` | Get a specific document |
+| PUT | `/api/documents/{id}` | Update a document |
+| DELETE | `/api/documents/{id}` | Delete a document |
+| GET | `/api/documents/{id}/export` | Export document as JSON |
+| POST | `/api/documents/import` | Import document from JSON |
+| POST | `/api/documents/{id}/duplicate` | Duplicate a document |
+| GET | `/api/documents/default/current` | Get default/latest document |
 
 ## Example Usage
 
@@ -97,7 +97,7 @@ curl -X POST "http://localhost:8000/api/auth/login/json" \
 ### Create a CV (with token)
 
 ```bash
-curl -X POST "http://localhost:8000/api/cvs/" \
+curl -X POST "http://localhost:8000/api/documents/" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title": "My CV", "data": {"personal": {"name": "John Doe"}}}'
@@ -105,12 +105,11 @@ curl -X POST "http://localhost:8000/api/cvs/" \
 
 ## Database
 
-The application uses SQLite by default. The database file (`career_forge.db`) will be created automatically in the server directory when you first run the application.
+The application requires PostgreSQL (uses JSONB columns). Configure `DATABASE_URL` in your `.env` file or run `scripts/setup_postgres.sh` to create the database.
 
 ### Models
 
-- **User**: id, email, username, hashed_password, is_active, created_at, updated_at
-- **CV**: id, title, data (JSON), owner_id, is_default, created_at, updated_at
+- **Document**: id, title, document_type, data (JSONB), owner_id, is_default, profile_image, created_at, updated_at
 
 ## Security Notes
 

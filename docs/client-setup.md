@@ -19,7 +19,7 @@
 
 ## Prerequisites
 
-- **Node.js** ≥ 16.x
+- **Node.js** ≥ 18.x
 - **npm** ≥ 8.x
 
 ### Install on Fedora
@@ -38,8 +38,8 @@ sudo apt install nodejs npm
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-nvm install 18
-nvm use 18
+nvm install 20
+nvm use 20
 ```
 
 ---
@@ -59,8 +59,8 @@ npm install
 | `react-dom` | ^18.2.0 | DOM rendering |
 | `react-router-dom` | ^7.13.0 | Client-side routing |
 | `react-scripts` | 5.0.1 | CRA build toolchain (Webpack, Babel, ESLint) |
-| `dompurify` | ^3.0.0 | HTML sanitization for inline editing |
-
+| `dompurify` | ^3.0.0 | HTML sanitization for inline editing || `@fontsource/*` | 5.2.x | 16 self-hosted font families |
+| `@fortawesome/fontawesome-free` | ^7.2.0 | Self-hosted icon library |
 ---
 
 ## Development
@@ -154,15 +154,14 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 Set `REACT_APP_API_URL` in `.env` or at build time for production.
 
-### External Resources
+### Bundled Resources
 
-Loaded via CDN in `public/index.html`:
+All fonts and icons are **self-hosted** via npm packages — no external CDN requests are made.
 
-| Resource | CDN | Purpose |
-|----------|-----|---------|
-| Inter font | Google Fonts | Body text |
-| Rubik font | Google Fonts | Headings |
-| Font Awesome 6.4 | cdnjs | Icons |
+| Resource | Package | Purpose |
+|----------|---------|---------|
+| 16 font families | `@fontsource/*` | Body text, headings, CV templates |
+| Font Awesome 7 | `@fortawesome/fontawesome-free` | UI icons |
 
 ---
 
@@ -186,9 +185,9 @@ Edit CSS custom properties in `src/App.css`:
 }
 ```
 
-### Default CV Data
+### Default Document Data
 
-Edit `src/data/initialData.js` to change the default CV content shown to new users.
+Edit `src/data/initialData.js` to change the default document content shown to new users.
 
 ### Templates
 

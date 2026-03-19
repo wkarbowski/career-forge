@@ -10,8 +10,8 @@ import './PrintButton.css';
  * Extended builds replace this with <PdfExportButton> (server-side WeasyPrint)
  * via the GlobalHeader `pdfButton` prop slot — no changes to this file needed.
  *
- * The @media print rules in CVPageContainer.css hide all editor UI so only
- * the CV pages are printed.
+ * The @media print rules in App.css hide all editor UI so only
+ * the document pages are printed.
  */
 const PrintButton = () => {
   const [printing, setPrinting] = useState(false);

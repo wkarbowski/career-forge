@@ -18,9 +18,9 @@
 
 ## Prerequisites
 
-- **Python** ≥ 3.10
+- **Python** ≥ 3.12
 - **pip** (Python package manager)
-- **PostgreSQL** (recommended for production, SQLite for development)
+- **PostgreSQL** (required — the app uses PostgreSQL-specific features like JSONB)
 - **Redis** (optional, for distributed rate limiting)
 
 ---
@@ -56,6 +56,8 @@ pip install -r requirements.txt
 | `alembic` | Database migrations |
 | `redis` | Redis client (optional) |
 | `bleach` | HTML sanitization |
+| `tinycss2` | CSS sanitization (defense-in-depth) |
+| `gunicorn` | Production WSGI server |
 
 ---
 
@@ -65,12 +67,12 @@ Create a `.env` file in the `server/` directory:
 
 ```env
 # Application
-APP_NAME=CV App API
+APP_NAME=Career Forge API
 DEBUG=true
 ENVIRONMENT=development
 
-# Database
-DATABASE_URL=sqlite:///./cv_app.db
+# Database — PostgreSQL required (JSONB columns)
+DATABASE_URL=postgresql://careerforge:password@localhost:5432/careerforge
 
 # Security
 SECRET_KEY=your-secret-key-at-least-32-characters-long
@@ -105,10 +107,10 @@ TRUSTED_HOSTS=
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `APP_NAME` | `CV App API` | Application name |
+| `APP_NAME` | `Career Forge API` | Application name |
 | `DEBUG` | `false` | Enable debug mode (Swagger docs) |
 | `ENVIRONMENT` | `development` | `development`, `staging`, or `production` |
-| `DATABASE_URL` | `sqlite:///./cv_app.db` | Database connection string |
+| `DATABASE_URL` | `postgresql://careerforge:password@localhost:5432/careerforge` | PostgreSQL connection string |
 | `SECRET_KEY` | Auto-generated (dev) | JWT signing key (min 32 chars, recommended 64+) |
 | `ALGORITHM` | `HS256` | JWT signing algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` | Access token lifetime |
@@ -161,11 +163,7 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 
 ## Database Setup
 
-### SQLite (Development)
-
-No setup needed. The database file (`cv_app.db`) is created automatically on first run.
-
-### PostgreSQL (Production)
+### PostgreSQL
 
 **Option 1: Use the setup script**
 ```bash
@@ -225,7 +223,7 @@ alembic revision --autogenerate -m "description of changes"
 ./scripts/backup_database.sh --cleanup
 ```
 
-Supports both PostgreSQL (`pg_dump`/`psql`) and SQLite (`.backup`).
+Supports PostgreSQL (`pg_dump`/`psql`).
 
 ---
 
@@ -269,10 +267,6 @@ kill -9 <PID>
 # Or use a different port
 uvicorn app.main:app --reload --port 8001
 ```
-
-**Database locked (SQLite):**
-- Ensure only one process is writing to the database
-- Switch to PostgreSQL for production workloads
 
 **CORS errors:**
 - Verify `CORS_ORIGINS` includes your frontend URL (e.g., `http://localhost:3000`)
