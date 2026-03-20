@@ -463,12 +463,22 @@
 @media print {
   .cv-pages-editor {
     background: white;
-    padding: 0;
+    padding: 0 !important;
+    min-height: 0;
+    overflow: visible;
   }
 
   .cv-pages-editor-canvas {
     gap: 0;
     transform: none !important;
+  }
+
+  .cv-content-measurer {
+    display: none !important;
+  }
+
+  .cv-page-wrapper {
+    page-break-inside: avoid;
   }
 
   .cv-page {
@@ -486,7 +496,8 @@
   .cv-page-overflow-indicator,
   .cv-add-page-btn,
   .page-controls,
-  .overflow-add-page-btn {
+  .overflow-add-page-btn,
+  .cv-page-remove-btn {
     display: none !important;
   }
 

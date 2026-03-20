@@ -20,6 +20,7 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import { FEATURES } from './config/features';
 import { documentApi } from './services/api';
 import { getTemplateById } from './data/templates';
+import html2canvas from 'html2canvas';
 
 const decodeEntities = (str) => {
   if (typeof str !== 'string') return str;
@@ -46,7 +47,12 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   
   if (loading) {
-    return <div className="loading-screen">Loading...</div>;
+    return (
+      <div className="loading-screen" role="status" aria-live="polite">
+        <div className="loading-spinner" aria-hidden="true" />
+        <span className="loading-text">Loading...</span>
+      </div>
+    );
   }
   
   if (!isAuthenticated) {
@@ -60,7 +66,12 @@ const EditorRoute = ({ children }) => {
   const { isAuthenticated, isGuest, loading } = useAuth();
   
   if (loading) {
-    return <div className="loading-screen">Loading...</div>;
+    return (
+      <div className="loading-screen" role="status" aria-live="polite">
+        <div className="loading-spinner" aria-hidden="true" />
+        <span className="loading-text">Loading...</span>
+      </div>
+    );
   }
   
   if (!isAuthenticated && !isGuest) {
@@ -86,6 +97,8 @@ function CVEditor({ onSaveStatusChange }) {
   const { t, lang } = useTranslation();
   const { theme } = useTheme();
   
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef(null);
   const fileInputRef = useRef(null);
   const saveTimeoutRef = useRef(null);
   const lastSavedDataRef = useRef(null);
@@ -306,7 +319,7 @@ function CVEditor({ onSaveStatusChange }) {
 
   useEffect(() => {
     const loadDefaultDocument = async () => {
-      if (isAuthenticated && !currentDocumentId && !cvId && sessionStorage.getItem('isTemplate') !== 'true') {
+      if (isAuthenticated && !cvId && sessionStorage.getItem('isTemplate') !== 'true') {
         try {
           const doc = await documentApi.getDefault();
           if (doc && doc.data) {
@@ -340,6 +353,8 @@ function CVEditor({ onSaveStatusChange }) {
             lastSavedDataRef.current = JSON.stringify(decodedDocumentData);
             lastSavedTitleRef.current = loadedTitle;
             documentLoadedRef.current = true;
+            // Redirect to the document's URL so the editor always reflects the last edited document
+            navigate(`/editor/${doc.id}`, { replace: true });
           }
         } catch (_err) {
           documentLoadedRef.current = true;
@@ -347,7 +362,7 @@ function CVEditor({ onSaveStatusChange }) {
       }
     };
     loadDefaultDocument();
-  }, [isAuthenticated, currentDocumentId, cvId, setData, setSettings, setVisibleSections, setSidebarOrder, setProfileImage, setDocumentType, setCoverLetterData, setCurrentDocumentId, setPages, setUserForcedMax, setDocumentTitle]);
+  }, [isAuthenticated, cvId, setData, setSettings, setVisibleSections, setSidebarOrder, setProfileImage, setDocumentType, setCoverLetterData, setCurrentDocumentId, setPages, setUserForcedMax, setDocumentTitle, navigate]);
 
   // Re-apply template styling from sessionStorage on mount.
   useEffect(() => {
@@ -437,6 +452,46 @@ function CVEditor({ onSaveStatusChange }) {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportPdf = () => {
+    setShowExportMenu(false);
+    window.print();
+  };
+
+  const handleExportPng = async () => {
+    setShowExportMenu(false);
+    const target = document.querySelector('.cv-pages-editor-canvas') || document.querySelector('.cl-editor');
+    if (!target) return;
+    try {
+      const canvas = await html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const link = document.createElement('a');
+      const fileName = data?.name
+        ? `${data.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.png`
+        : `document-${new Date().toISOString().split('T')[0]}.png`;
+      link.download = fileName;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('PNG export failed:', err);
+    }
+  };
+
+  // Close export dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showExportMenu]);
+
   const handleImport = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -476,7 +531,7 @@ function CVEditor({ onSaveStatusChange }) {
   return (
     <>
       {/* Editor-specific toolbar for print/export/import */}
-      <div className="editor-toolbar">
+      <div className="editor-toolbar" role="toolbar" aria-label="Document actions">
         <div className="document-title-wrapper">
           {isEditingTitle ? (
             <div className="title-edit-container">
@@ -487,16 +542,17 @@ function CVEditor({ onSaveStatusChange }) {
                 value={editingTitleValue}
                 onChange={(e) => setEditingTitleValue(e.target.value)}
                 onKeyDown={handleTitleKeyDown}
+                aria-label={t('editor.documentTitle') || 'Document title'}
               />
-              <button className="title-action-btn save" onClick={handleTitleSave} title={t('common.save')}>
+              <button className="title-action-btn save" onClick={handleTitleSave} title={t('common.save')} aria-label={t('common.save')}>
                 <i className="fas fa-check"></i>
               </button>
-              <button className="title-action-btn cancel" onClick={() => setIsEditingTitle(false)} title={t('common.cancel')}>
+              <button className="title-action-btn cancel" onClick={() => setIsEditingTitle(false)} title={t('common.cancel')} aria-label={t('common.cancel')}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
           ) : (
-            <button className="document-title" onClick={handleTitleEdit}>
+            <button className="document-title" onClick={handleTitleEdit} aria-label={t('editor.editTitle') || 'Edit document title'}>
               <i className="fas fa-file-alt"></i>
               <span>{documentTitle || t('editor.untitledDocument') || 'Untitled Document'}</span>
               <i className="fas fa-pen edit-icon"></i>
@@ -504,10 +560,26 @@ function CVEditor({ onSaveStatusChange }) {
           )}
         </div>
         <div className="toolbar-buttons">
-          <button className="secondary" onClick={handleExport}>
-            <i className="fas fa-download"></i> {t('toolbar.export')}
-          </button>
-          <label className="secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="export-dropdown" ref={exportMenuRef}>
+            <button className="secondary" onClick={() => setShowExportMenu(prev => !prev)} aria-expanded={showExportMenu} aria-haspopup="true">
+              <i className="fas fa-download"></i> {t('toolbar.export')}
+              <i className={`fas fa-chevron-${showExportMenu ? 'up' : 'down'} export-chevron`}></i>
+            </button>
+            {showExportMenu && (
+              <div className="export-dropdown-menu" role="menu">
+                <button role="menuitem" onClick={() => { handleExport(); setShowExportMenu(false); }}>
+                  <i className="fas fa-file-code"></i> {t('toolbar.exportJson')}
+                </button>
+                <button role="menuitem" onClick={handleExportPdf}>
+                  <i className="fas fa-file-pdf"></i> {t('toolbar.exportPdf')}
+                </button>
+                <button role="menuitem" onClick={handleExportPng}>
+                  <i className="fas fa-file-image"></i> {t('toolbar.exportPng')}
+                </button>
+              </div>
+            )}
+          </div>
+          <label className="secondary toolbar-import-btn">
             <i className="fas fa-upload"></i> {t('toolbar.import')}
             <input 
               ref={fileInputRef}
@@ -515,6 +587,7 @@ function CVEditor({ onSaveStatusChange }) {
               accept=".json" 
               style={{ display: 'none' }} 
               onChange={handleImport}
+              aria-label={t('toolbar.import')}
             />
           </label>
         </div>
@@ -685,8 +758,9 @@ function AppContentInner() {
 
   return (
     <>
+      <a href="#main-content" className="skip-to-content">Skip to content</a>
       <GlobalHeader onLoadDocument={handleLoadDocument} saveStatus={saveStatus} />
-      <main className="app-main">
+      <main className="app-main" id="main-content">
         <Routes>
           <Route path="/" element={<HomePageWrapper />} />
           <Route path="/templates" element={<TemplatesGalleryWrapper />} />

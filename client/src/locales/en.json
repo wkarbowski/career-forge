@@ -5,6 +5,14 @@
     "feature1": "Multiple templates",
     "feature2": "Multi-language support",
     "feature3": "Export to PDF",
+    "featureTitle1": "Beautiful Templates",
+    "featureDesc1": "Choose from professional, modern, and creative designs tailored for any industry.",
+    "featureTitle2": "Multi‑Language",
+    "featureDesc2": "Build your CV in English or German with full UI and content localization.",
+    "featureTitle3": "Export Anywhere",
+    "featureDesc3": "Download as PDF, PNG, or JSON. Print directly from the editor.",
+    "featureTitle4": "Privacy First",
+    "featureDesc4": "All fonts and assets are self‑hosted. No data is sent to third parties.",
     "loginButton": "Login / Register",
     "guestButton": "Continue as Guest",
     "guestNote": "Your work won't be saved when you leave",
@@ -21,6 +29,9 @@
   "toolbar": {
     "print": "Print",
     "export": "Export",
+    "exportJson": "JSON",
+    "exportPdf": "PDF",
+    "exportPng": "PNG",
     "import": "Import",
     "settings": "Settings",
     "selectText": "Select text to format",
@@ -160,7 +171,10 @@
     "deleteAccount": "Delete Account",
     "deleteAccountTooltip": "Permanently delete your account (GDPR right to erasure)",
     "confirmDeleteAccount": "This will permanently delete your account and all CV data. Type DELETE to confirm.",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "documents": "Documents",
+    "session": "Session",
+    "dataPrivacy": "Data & Privacy"
   },
   "saveStatus": {
     "saving": "Saving...",
@@ -196,7 +210,9 @@
     "justNow": "Just now",
     "minsAgo": "{n} min ago",
     "hoursAgo": "{n} hours ago",
-    "daysAgo": "{n} days ago"
+    "daysAgo": "{n} days ago",
+    "gridView": "Grid view",
+    "tableView": "Table view"
   },
   "pages": {
     "previous": "Previous Page",
@@ -217,6 +233,15 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "accessibility": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "changeLanguage": "Change language"
+  },
+  "editor": {
+    "documentTitle": "Document title",
+    "editTitle": "Edit document title"
   },
   "coverLetter": {
     "name": "Full name",

@@ -7,6 +7,13 @@ import './HomePage.css';
 const HomePage = ({ onLogin, onGuestStart, onBrowseTemplates, isLoggedIn, isGuest }) => {
   const { t } = useTranslation();
 
+  const features = [
+    { icon: 'fas fa-palette', titleKey: 'home.featureTitle1', descKey: 'home.featureDesc1', fallbackTitle: 'Beautiful Templates', fallbackDesc: 'Choose from professional, modern, and creative designs tailored for any industry.' },
+    { icon: 'fas fa-language', titleKey: 'home.featureTitle2', descKey: 'home.featureDesc2', fallbackTitle: 'Multi‑Language', fallbackDesc: 'Build your CV in English or German with full UI and content localization.' },
+    { icon: 'fas fa-file-pdf', titleKey: 'home.featureTitle3', descKey: 'home.featureDesc3', fallbackTitle: 'Export Anywhere', fallbackDesc: 'Download as PDF, PNG, or JSON. Print directly from the editor.' },
+    { icon: 'fas fa-lock', titleKey: 'home.featureTitle4', descKey: 'home.featureDesc4', fallbackTitle: 'Privacy First', fallbackDesc: 'All fonts and assets are self‑hosted. No data is sent to third parties.' },
+  ];
+
   return (
     <div className="home-page">
       {!isLoggedIn && !isGuest && (
@@ -18,26 +25,23 @@ const HomePage = ({ onLogin, onGuestStart, onBrowseTemplates, isLoggedIn, isGues
       
       <div className="home-content">
         <div className="home-hero">
-          <div className="home-icon">
+          <div className="home-icon" aria-hidden="true">
             <i className="fas fa-hammer"></i>
           </div>
           <h1>{t('home.title')}</h1>
           <p className="home-subtitle">{t('home.subtitle')}</p>
         </div>
 
-        <div className="home-features">
-          <div className="feature">
-            <i className="fas fa-palette"></i>
-            <span>{t('home.feature1')}</span>
-          </div>
-          <div className="feature">
-            <i className="fas fa-language"></i>
-            <span>{t('home.feature2')}</span>
-          </div>
-          <div className="feature">
-            <i className="fas fa-download"></i>
-            <span>{t('home.feature3')}</span>
-          </div>
+        <div className="home-features-grid">
+          {features.map((f, i) => (
+            <div key={i} className="feature-card">
+              <div className="feature-card-icon" aria-hidden="true">
+                <i className={f.icon}></i>
+              </div>
+              <h3 className="feature-card-title">{t(f.titleKey) || f.fallbackTitle}</h3>
+              <p className="feature-card-desc">{t(f.descKey) || f.fallbackDesc}</p>
+            </div>
+          ))}
         </div>
 
         <div className="home-actions">

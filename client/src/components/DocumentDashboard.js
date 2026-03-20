@@ -10,6 +10,7 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
   const { setDocumentTitle } = useAppState();
   const { t } = useTranslation();
   const [filterType, setFilterType] = useState('all'); // all | resume | cover-letter
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
   
   const [sortConfig, setSortConfig] = useState({ key: 'updated_at', direction: 'desc' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -265,6 +266,26 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
           <span className="cv-count">
             {t('dashboard.totalCvs').replace('{count}', documentList.length)}
           </span>
+
+          <div className="view-toggle" role="radiogroup" aria-label={t('dashboard.viewMode') || 'View mode'}>
+            <button
+              className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+              title={t('dashboard.gridView') || 'Grid view'}
+            >
+              <i className="fas fa-th-large"></i>
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              aria-pressed={viewMode === 'table'}
+              title={t('dashboard.tableView') || 'Table view'}
+            >
+              <i className="fas fa-list"></i>
+            </button>
+          </div>
+
           {selectedCvs.size > 0 && (
             <button 
               className="delete-selected-btn"
@@ -278,6 +299,94 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
         </div>
       </div>
 
+      {/* Card Grid View */}
+      {viewMode === 'grid' && (
+        <div className="dashboard-grid">
+          {processedCvs.length === 0 ? (
+            <div className="empty-state grid-empty">
+              <i className="fas fa-folder-open"></i>
+              <p>
+                {searchTerm
+                  ? t('dashboard.noResults')
+                  : filterType === 'all'
+                    ? t('dashboard.noCvs')
+                    : filterType === 'resume'
+                      ? t('dashboard.noResumes')
+                      : t('dashboard.noCoverLetters')
+                }
+              </p>
+            </div>
+          ) : (
+            processedCvs.map((cv) => {
+              const docType = detectDocumentType(cv);
+              const name = decodeEntities(cv.data?.data?.personal?.name) || '';
+              const position = decodeEntities(cv.data?.data?.personal?.position) || '';
+              return (
+                <div
+                  key={cv.id}
+                  className={`dashboard-card ${selectedCvs.has(cv.id) ? 'selected' : ''}`}
+                  onClick={() => onEditDocument(cv.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') onEditDocument(cv.id); }}
+                >
+                  <div className="dashboard-card-header">
+                    <div className={`card-type-badge ${docType}`}>
+                      <i className={`fas ${docType === 'cover-letter' ? 'fa-envelope' : 'fa-file-alt'}`}></i>
+                      {docType === 'cover-letter' ? t('templates.types.cover-letter') : t('templates.types.resume')}
+                    </div>
+                    <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="card-action-btn" onClick={() => handleDuplicate(cv)} title={t('dashboard.duplicate')}>
+                        <i className="fas fa-copy"></i>
+                      </button>
+                      <button className="card-action-btn danger" onClick={() => handleDeleteOne(cv.id)} title={t('dashboard.delete')}>
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="dashboard-card-body">
+                    {editingId === cv.id ? (
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        className="inline-edit-input"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyDown={(e) => handleRenameKeyDown(e, cv.id)}
+                        onBlur={() => handleRenameSubmit(cv.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <h3 className="card-title">{cv.title}</h3>
+                    )}
+                    {name && <p className="card-name">{name}</p>}
+                    {position && <p className="card-position">{position}</p>}
+                  </div>
+                  <div className="dashboard-card-footer">
+                    <span className="card-date" title={formatDate(cv.updated_at)}>
+                      <i className="fas fa-clock"></i>
+                      {formatRelativeDate(cv.updated_at)}
+                    </span>
+                    <div className="card-quick-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="card-action-btn" onClick={() => handleRename(cv)} title={t('dashboard.rename')}>
+                        <i className="fas fa-pen"></i>
+                      </button>
+                      {onPrintDocument && (
+                        <button className="card-action-btn" onClick={() => onPrintDocument(cv.id)} title={t('dashboard.print')}>
+                          <i className="fas fa-print"></i>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* Table View */}
+      {viewMode === 'table' && (
       <div className="table-container">
         <table className="cv-table">
           <thead>
@@ -424,6 +533,7 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
           </tbody>
         </table>
       </div>
+      )}
 
       {processedCvs.length > 0 && (
         <div className="table-footer">

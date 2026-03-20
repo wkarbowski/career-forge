@@ -176,7 +176,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
       </button>
 
       {isOpen && (
-        <div className="user-menu-dropdown">
+        <div className="user-menu-dropdown" role="menu">
           <div className="user-menu-header">
             <span className="user-email">{user.email}</span>
           </div>
@@ -189,10 +189,32 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
             </div>
           )}
 
+          {/* Documents Section */}
           <div className="user-menu-section">
+            <div className="user-menu-section-label">{t('userMenu.documents') || 'Documents'}</div>
+            <button className="user-menu-item dashboard" onClick={handleShowDashboard} role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+              {t('userMenu.dashboard')}
+            </button>
+
+            <button className="user-menu-item" onClick={handleNewDocument} role="menuitem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              {t('userMenu.newCv')}
+            </button>
+
             <button 
               className="user-menu-item"
               onClick={() => setShowCvList(!showCvList)}
+              aria-expanded={showCvList}
+              role="menuitem"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -228,7 +250,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
                       <button 
                         className="cv-delete-btn"
                         onClick={(e) => handleDeleteDocument(e, doc.id)}
-                        title="Delete document"
+                        title={t('dashboard.delete') || 'Delete document'}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="3 6 5 6 21 6" />
@@ -240,99 +262,99 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
                 )}
               </div>
             )}
+          </div>
 
-            <button className="user-menu-item" onClick={handleNewDocument}>
+          <div className="user-menu-divider" />
+
+          {/* Session Section */}
+          <div className="user-menu-section">
+            <div className="user-menu-section-label">{t('userMenu.session') || 'Session'}</div>
+            <button 
+              className="user-menu-item logout" 
+              onClick={handleLogout}
+              disabled={loggingOut}
+              role="menuitem"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              {t('userMenu.newCv')}
+              {loggingOut ? t('auth.loggingOut') || 'Logging out...' : t('auth.logout')}
             </button>
-
-            <button className="user-menu-item dashboard" onClick={handleShowDashboard}>
+          
+            <button 
+              className="user-menu-item logout-all" 
+              onClick={handleLogoutAllDevices}
+              disabled={loggingOut}
+              title={t('userMenu.logoutAllTooltip') || 'Log out from all browsers and devices'}
+              role="menuitem"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+                <circle cx="5" cy="18" r="1.5" fill="currentColor" />
+                <circle cx="5" cy="12" r="1.5" fill="currentColor" />
+                <circle cx="5" cy="6" r="1.5" fill="currentColor" />
               </svg>
-              {t('userMenu.dashboard')}
+              {t('userMenu.logoutAll') || 'Logout All Devices'}
             </button>
           </div>
 
           <div className="user-menu-divider" />
 
-          <button 
-            className="user-menu-item logout" 
-            onClick={handleLogout}
-            disabled={loggingOut}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            {loggingOut ? t('auth.loggingOut') || 'Logging out...' : t('auth.logout')}
-          </button>
-          
-          <button 
-            className="user-menu-item logout-all" 
-            onClick={handleLogoutAllDevices}
-            disabled={loggingOut}
-            title={t('userMenu.logoutAllTooltip') || 'Log out from all browsers and devices'}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-              <circle cx="5" cy="18" r="1.5" fill="currentColor" />
-              <circle cx="5" cy="12" r="1.5" fill="currentColor" />
-              <circle cx="5" cy="6" r="1.5" fill="currentColor" />
-            </svg>
-            {t('userMenu.logoutAll') || 'Logout All Devices'}
-          </button>
+          {/* Data & Privacy Section */}
+          <div className="user-menu-section">
+            <div className="user-menu-section-label">{t('userMenu.dataPrivacy') || 'Data & Privacy'}</div>
+            <button
+              className="user-menu-item export-data"
+              onClick={handleExportAllData}
+              title={t('userMenu.exportDataTooltip') || 'Download all your CV data as JSON (GDPR data portability)'}
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              {t('userMenu.exportData') || 'Export My Data'}
+            </button>
+
+            <a
+              className="user-menu-item privacy-link"
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              {t('userMenu.privacyPolicy') || 'Privacy Policy'}
+            </a>
+          </div>
 
           <div className="user-menu-divider" />
 
-          <button
-            className="user-menu-item export-data"
-            onClick={handleExportAllData}
-            title={t('userMenu.exportDataTooltip') || 'Download all your CV data as JSON (GDPR data portability)'}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            {t('userMenu.exportData') || 'Export My Data'}
-          </button>
-
-          <a
-            className="user-menu-item privacy-link"
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-            {t('userMenu.privacyPolicy') || 'Privacy Policy'}
-          </a>
-
-          <button
-            className="user-menu-item delete-account"
-            onClick={handleDeleteAccount}
-            disabled={loggingOut}
-            title={t('userMenu.deleteAccountTooltip') || 'Permanently delete your account (GDPR right to erasure)'}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              <line x1="10" y1="11" x2="10" y2="17" />
-              <line x1="14" y1="11" x2="14" y2="17" />
-            </svg>
-            {t('userMenu.deleteAccount') || 'Delete Account'}
-          </button>
+          {/* Danger Zone */}
+          <div className="user-menu-section user-menu-danger-zone">
+            <button
+              className="user-menu-item delete-account"
+              onClick={handleDeleteAccount}
+              disabled={loggingOut}
+              title={t('userMenu.deleteAccountTooltip') || 'Permanently delete your account (GDPR right to erasure)'}
+              role="menuitem"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              {t('userMenu.deleteAccount') || 'Delete Account'}
+            </button>
+          </div>
         </div>
       )}
     </div>

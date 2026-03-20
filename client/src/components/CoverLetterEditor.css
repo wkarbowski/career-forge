@@ -370,16 +370,48 @@
 
 @media print {
   .cl-editor {
-    padding: 0;
+    padding: 0 !important;
+    min-height: 0;
     background: transparent;
+  }
+
+  .cl-canvas {
+    transform: none !important;
   }
 
   .cl-page {
     box-shadow: none;
     margin: 0;
+    min-height: 0 !important;
   }
 
   .page-controls {
     display: none !important;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .cl-canvas {
+    transform: scale(0.85);
+  }
+
+  .cl-editor {
+    padding: 20px 0 80px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .cl-canvas {
+    transform: scale(0.65);
+  }
+
+  .cl-editor {
+    padding: 16px 0 80px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .cl-canvas {
+    transform: scale(0.48);
   }
 }

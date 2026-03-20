@@ -6,18 +6,9 @@ import LanguageSwitcher from './LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
 import UserMenu from './UserMenu';
 import AuthModal from './AuthModal';
-import PrintButton from './PrintButton';
-import { FEATURES } from '../config/features';
 import './GlobalHeader.css';
 
-/**
- * GlobalHeader
- *
- * @param {ReactNode} pdfButton  – Extended slot: pass <PdfExportButton cvId={...} />
- *                                 to replace the default browser-print button.
- *                                 Default: <PrintButton /> (window.print).
- */
-const GlobalHeader = ({ onLoadDocument, saveStatus, pdfButton = null }) => {
+const GlobalHeader = ({ onLoadDocument, saveStatus }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -104,11 +95,6 @@ const GlobalHeader = ({ onLoadDocument, saveStatus, pdfButton = null }) => {
               {saveStatus === 'saved' && <><i className="fas fa-check"></i> {t('saveStatus.saved')}</>}
               {saveStatus === 'error' && <><i className="fas fa-exclamation-triangle"></i> {t('saveStatus.error')}</>}
             </span>
-          )}
-
-          {/* PDF export — Default: browser print dialog / Extended: server-side PDF via pdfButton prop */}
-          {isEditor && (
-            pdfButton ?? (!FEATURES.PDF_EXPORT && <PrintButton />)
           )}
 
           <LanguageSwitcher />
