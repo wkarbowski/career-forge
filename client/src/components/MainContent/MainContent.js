@@ -100,7 +100,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
                       value={exp.period}
                       onChange={(val) => _updateArrayItem('experience', exp.id, 'period', val)}
                       tag="span"
-                      style={{ fontSize: '13px', color: '#6b7280' }}
+                      className="text-muted-inline"
                       placeholder={t('placeholders.period')}
                     />
                 </div>
@@ -118,7 +118,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
                       value={exp.location || ''}
                       onChange={(val) => _updateArrayItem('experience', exp.id, 'location', val)}
                       tag="span"
-                      style={{ fontSize: '13px', color: '#6b7280' }}
+                      className="text-muted-inline"
                       placeholder={t('placeholders.location')}
                     />
                 </div>
@@ -176,7 +176,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
                     value={edu.period}
                     onChange={(val) => _updateArrayItem('education', edu.id, 'period', val)}
                     tag="span"
-                    style={{ fontSize: '13px', color: '#6b7280' }}
+                    className="text-muted-inline"
                     placeholder={t('placeholders.period')}
                   />
                 </div>
@@ -193,7 +193,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
                     value={edu.location || ''}
                     onChange={(val) => _updateArrayItem('education', edu.id, 'location', val)}
                     tag="span"
-                    style={{ fontSize: '13px', color: '#6b7280' }}
+                    className="text-muted-inline"
                     placeholder={t('placeholders.location')}
                   />
                 </div>

@@ -1,8 +1,14 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from '../i18n';
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
+  const isDark = theme === 'dark';
+  const label = isDark
+    ? (t('accessibility.switchToLight') || 'Switch to light mode')
+    : (t('accessibility.switchToDark') || 'Switch to dark mode');
 
   return (
     <button
@@ -16,9 +22,10 @@ const ThemeToggle = () => {
         gap: '8px',
         cursor: 'pointer',
       }}
-      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={label}
+      aria-label={label}
     >
-      <i className={theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'}></i>
+      <i className={isDark ? 'fas fa-sun' : 'fas fa-moon'}></i>
     </button>
   );
 };

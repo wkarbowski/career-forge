@@ -7,20 +7,23 @@ const languageNames = {
 };
 
 const LanguageSwitcher = () => {
-  const { lang, setLang, availableLanguages } = useTranslation();
+  const { lang, setLang, availableLanguages, t } = useTranslation();
 
   return (
-    <select
-      value={lang}
-      onChange={(e) => setLang(e.target.value)}
-      title="Change language"
-    >
-      {availableLanguages.map((code) => (
-        <option key={code} value={code}>
-          {languageNames[code] || code.toUpperCase()}
-        </option>
-      ))}
-    </select>
+    <label className="language-switcher-label" style={{ display: 'contents' }}>
+      <span className="sr-only">{t('accessibility.changeLanguage') || 'Change language'}</span>
+      <select
+        value={lang}
+        onChange={(e) => setLang(e.target.value)}
+        aria-label={t('accessibility.changeLanguage') || 'Change language'}
+      >
+        {availableLanguages.map((code) => (
+          <option key={code} value={code}>
+            {languageNames[code] || code.toUpperCase()}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 };
 

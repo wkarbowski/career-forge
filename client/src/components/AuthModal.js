@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
 
@@ -23,9 +23,45 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
   const [gdprConsent, setGdprConsent] = useState(false);
   const [localError, setLocalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modalRef = useRef(null);
 
   const { login, register, error, clearError } = useAuth();
   const { t } = useTranslation();
+
+  // Focus trap + Escape key handling
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !modalRef.current) return;
+      const focusable = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    // Focus first input on open
+    const timer = setTimeout(() => {
+      const firstInput = modalRef.current?.querySelector('input');
+      if (firstInput) firstInput.focus();
+    }, 50);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      clearTimeout(timer);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -97,11 +133,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
   const displayError = localError || error;
 
   return (
-    <div className="auth-modal-overlay" onClick={handleClose}>
-      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="auth-modal-close" onClick={handleClose}>×</button>
+    <div className="auth-modal-overlay" onClick={handleClose} role="presentation">
+      <div className="auth-modal" ref={modalRef} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <button className="auth-modal-close" onClick={handleClose} aria-label={t('common.cancel') || 'Close'}>×</button>
         
-        <h2>{mode === 'login' ? t('auth.login') : t('auth.register')}</h2>
+        <h2 id="auth-modal-title">{mode === 'login' ? t('auth.login') : t('auth.register')}</h2>
         
         {displayError && (
           <div className="auth-error">{displayError}</div>
