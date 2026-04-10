@@ -56,6 +56,32 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return encoded_jwt
 
 
+def create_password_reset_token(user_id: int, expires_minutes: int = 30) -> str:
+    """Create a short-lived JWT token for password reset."""
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+    to_encode = {
+        "sub": str(user_id),
+        "exp": expire,
+        "type": "password_reset",
+        "iat": datetime.now(timezone.utc),
+    }
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+
+
+def verify_password_reset_token(token: str) -> Optional[int]:
+    """Verify a password reset token and return the user_id if valid."""
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        if payload.get("type") != "password_reset":
+            return None
+        user_id = payload.get("sub")
+        if user_id is None:
+            return None
+        return int(user_id)
+    except JWTError:
+        return None
+
+
 def create_refresh_token(
     user_id: int, 
     db: Session,

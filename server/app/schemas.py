@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional, Any
+from typing import Optional, Any, List
 from datetime import datetime
 import re
 
@@ -102,9 +102,64 @@ class AccessTokenResponse(BaseModel):
     expires_in: int  # Access token expiration in seconds
 
 
+class PasswordChange(BaseModel):
+    """Schema for changing user password."""
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password_strength(cls, v: str) -> str:
+        """Validate new password meets security requirements."""
+        errors = []
+        if len(v) < 8:
+            errors.append('at least 8 characters')
+        if not re.search(r'[A-Z]', v):
+            errors.append('one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            errors.append('one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            errors.append('one number')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]', v):
+            errors.append('one special character (!@#$%^&*...)')
+        if errors:
+            raise ValueError(f'Password must contain {", ".join(errors)}')
+        return v
+
+
 class RefreshTokenRequest(BaseModel):
     """Request body for token refresh (fallback for clients not using cookies)."""
     refresh_token: Optional[str] = None  # Optional - can use cookie instead
+
+
+class PasswordResetRequest(BaseModel):
+    """Schema for requesting a password reset."""
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    """Schema for completing a password reset with a token."""
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_reset_password_strength(cls, v: str) -> str:
+        """Validate new password meets security requirements."""
+        errors = []
+        if len(v) < 8:
+            errors.append('at least 8 characters')
+        if not re.search(r'[A-Z]', v):
+            errors.append('one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            errors.append('one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            errors.append('one number')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\\-+=\\[\\]\\\\/~`]', v):
+            errors.append('one special character (!@#$%^&*...)')
+        if errors:
+            raise ValueError(f'Password must contain {", ".join(errors)}')
+        return v
 
 
 class TokenData(BaseModel):
@@ -164,4 +219,41 @@ class DocumentImport(BaseModel):
     """Schema for importing document data."""
     title: Optional[str] = "Imported CV"
     document_type: str = Field(default="resume", pattern="^(resume|cover_letter)$")
+    data: Any
+
+
+# ============== Version Schemas ==============
+
+class DocumentVersionCreate(BaseModel):
+    """Schema for creating a document version snapshot."""
+    version_name: str = Field(..., min_length=1, max_length=255)
+
+
+class DocumentVersionResponse(BaseModel):
+    """Schema for version list items."""
+    id: int
+    version_name: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentVersionDetailResponse(DocumentVersionResponse):
+    """Schema for version detail including data."""
+    data: Any
+
+
+# ============== Share Schemas ==============
+
+class ShareLinkResponse(BaseModel):
+    """Schema for a share link token."""
+    share_token: str
+    url: str
+
+
+class SharedDocumentResponse(BaseModel):
+    """Public response for a shared document (no owner info)."""
+    title: str
+    document_type: str
     data: Any

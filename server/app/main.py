@@ -1,16 +1,21 @@
 import os
+import asyncio
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends, HTTPException
+from sqlalchemy.orm import Session
 import logging
 
 from app.config import get_settings
-from app.database import engine, Base
+from app.database import engine, Base, get_db, SessionLocal
 from app.routes import auth, documents
 from app.security import setup_security_middleware
-from app.models import User, Document, RefreshToken  # noqa: F401
+from app.models import User, Document, DocumentVersion, RefreshToken  # noqa: F401
+from app.schemas import SharedDocumentResponse
 from app.audit import AuditLog  # noqa: F401
+from app.auth import cleanup_expired_tokens
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,6 +74,30 @@ app.include_router(documents.router, prefix="/api")
         )
 
 
+TOKEN_CLEANUP_INTERVAL = 24 * 60 * 60  # 24 hours
+
+
+async def _periodic_token_cleanup():
+    """Background task that purges expired refresh tokens daily."""
+    while True:
+        await asyncio.sleep(TOKEN_CLEANUP_INTERVAL)
+        try:
+            db = SessionLocal()
+            try:
+                deleted = cleanup_expired_tokens(db)
+                if deleted:
+                    logger.info("Token cleanup: removed %d expired tokens", deleted)
+            finally:
+                db.close()
+        except Exception:
+            logger.exception("Token cleanup failed")
+
+
+@app.on_event("startup")
+async def start_token_cleanup():
+    asyncio.create_task(_periodic_token_cleanup())
+
+
 @app.get("/")
 async def root():
     """Root endpoint - health check."""
@@ -86,3 +115,16 @@ async def health_check():
         "status": "healthy",
         "environment": settings.environment
     }
+
+
+@app.get("/api/shared/{share_token}", response_model=SharedDocumentResponse)
+async def get_shared_document(share_token: str, db: Session = Depends(get_db)):
+    """Public endpoint to view a shared document (no auth required)."""
+    doc = db.query(Document).filter(Document.share_token == share_token).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Shared document not found")
+    return SharedDocumentResponse(
+        title=doc.title,
+        document_type=doc.document_type,
+        data=doc.data,
+    )

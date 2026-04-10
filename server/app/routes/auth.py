@@ -8,7 +8,8 @@ from app.database import get_db
 from app.models import User
 from app.schemas import (
     UserCreate, UserResponse, AccessTokenResponse,
-    UserLogin, UserPreferences, RefreshTokenRequest
+    UserLogin, UserPreferences, RefreshTokenRequest,
+    PasswordChange, PasswordResetRequest, PasswordResetConfirm
 )
 from app.auth import (
     get_password_hash,
@@ -19,7 +20,9 @@ from app.auth import (
     rotate_refresh_token,
     revoke_refresh_token,
     revoke_all_user_tokens,
-    get_current_active_user
+    get_current_active_user,
+    create_password_reset_token,
+    verify_password_reset_token
 )
 from app.config import get_settings
 from app.security import InputSanitizer, account_lockout
@@ -481,6 +484,161 @@ async def update_preferences(
     db.refresh(current_user)
     
     return current_user
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: Request,
+    reset_request: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Request a password reset token.
+    
+    
+    
+    
+    Always returns 200 to prevent email enumeration attacks.
+    """
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+    email = reset_request.email.lower()
+    
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user or not user.is_active:
+        from app.audit import AuditEventType
+        audit_logger.log(
+            db=db,
+            event_type=AuditEventType.PASSWORD_RESET_REQUESTED,
+            description=f"Password reset requested for unknown/inactive email: {email}",
+            ip_address=ip_address,
+            user_agent=user_agent,
+            endpoint="/api/auth/forgot-password",
+            success=False
+        )
+        # Return same response shape to prevent email enumeration
+        return {
+            "message": "If an account with that email exists, a reset token has been generated.",
+        }
+    
+    reset_token = create_password_reset_token(user.id)
+    
+    from app.audit import AuditEventType
+    audit_logger.log(
+        db=db,
+        event_type=AuditEventType.PASSWORD_RESET_REQUESTED,
+        user_id=user.id,
+        user_email=user.email,
+        description="Password reset token generated",
+        ip_address=ip_address,
+        user_agent=user_agent,
+        endpoint="/api/auth/forgot-password",
+        success=True
+    )
+    
+    # Return token directly (no email service configured)
+    # Extended: the extension overlay overrides this endpoint to send via email
+        return {
+            "message": "If an account with that email exists, a reset token has been generated.",
+            "reset_token": reset_token,
+        }
+    
+    return {
+        "message": "If an account with that email exists, a reset link has been sent.",
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: Request,
+    reset_data: PasswordResetConfirm,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password using a valid reset token.
+    
+    Validates the token, updates the password, and revokes all existing
+    refresh tokens for security.
+    """
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+    
+    user_id = verify_password_reset_token(reset_data.token)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+    
+    user.hashed_password = get_password_hash(reset_data.new_password)
+    db.commit()
+    
+    # Revoke all refresh tokens for security
+    revoke_all_user_tokens(user.id, db)
+    
+    from app.audit import AuditEventType
+    audit_logger.log(
+        db=db,
+        event_type=AuditEventType.PASSWORD_RESET_COMPLETED,
+        user_id=user.id,
+        user_email=user.email,
+        description="Password reset completed successfully",
+        ip_address=ip_address,
+        user_agent=user_agent,
+        endpoint="/api/auth/reset-password",
+        success=True
+    )
+    
+    return {"message": "Password has been reset successfully. Please log in with your new password."}
+
+
+@router.post("/change-password")
+async def change_password(
+    request: Request,
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Change the current user's password.
+    
+    Requires the current password for verification and a new password
+    that meets the strength requirements.
+    """
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+    
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    current_user.hashed_password = get_password_hash(password_data.new_password)
+    db.commit()
+    
+    from app.audit import AuditEventType
+    audit_logger.log(
+        db=db,
+        event_type=AuditEventType.PASSWORD_CHANGED,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        description="Password changed successfully",
+        ip_address=ip_address,
+        user_agent=user_agent,
+        endpoint="/api/auth/change-password",
+        success=True
+    )
+    
+    return {"message": "Password changed successfully"}
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
