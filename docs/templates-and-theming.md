@@ -23,9 +23,12 @@ Templates define the visual style and section configuration for CV documents. Th
 
 | ID | Name | Type | Category | Sidebar Colors |
 |----|------|------|----------|------|
-| `classic-professional` | Classic Professional | Resume | Professional | Indigo gradient (#312e81 → #4f46e5) |
-| `resume-modern` | Resume Modern | Resume | Modern | Cyan gradient (#0e7490 → #06b6d4) |
-| `cover-professional` | Cover Professional | Cover Letter | Professional | Indigo accent |
+| `resume-modern` | Modern Professional | Resume | Modern | Teal (#006666) |
+| `classic-professional` | Classic Professional | Resume | Professional | Navy gradient (#0f2847 → #1e3a5f) |
+| `executive-prestige` | Executive Prestige | Resume | Professional | Dark gradient (#111827 → #374151) |
+| `ats-optimized` | ATS Optimized | Resume | Technical | Navy gradient (#1a1a2e → #16213e) |
+| `cover-executive` | Executive Cover Letter | Cover Letter | Professional | Dark gradient (#111827 → #374151) |
+| `cover-professional` | Standard Cover Letter | Cover Letter | Professional | Indigo accent (#2563eb) |
 
 ### Template Structure
 
@@ -70,9 +73,12 @@ Located in `src/data/templates.js`:
 
 | Template ID | Type | Description |
 |-------------|------|-------------|
-| `classic-professional` | `resume` | Default resume with indigo sidebar |
-| `resume-modern` | `resume` | Modern layout with cyan color scheme |
-| `cover-professional` | `cover-letter` | DIN 5008 cover letter with signature support |
+| `resume-modern` | `resume` | Sleek modern design with teal tones |
+| `classic-professional` | `resume` | Traditional professional resume with navy sidebar |
+| `executive-prestige` | `resume` | Executive layout with dark gradient |
+| `ats-optimized` | `resume` | Clean, parser-friendly layout for ATS systems |
+| `cover-executive` | `cover-letter` | Executive cover letter with dark gradient |
+| `cover-professional` | `cover-letter` | Standard professional cover letter |
 
 ### Filter Categories
 

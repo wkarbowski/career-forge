@@ -83,9 +83,12 @@ The root component that:
 | `current` | string | Currently selected template ID |
 
 Available templates:
-- `resume-default` — Classic professional resume
-- `resume-modern` — Modern resume
-- `cover-letter` — Professional cover letter
+- `resume-modern` — Modern Professional resume
+- `classic-professional` — Classic Professional resume
+- `executive-prestige` — Executive Prestige resume
+- `ats-optimized` — ATS Optimized resume
+- `cover-executive` — Executive Cover Letter
+- `cover-professional` — Standard Cover Letter
 
 ---
 
