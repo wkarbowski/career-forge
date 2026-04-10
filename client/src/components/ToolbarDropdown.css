@@ -1,0 +1,170 @@
+.toolbar-dropdown {
+  position: relative;
+  display: inline-flex;
+  min-width: 132px;
+}
+
+.toolbar-dropdown--font {
+  min-width: 152px;
+}
+
+.toolbar-dropdown--size {
+  min-width: 86px;
+}
+
+.toolbar-dropdown--wide {
+  min-width: 180px;
+}
+
+.toolbar-dropdown-trigger {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 42px 7px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-input, var(--bg-primary));
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.toolbar-dropdown-trigger:hover {
+  border-color: var(--border-hover);
+  background-color: var(--bg-hover);
+  transform: translateY(-1px);
+}
+
+.toolbar-dropdown.is-open .toolbar-dropdown-trigger,
+.toolbar-dropdown-trigger:focus-visible {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+  outline: none;
+}
+
+.toolbar-dropdown-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-dropdown-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.toolbar-dropdown.is-open .toolbar-dropdown-chevron {
+  color: var(--accent-color);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.toolbar-dropdown-chevron svg {
+  width: 12px;
+  height: 12px;
+}
+
+.toolbar-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--glass-border, var(--border-color));
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%), var(--glass-bg, var(--bg-secondary));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  z-index: 500;
+}
+
+.toolbar-dropdown-group + .toolbar-dropdown-group {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+.toolbar-dropdown-group-label {
+  padding: 0 8px 6px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.toolbar-dropdown-option {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.toolbar-dropdown-option:hover,
+.toolbar-dropdown-option:focus-visible {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  outline: none;
+  transform: translateX(1px);
+}
+
+.toolbar-dropdown-option.is-selected {
+  background: var(--accent-muted);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.toolbar-dropdown-option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-dropdown-option-check {
+  font-size: 11px;
+}
+
+@media screen and (max-width: 600px) {
+  .toolbar-dropdown--font {
+    min-width: 132px;
+  }
+
+  .toolbar-dropdown--wide {
+    min-width: 148px;
+  }
+}

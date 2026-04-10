@@ -11,9 +11,15 @@ const PageControls = () => {
     zoomIn,
     zoomOut,
     resetZoom,
+    viewMode,
+    setViewMode,
   } = usePages();
 
   const { t } = useTranslation();
+
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'pages' ? 'continuous' : 'pages');
+  };
 
   return (
     <div className="page-controls">
@@ -29,6 +35,15 @@ const PageControls = () => {
         >
           <i className="fas fa-plus"></i>
           <span className="btn-label">{t('pages.addPage') || 'Add Page'}</span>
+        </button>
+        
+        <button 
+          className="page-control-btn"
+          onClick={toggleViewMode}
+          title={viewMode === 'pages' ? (t('pages.continuousView') || 'Continuous View') : (t('pages.pagesView') || 'Pages View')}
+        >
+          <i className={`fas ${viewMode === 'pages' ? 'fa-scroll' : 'fa-file'}`}></i>
+          <span className="btn-label">{viewMode === 'pages' ? (t('pages.continuousView') || 'Continuous') : (t('pages.pagesView') || 'Pages')}</span>
         </button>
         
 

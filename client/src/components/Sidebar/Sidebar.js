@@ -18,21 +18,19 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
 
   const fallbackVisible = {
     summary: true,
-    strengths: true,
+    coreCompetencies: true,
     languages: true,
     skills: true,
     achievements: true,
     experience: true,
     education: true,
-    courses: true,
   };
 
   const fallbackOrder = [
     'summary',
     'skills',
     'languages',
-    'courses',
-    'strengths',
+    'coreCompetencies',
     'achievements',
   ];
 
@@ -80,6 +78,11 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
     }
   });
 
+  const isCoursesSection = (section) => {
+    const normalizedTitle = (section?.title || '').trim().toLowerCase();
+    return section?.type === 'courses' || normalizedTitle === 'courses' || normalizedTitle === 'kurse';
+  };
+
   const sections = {
     summary: (
       <div className="sidebar-section" key="summary">
@@ -98,56 +101,49 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
                 value={_data.summary}
                 onChange={(val) => _updateField('summary', val)}
                 tag="p"
-                style={{ fontSize: '12px', lineHeight: '1.6', opacity: 0.95 }}
+                style={{ lineHeight: '1.6', opacity: 0.95 }}
                 placeholder={t('placeholders.summary')}
               />
       </div>
     ),
-    strengths: (
-      <div className="sidebar-section" key="strengths">
+    coreCompetencies: (
+      <div className="sidebar-section" key="coreCompetencies">
         <div className="section-header-with-controls">
-          <h2>{t('sections.strengths')}</h2>
+          <h2>{t('sections.coreCompetencies')}</h2>
             <div className="section-controls">
-            <button onClick={() => _onMoveSectionUp('strengths')} className="move-btn" title={t('buttons.moveUp')}>
+            <button onClick={() => _onMoveSectionUp('coreCompetencies')} className="move-btn" title={t('buttons.moveUp')}>
               <i className="fas fa-arrow-up"></i>
             </button>
-            <button onClick={() => _onMoveSectionDown('strengths')} className="move-btn" title={t('buttons.moveDown')}>
+            <button onClick={() => _onMoveSectionDown('coreCompetencies')} className="move-btn" title={t('buttons.moveDown')}>
               <i className="fas fa-arrow-down"></i>
             </button>
           </div>
         </div>
-        {_data.strengths.map(strength => (
-          <div key={strength.id} className="sidebar-item">
-            <div className="sidebar-item-content" style={{ flex: 1 }}>
+        <div className="competency-chips">
+          {(_data.coreCompetencies || []).map(comp => (
+            <span key={comp.id} className="competency-chip">
               <EditableText
-                value={strength.title}
-                onChange={(val) => _updateArrayItem('strengths', strength.id, 'title', val)}
-                tag="h3"
-                placeholder={t('placeholders.strengthTitle')}
+                value={comp.name}
+                onChange={(val) => _updateArrayItem('coreCompetencies', comp.id, 'name', val)}
+                tag="span"
+                placeholder={t('placeholders.competencyName')}
               />
-              <EditableText
-                value={strength.description}
-                onChange={(val) => _updateArrayItem('strengths', strength.id, 'description', val)}
-                tag="p"
-                placeholder={t('placeholders.strengthDescription')}
-              />
-            </div>
-            <button
-              className="delete-btn"
-              onClick={() => _deleteArrayItem('strengths', strength.id)}
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-        ))}
+              <button
+                className="chip-delete-btn"
+                onClick={() => _deleteArrayItem('coreCompetencies', comp.id)}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+            </span>
+          ))}
+        </div>
         <button
           className="add-btn"
-          onClick={() => _addArrayItem('strengths', {
-            title: t('placeholders.strengthTitle'),
-            description: t('placeholders.strengthDescription')
+          onClick={() => _addArrayItem('coreCompetencies', {
+            name: t('placeholders.competencyName')
           })}
         >
-          <i className="fas fa-plus"></i> {t('buttons.add')} {t('sections.strengths')}
+          <i className="fas fa-plus"></i> {t('buttons.add')} {t('sections.coreCompetencies')}
         </button>
       </div>
     ),
@@ -182,7 +178,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
               className="delete-btn"
               onClick={() => _deleteArrayItem('languages', language.id)}
             >
-              <i className="fas fa-times"></i>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         ))}
@@ -190,7 +186,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
           className="add-btn"
           onClick={() => _addArrayItem('languages', {
             name: t('placeholders.languageName'),
-            level: 3,
+            level: null,
             proficiency: t('placeholders.proficiency')
           })}
         >
@@ -225,7 +221,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
               className="delete-btn"
               onClick={() => _deleteArrayItem('skills', skill.id)}
             >
-              <i className="fas fa-times"></i>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         ))}
@@ -272,7 +268,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
               className="delete-btn"
               onClick={() => _deleteArrayItem('achievements', achievement.id)}
             >
-              <i className="fas fa-times"></i>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         ))}
@@ -287,80 +283,143 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
         </button>
       </div>
     ),
-    courses: (
-      <div className="sidebar-section" key="courses">
-        <div className="section-header-with-controls">
-          <h2>{t('sections.courses')}</h2>
-            <div className="section-controls">
-            <button onClick={() => _onMoveSectionUp('courses')} className="move-btn" title={t('buttons.moveUp')}>
-              <i className="fas fa-arrow-up"></i>
-            </button>
-            <button onClick={() => _onMoveSectionDown('courses')} className="move-btn" title={t('buttons.moveDown')}>
-              <i className="fas fa-arrow-down"></i>
-            </button>
-          </div>
-        </div>
-        {_data.courses.map(course => (
-          <div key={course.id} className="sidebar-item course-item">
-            <div className="sidebar-item-content" style={{ flex: 1 }}>
-              <EditableText
-                value={course.title}
-                onChange={(val) => _updateArrayItem('courses', course.id, 'title', val)}
-                tag="h3"
-                placeholder={t('placeholders.courseTitle')}
-              />
-              <EditableText
-                value={course.description || ''}
-                onChange={(val) => _updateArrayItem('courses', course.id, 'description', val)}
-                tag="p"
-                className="course-desc"
-                placeholder={t('placeholders.institution')}
-              />
-            </div>
-            <button
-              className="delete-btn"
-              onClick={() => _deleteArrayItem('courses', course.id)}
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-        ))}
-        <button
-          className="add-btn"
-          onClick={() => _addArrayItem('courses', {
-            title: t('placeholders.courseTitle'),
-            description: t('placeholders.institution')
-          })}
-        >
-          <i className="fas fa-plus"></i> {t('buttons.add')} {t('sections.courses')}
-        </button>
-      </div>
-    )
   };
+
+  // Add custom sections that belong in the sidebar
+  const customSections = _data.customSections || [];
+  customSections.forEach(section => {
+    if (section.position === 'sidebar') {
+      sections[section.id] = (
+        <div className="sidebar-section" key={section.id}>
+          <div className="section-header-with-controls">
+            <EditableText
+              value={section.title}
+              onChange={(val) => {
+                const updated = customSections.map(s =>
+                  s.id === section.id ? { ...s, title: val } : s
+                );
+                _updateField('customSections', updated);
+              }}
+              tag="h2"
+              placeholder={t('placeholders.sectionTitle')}
+            />
+            <div className="section-controls">
+              <button onClick={() => _onMoveSectionUp(section.id)} className="move-btn" title={t('buttons.moveUp')}>
+                <i className="fas fa-arrow-up"></i>
+              </button>
+              <button onClick={() => _onMoveSectionDown(section.id)} className="move-btn" title={t('buttons.moveDown')}>
+                <i className="fas fa-arrow-down"></i>
+              </button>
+              <button
+                className="delete-btn"
+                title={t('buttons.deleteSection') || 'Delete section'}
+                onClick={() => safeApp.removeCustomSection && safeApp.removeCustomSection(section.id)}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+          {section.items.map(item => (
+            <div key={item.id} className="sidebar-item">
+              <div className="sidebar-item-content" style={{ flex: 1 }}>
+                {(() => {
+                  const coursesSection = isCoursesSection(section);
+                  return (
+                    <>
+                <EditableText
+                  value={item.title}
+                  onChange={(val) => {
+                    const updated = customSections.map(s =>
+                      s.id === section.id ? {
+                        ...s,
+                        items: s.items.map(i => i.id === item.id ? { ...i, title: val } : i)
+                      } : s
+                    );
+                    _updateField('customSections', updated);
+                  }}
+                  tag="h3"
+                  placeholder={coursesSection ? t('placeholders.itemTitle') : t('placeholders.itemTitle')}
+                />
+                <EditableText
+                  value={item.description || ''}
+                  onChange={(val) => {
+                    const updated = customSections.map(s =>
+                      s.id === section.id ? {
+                        ...s,
+                        items: s.items.map(i => i.id === item.id ? { ...i, description: val } : i)
+                      } : s
+                    );
+                    _updateField('customSections', updated);
+                  }}
+                  tag="p"
+                  placeholder={coursesSection ? t('placeholders.institution') : t('placeholders.itemDescription')}
+                />
+                    </>
+                  );
+                })()}
+              </div>
+              <button
+                className="delete-btn"
+                onClick={() => {
+                  const updated = customSections.map(s =>
+                    s.id === section.id ? {
+                      ...s,
+                      items: s.items.filter(i => i.id !== item.id)
+                    } : s
+                  );
+                  _updateField('customSections', updated);
+                }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+          ))}
+          <button
+            className="add-btn"
+            onClick={() => {
+              const updated = customSections.map(s =>
+                s.id === section.id ? {
+                  ...s,
+                  items: [...s.items, { id: Date.now(), title: '', description: '' }]
+                } : s
+              );
+              _updateField('customSections', updated);
+            }}
+          >
+            <i className="fas fa-plus"></i> {t('buttons.addItem')}
+          </button>
+        </div>
+      );
+    }
+  });
 
   return (
     <div className="sidebar">
-      <div className="profile-image-container">
-        {profileImage ? (
-          <div className="profile-image" style={{ backgroundImage: `url(${profileImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-        ) : (
-          <label className="profile-image profile-image-upload" htmlFor="profile-upload">
-            <i className="fas fa-camera"></i>
-            <span className="upload-text">{t('profile.upload')}</span>
-            <input
-              id="profile-upload"
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              onChange={onImageUpload}
-              style={{ display: 'none' }}
-            />
-          </label>
+      <div className="profile-image-container" style={{ position: 'relative' }}>
+        <label htmlFor="profile-upload" style={{ display: 'block', cursor: 'pointer', margin: 0 }}>
+          <div
+            className="profile-image"
+            style={typeof profileImage === 'string' && profileImage ? { backgroundImage: `url(${profileImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+          />
+          <input
+            id="profile-upload"
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={onImageUpload}
+            style={{ display: 'none' }}
+          />
+        </label>
+        {typeof profileImage === 'string' && profileImage && (
+          <button className="profile-image-remove-btn" onClick={onImageRemove} title={t('profile.remove')}>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
         )}
       </div>
 
-        {_sidebarOrder.map(sectionName =>
-          _visibleSections[sectionName] && sections[sectionName]
-        )}
+      {_sidebarOrder
+        .map(sectionName => _visibleSections[sectionName] && sections[sectionName])
+        .filter(Boolean)
+      }
     </div>
   );
 };
