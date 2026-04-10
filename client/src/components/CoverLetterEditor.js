@@ -9,18 +9,25 @@ import './CoverLetterEditor.css';
 /**
  * CoverLetterEditor
  *
- * Follows the modern German Anschreiben layout (DIN 5008):
- *   Absender → Empfänger + Ort/Datum → Betreff → Anrede → Brieftext → Grußformel → Unterschrift
+ * Standard cover letter layout:
+ *   Sender → Recipient + Place/Date → Subject → Salutation → Body → Closing → Signature
  */
 const CoverLetterEditor = () => {
-  const { zoom, setZoom } = usePages();
-  const { coverLetterData, setCoverLetterData } = useAppState();
+  const { zoom, setZoom, pages, removePage, userForcedMaxRef } = usePages();
+  const { coverLetterData, setCoverLetterData, clSettings, settings } = useAppState();
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const isDrawing = useRef(false);
   const lastPos = useRef(null);
   const [drawMode, setDrawMode] = useState(false);
+
+  const todayFormatted = React.useMemo(() => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return new Intl.DateTimeFormat(navigator.language || 'en', {
+      day: '2-digit', month: '2-digit', year: '2-digit', timeZone: tz,
+    }).format(new Date());
+  }, []);
 
   const set = (field, value) =>
     setCoverLetterData(prev => ({ ...prev, [field]: value }));
@@ -36,7 +43,7 @@ const CoverLetterEditor = () => {
       y: (clientY - rect.top) * scaleY,
     };
   };
-
+  
   const startDraw = (e) => {
     e.preventDefault();
     const canvas = canvasRef.current;
@@ -105,19 +112,104 @@ const CoverLetterEditor = () => {
 
   const d = coverLetterData;
 
+  const clStyle = settings?.clStyle || 'standard';
+  const hasHeaderBand = clStyle === 'classic' || clStyle === 'executive';
+
+  const clCssVars = {
+    '--accent-color':         settings?.accentColor || '#2563eb',
+    '--sidebar-color-1':      settings?.sidebarColor1 || '',
+    '--sidebar-color-2':      settings?.sidebarColor2 || '',
+    '--cl-name-font':         `'${clSettings?.nameFont    || 'Open Sans'}', sans-serif`,
+    '--cl-name-font-size':    `${clSettings?.nameFontSize  ?? 28}px`,
+    '--cl-sender-font':       `'${clSettings?.senderFont   || 'Open Sans'}', sans-serif`,
+    '--cl-sender-font-size':  `${clSettings?.senderFontSize ?? 11}px`,
+    '--cl-subject-font':      `'${clSettings?.subjectFont  || 'Open Sans'}', sans-serif`,
+    '--cl-subject-font-size': `${clSettings?.subjectFontSize ?? 13}px`,
+    '--cl-body-font':         `'${clSettings?.bodyFont    || 'Open Sans'}', sans-serif`,
+    '--cl-body-font-size':    `${clSettings?.bodyFontSize  ?? 12}px`,
+  };
+
+  const GAP = 40;
+  const canvasNaturalHeight = pages.length * PAGE_CONFIG.height + Math.max(0, pages.length - 1) * GAP;
+  const zoomPaddingBottom = Math.ceil(canvasNaturalHeight * Math.max(0, zoom - 1)) + 100;
+
   return (
-    <div className="cl-editor" ref={containerRef}>
+    <div className="cl-editor" ref={containerRef} style={{ paddingBottom: zoomPaddingBottom }}>
       <div
         className="cl-canvas"
         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
       >
+        {/* ── Page 1: Structured letter ── */}
+        <div className="cv-page-wrapper">
+          {pages.length > 1 && (
+            <button
+              className="cv-page-remove-btn"
+              onClick={() => {
+                userForcedMaxRef.current = pages.length - 1;
+                removePage(0);
+              }}
+              title={t('pages.removePage')}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+          )}
         <div
-          className="cl-page"
-          style={{ width: PAGE_CONFIG.width, minHeight: PAGE_CONFIG.height }}
+          className={`cl-page cl-style-${clStyle}`}
+          style={{ width: PAGE_CONFIG.width, minHeight: PAGE_CONFIG.height, ...clCssVars }}
         >
 
-          {/* ── Absender ── */}
-          <div className="cl-absender">
+          {/* ── Header band (classic / executive variants) ── */}
+          {hasHeaderBand && (
+            <div className="cl-header-band">
+              <div className="cl-sender">
+                <EditableText
+                  value={d.name}
+                  onChange={v => set('name', v)}
+                  tag="span"
+                  className="cl-sender-name"
+                  placeholder={t('coverLetter.name')}
+                />
+                <EditableText
+                  value={d.street}
+                  onChange={v => set('street', v)}
+                  tag="span"
+                  className="cl-sender-line"
+                  placeholder={t('coverLetter.street')}
+                />
+                <EditableText
+                  value={d.city}
+                  onChange={v => set('city', v)}
+                  tag="span"
+                  className="cl-sender-line"
+                  placeholder={t('coverLetter.city')}
+                />
+                <div className="cl-sender-contact">
+                  <EditableText
+                    value={d.phone}
+                    onChange={v => set('phone', v)}
+                    tag="span"
+                    className="cl-sender-contact-item"
+                    placeholder={t('coverLetter.phone')}
+                  />
+                  <span className="cl-contact-sep">·</span>
+                  <EditableText
+                    value={d.email}
+                    onChange={v => set('email', v)}
+                    tag="span"
+                    className="cl-sender-contact-item"
+                    placeholder={t('coverLetter.email')}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Gold accent rule (executive only) ── */}
+          {clStyle === 'executive' && <div className="cl-header-accent-rule" />}
+
+          {/* ── Absender (shown inline for modern / standard) ── */}
+          {!hasHeaderBand && (
+          <div className="cl-sender cl-sender-inline">
             <EditableText
               value={d.name}
               onChange={v => set('name', v)}
@@ -157,11 +249,12 @@ const CoverLetterEditor = () => {
               />
             </div>
           </div>
+          )}
 
           {/* ── Empfänger + Ort/Datum (two-column row) ── */}
           <div className="cl-meta-row">
             {/* Empfänger — left */}
-            <div className="cl-empfaenger">
+            <div className="cl-recipient">
               <EditableText
                 value={d.recipientCompany}
                 onChange={v => set('recipientCompany', v)}
@@ -193,71 +286,71 @@ const CoverLetterEditor = () => {
             </div>
 
             {/* Ort, Datum — right */}
-            <div className="cl-ort-datum">
+            <div className="cl-place-date">
               <EditableText
                 value={d.place}
                 onChange={v => set('place', v)}
                 tag="span"
-                className="cl-ort"
+                className="cl-place"
                 placeholder={t('coverLetter.place')}
               />
-              <span className="cl-datum-comma">, </span>
+              <span className="cl-date-comma">, </span>
               <EditableText
-                value={d.date}
+                value={d.date || todayFormatted}
                 onChange={v => set('date', v)}
                 tag="span"
-                className="cl-datum"
+                className="cl-date"
                 placeholder={t('coverLetter.date')}
               />
             </div>
           </div>
 
           {/* ── Betreff ── */}
-          <div className="cl-betreff-row">
+          <div className="cl-subject-row">
             <EditableText
               value={d.subject}
               onChange={v => set('subject', v)}
               tag="span"
-              className="cl-betreff"
+              className="cl-subject"
               placeholder={t('coverLetter.subject')}
             />
           </div>
 
           {/* ── Anrede ── */}
-          <div className="cl-anrede-row">
+          <div className="cl-salutation-row">
             <EditableText
               value={d.salutation}
               onChange={v => set('salutation', v)}
               tag="span"
-              className="cl-anrede"
+              className="cl-salutation"
               placeholder={t('coverLetter.salutation')}
             />
           </div>
 
           {/* ── Brieftext ── */}
-          <div className="cl-brieftext-row">
+          <div className="cl-body-row">
             <EditableText
               value={d.body}
               onChange={v => set('body', v)}
               tag="div"
-              className="cl-brieftext"
+              className="cl-body"
               placeholder={t('coverLetter.body')}
             />
           </div>
 
           {/* ── Grußformel ── */}
-          <div className="cl-gruss-row">
+          <div className="cl-closing-row">
             <EditableText
               value={d.closing}
               onChange={v => set('closing', v)}
               tag="span"
-              className="cl-gruss"
+              className="cl-closing"
               placeholder={t('coverLetter.closing')}
             />
           </div>
 
           {/* ── Unterschrift ── */}
-          <div className="cl-unterschrift-row">
+          <div className="cl-signature-row">
 
             {/* Signature image / draw / upload area */}
             <div className="cl-sig-area">
@@ -269,7 +362,7 @@ const CoverLetterEditor = () => {
                     onClick={() => set('signatureImage', null)}
                     title={t('buttons.delete')}
                   >
-                    <i className="fas fa-times" />
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                   </button>
                 </div>
               ) : drawMode ? (
@@ -322,12 +415,54 @@ const CoverLetterEditor = () => {
               value={d.signature}
               onChange={v => set('signature', v)}
               tag="span"
-              className="cl-unterschrift"
+              className="cl-signature"
               placeholder={t('coverLetter.signature')}
             />
           </div>
 
         </div>
+        </div>
+
+        {/* ── Pages 2+: Continuation sheets ── */}
+        {pages.slice(1).map((page, i) => (
+          <div key={page.id} className="cv-page-wrapper" style={{ marginTop: 40 }}>
+            <button
+              className="cv-page-remove-btn"
+              onClick={() => {
+                userForcedMaxRef.current = pages.length - 1;
+                removePage(i + 1);
+                set('extraPages', [
+                  ...(d.extraPages || []).slice(0, i),
+                  ...(d.extraPages || []).slice(i + 1),
+                ]);
+              }}
+              title={t('pages.removePage')}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+          <div
+            className="cl-page cl-continuation-page"
+            style={{ width: PAGE_CONFIG.width, minHeight: PAGE_CONFIG.height, ...clCssVars }}
+          >
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              className="cl-body"
+              style={{ minHeight: PAGE_CONFIG.height - 133, outline: 'none' }}
+              onInput={e => {
+                const html = e.currentTarget.innerHTML;
+                set('extraPages', [
+                  ...(d.extraPages || []).slice(0, i),
+                  html,
+                  ...(d.extraPages || []).slice(i + 1),
+                ]);
+              }}
+              dangerouslySetInnerHTML={{ __html: (d.extraPages || [])[i] || '' }}
+            />
+          </div>
+          </div>
+        ))}
+
       </div>
 
       <PageControls />

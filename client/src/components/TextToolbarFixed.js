@@ -1,6 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { usePages } from '../contexts/PageContext';
 import { useTranslation } from '../i18n';
+import ToolbarDropdown from './ToolbarDropdown';
+
+const FONT_GROUPS = [
+  {
+    label: 'Sans-serif',
+    options: [
+      'Inter', 'Rubik', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito',
+      'Raleway', 'Oswald', 'PT Sans', 'Source Sans 3', 'Josefin Sans'
+    ].map((font) => ({ label: font, value: font, style: { fontFamily: font } })),
+  },
+  {
+    label: 'Serif',
+    options: ['Merriweather', 'Playfair Display', 'Lora', 'Georgia', 'Times New Roman']
+      .map((font) => ({ label: font, value: font, style: { fontFamily: font } })),
+  },
+  {
+    label: 'Monospace',
+    options: [{ label: 'Courier New', value: 'Courier New', style: { fontFamily: 'Courier New' } }],
+  },
+  {
+    label: 'System',
+    options: ['Arial', 'Verdana', 'Trebuchet MS', 'Tahoma']
+      .map((font) => ({ label: font, value: font, style: { fontFamily: font } })),
+  },
+];
+
+const FONT_SIZE_OPTIONS = [8,9,10,11,12,13,14,15,16,17,18,20,22,24,26,28,30,32,36,40,48,60,72];
 
 const TextToolbar = ({ position, onClose }) => {
   const { t } = useTranslation();
@@ -248,9 +275,12 @@ const TextToolbar = ({ position, onClose }) => {
       const walker = document.createTreeWalker(common, NodeFilter.SHOW_ELEMENT, null);
       const blocks = new Set();
       let node = walker.currentNode;
-      if (isBlockElement(common) && range.intersectsNode(common)) blocks.add(common);
+      // Never apply styles directly to the contentEditable root — its own
+      // inline style attribute is NOT part of innerHTML, so handleInput
+      // would never capture the change and it would be lost on save.
+      if (isBlockElement(common) && range.intersectsNode(common) && common.contentEditable !== 'true') blocks.add(common);
       while ((node = walker.nextNode())) {
-        if (isBlockElement(node) && range.intersectsNode(node)) {
+        if (isBlockElement(node) && range.intersectsNode(node) && node.contentEditable !== 'true') {
           blocks.add(node);
         }
       }
@@ -349,68 +379,31 @@ const TextToolbar = ({ position, onClose }) => {
         zIndex: 1600
       }}
     >
-      <select value={fontFamily} onChange={handleFontFamily} className="toolbar-select">
-        <optgroup label="Sans-serif">
-          <option value="Inter">Inter</option>
-          <option value="Rubik">Rubik</option>
-          <option value="Roboto">Roboto</option>
-          <option value="Open Sans">Open Sans</option>
-          <option value="Lato">Lato</option>
-          <option value="Montserrat">Montserrat</option>
-          <option value="Poppins">Poppins</option>
-          <option value="Nunito">Nunito</option>
-          <option value="Raleway">Raleway</option>
-          <option value="Oswald">Oswald</option>
-          <option value="PT Sans">PT Sans</option>
-          <option value="Source Sans 3">Source Sans 3</option>
-          <option value="Josefin Sans">Josefin Sans</option>
-        </optgroup>
-        <optgroup label="Serif">
-          <option value="Merriweather">Merriweather</option>
-          <option value="Playfair Display">Playfair Display</option>
-          <option value="Lora">Lora</option>
-          <option value="Georgia">Georgia</option>
-          <option value="Times New Roman">Times New Roman</option>
-        </optgroup>
-        <optgroup label="Monospace">
-          <option value="Courier New">Courier New</option>
-        </optgroup>
-        <optgroup label="System">
-          <option value="Arial">Arial</option>
-          <option value="Verdana">Verdana</option>
-          <option value="Trebuchet MS">Trebuchet MS</option>
-          <option value="Tahoma">Tahoma</option>
-        </optgroup>
-      </select>
+      <ToolbarDropdown
+        value={fontFamily}
+        onChange={handleFontFamily}
+        groups={FONT_GROUPS}
+        className="toolbar-dropdown--font"
+        ariaLabel={t('toolbar.fontFamily') || 'Font family'}
+        placeholder="Select font"
+      />
 
-      <select value={fontSize} onChange={handleFontSize} className="toolbar-select">
-        {![8,9,10,11,12,13,14,15,16,17,18,20,22,24,26,28,30,32,36,40,48,60,72].includes(Number(fontSize)) && (
-          <option value={fontSize}>{fontSize}</option>
-        )}
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-        <option value="20">20</option>
-        <option value="22">22</option>
-        <option value="24">24</option>
-        <option value="26">26</option>
-        <option value="28">28</option>
-        <option value="30">30</option>
-        <option value="32">32</option>
-        <option value="36">36</option>
-        <option value="40">40</option>
-        <option value="48">48</option>
-        <option value="60">60</option>
-        <option value="72">72</option>
-      </select>
+      <ToolbarDropdown
+        value={fontSize}
+        onChange={handleFontSize}
+        groups={[
+          {
+            label: 'Size',
+            options: [
+              ...(!FONT_SIZE_OPTIONS.includes(Number(fontSize)) ? [{ label: String(fontSize), value: String(fontSize) }] : []),
+              ...FONT_SIZE_OPTIONS.map((size) => ({ label: String(size), value: String(size) })),
+            ],
+          },
+        ]}
+        className="toolbar-dropdown--size"
+        ariaLabel={t('toolbar.fontSize') || 'Font size'}
+        placeholder="Size"
+      />
 
       <button onClick={() => execCommand('bold')} className="toolbar-btn" title={t('toolbar.bold')}>
         <i className="fas fa-bold"></i>

@@ -1,15 +1,20 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { usePages, PAGE_CONFIG } from '../contexts/PageContext';
 import Sidebar from './Sidebar/Sidebar';
 import MainContent from './MainContent/MainContent';
 import PageControls from './PageControls';
 import { useAppState } from '../contexts/AppStateContext';
+import { useTranslation } from '../i18n';
 import './CVPagesEditor.css';
 
 
 const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
   const { zoom, setZoom, pages: contextPages, setPages, viewMode, registerPageRef, setMinPages, removePage, userForcedMaxRef } = usePages();
   const { settings } = useAppState();
+  const { t } = useTranslation();
+  const [showMobileWarning, setShowMobileWarning] = useState(false);
+  // Defensive: ensure profileImage is string or null
+  const safeProfileImage = typeof profileImage === 'string' ? profileImage : null;
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const pageCount = contextPages.length;
@@ -81,6 +86,10 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
 
   useEffect(() => {
     calculatePages();
+  }, [calculatePages, settings]);
+
+  useEffect(() => {
+    calculatePages();
 
     let resizeTimeout;
     const observer = new ResizeObserver(() => {
@@ -121,14 +130,147 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
     return () => el.removeEventListener('wheel', onWheel, { passive: false });
   }, [setZoom]);
 
+  // Mobile warning
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    setShowMobileWarning(mq.matches);
+    const handler = (e) => setShowMobileWarning(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   const pages = contextPages.map((_, i) => i);
 
   const totalContentHeight = pageCount * PAGE_CONFIG.height;
 
+  const layout = settings?.layout || 'sidebar-left';
+  const layoutClass = `layout-${layout}`;
 
   const GAP = 40;
   const canvasNaturalHeight = pageCount * PAGE_CONFIG.height + Math.max(0, pageCount - 1) * GAP;
   const zoomPaddingBottom = Math.ceil(canvasNaturalHeight * Math.max(0, zoom - 1)) + 100;
+
+  const cssVarsStyle = {
+    '--name-font': `'${settings?.nameFont || settings?.titleFont || 'Rubik'}', sans-serif`,
+    '--name-font-size': `${settings?.nameFontSize ?? 36}px`,
+    '--heading-font': `'${settings?.headingFont || settings?.titleFont || 'Rubik'}', sans-serif`,
+    '--heading-font-size': `${settings?.headingFontSize ?? 14}px`,
+    '--subtitle-font': `'${settings?.subtitleFont || 'Rubik'}', sans-serif`,
+    '--subtitle-font-size': `${settings?.subtitleFontSize ?? 14}px`,
+    '--body-font': `'${settings?.bodyFont || 'Inter'}', sans-serif`,
+    '--body-font-size': `${settings?.bodyFontSize ?? 13}px`,
+    '--sidebar-color-1': settings?.sidebarColor1 || '#312e81',
+    '--sidebar-color-2': settings?.sidebarColor2 || '#4f46e5',
+    '--accent-color': settings?.accentColor || '#6366f1',
+  };
+
+  const renderLayout = (heightStyle) => {
+    if (layout === 'top-header') {
+      return (
+        <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+          <div className="cv-page-top-header-band">
+            <MainContent showHeader={true} headerOnly={true} pageIndex={0} />
+          </div>
+          <div className="cv-page-body-columns">
+            <div
+              className="cv-page-sidebar"
+              style={heightStyle ? { height: heightStyle } : undefined}
+            >
+              <Sidebar
+                profileImage={safeProfileImage}
+                onImageUpload={onImageUpload}
+                onImageRemove={onImageRemove}
+              />
+            </div>
+            <div
+              className="cv-page-main"
+              style={{
+                padding: `20px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px 30px`,
+                ...(heightStyle ? { height: heightStyle } : {}),
+              }}
+            >
+              <MainContent showHeader={false} pageIndex={0} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (layout === 'minimal') {
+      return (
+        <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+          <div className="cv-page-minimal-header">
+            <MainContent showHeader={true} headerOnly={true} pageIndex={0} />
+          </div>
+          <div className="cv-page-body-columns">
+            <div
+              className="cv-page-sidebar"
+              style={heightStyle ? { height: heightStyle } : undefined}
+            >
+              <Sidebar
+                profileImage={safeProfileImage}
+                onImageUpload={onImageUpload}
+                onImageRemove={onImageRemove}
+              />
+            </div>
+            <div
+              className="cv-page-main"
+              style={{
+                padding: `20px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px 30px`,
+                ...(heightStyle ? { height: heightStyle } : {}),
+              }}
+            >
+              <MainContent showHeader={false} pageIndex={0} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ATS-optimized single-column layout — no sidebar, everything stacked
+    if (layout === 'ats-single-column') {
+      return (
+        <div className="cv-page-layout cv-page-ats-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+          <div className="cv-page-ats-header">
+            <MainContent showHeader={true} headerOnly={true} pageIndex={0} />
+          </div>
+          <div className="cv-page-ats-body" style={{ padding: `20px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px ${PAGE_CONFIG.marginLeft || 40}px` }}>
+            <Sidebar
+              profileImage={safeProfileImage}
+              onImageUpload={onImageUpload}
+              onImageRemove={onImageRemove}
+            />
+            <MainContent showHeader={false} pageIndex={0} />
+          </div>
+        </div>
+      );
+    }
+
+    // sidebar-left (default) and sidebar-right share the same structure
+    return (
+      <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+        <div
+          className="cv-page-sidebar"
+          style={heightStyle ? { height: heightStyle } : undefined}
+        >
+          <Sidebar
+            profileImage={safeProfileImage}
+            onImageUpload={onImageUpload}
+            onImageRemove={onImageRemove}
+          />
+        </div>
+        <div
+          className="cv-page-main"
+          style={{
+            padding: `${PAGE_CONFIG.marginTop}px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px 30px`,
+            ...(heightStyle ? { height: heightStyle } : {}),
+          }}
+        >
+          <MainContent showHeader={true} pageIndex={0} />
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div
@@ -136,6 +278,17 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
       ref={containerRef}
       style={{ paddingBottom: zoomPaddingBottom }}
     >
+      {showMobileWarning && (
+        <div className="mobile-warning-overlay">
+          <div className="mobile-warning-content">
+            <i className="fas fa-desktop"></i>
+            <p>{t('mobile.warning')}</p>
+            <button onClick={() => setShowMobileWarning(false)} className="mobile-warning-dismiss">
+              {t('mobile.continue')}
+            </button>
+          </div>
+        </div>
+      )}
       <div 
         className="cv-pages-editor-canvas"
         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
@@ -143,33 +296,16 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
         {/* Hidden content measurer */}
         <div 
           ref={contentRef}
-          className="cv-content-measurer"
+          className={`cv-content-measurer ${layoutClass}`}
           style={{
             position: 'absolute',
             visibility: 'hidden',
             width: PAGE_CONFIG.width,
             pointerEvents: 'none',
+            ...cssVarsStyle,
           }}
         >
-          <div className="cv-page-layout">
-            <div 
-              className="cv-page-sidebar"
-            >
-              <Sidebar
-                profileImage={profileImage}
-                onImageUpload={onImageUpload}
-                onImageRemove={onImageRemove}
-              />
-            </div>
-            <div 
-              className="cv-page-main"
-              style={{
-                padding: `${PAGE_CONFIG.marginTop}px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px 30px`,
-              }}
-            >
-              <MainContent showHeader={true} pageIndex={0} />
-            </div>
-          </div>
+          {renderLayout(null)}
         </div>
 
         {/* Visible pages - each clips a portion of the flowing content */}
@@ -184,18 +320,17 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
                 }}
                 title="Remove page"
               >
-                <i className="fas fa-times" />
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
             )}
             <div 
               ref={(el) => registerPageRef(pageIndex, el)}
-              className={`cv-page ${pageIndex === 0 ? 'cv-page-active' : ''}`}
+              className={`cv-page ${layoutClass} ${pageIndex === 0 ? 'cv-page-active' : ''}`}
               data-page-index={pageIndex}
               style={{
                 width: PAGE_CONFIG.width,
                 height: PAGE_CONFIG.height,
-                '--sidebar-color-1': settings?.sidebarColor1 || '#312e81',
-                '--sidebar-color-2': settings?.sidebarColor2 || '#4f46e5',
+                ...cssVarsStyle,
               }}
             >
             {/* Page number badge */}
@@ -219,28 +354,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
                   transform: `translateY(-${pageIndex * PAGE_CONFIG.height}px)`,
                 }}
               >
-                {/* Full height layout so sidebar gradient spans all pages */}
-                <div className="cv-page-layout" style={{ height: totalContentHeight }}>
-                  <div 
-                    className="cv-page-sidebar"
-                    style={{ height: totalContentHeight }}
-                  >
-                    <Sidebar
-                      profileImage={profileImage}
-                      onImageUpload={onImageUpload}
-                      onImageRemove={onImageRemove}
-                    />
-                  </div>
-                  <div 
-                    className="cv-page-main"
-                    style={{
-                      padding: `${PAGE_CONFIG.marginTop}px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px 30px`,
-                      height: totalContentHeight,
-                    }}
-                  >
-                    <MainContent showHeader={true} pageIndex={0} />
-                  </div>
-                </div>
+                {renderLayout(totalContentHeight)}
               </div>
             </div>
             </div>
