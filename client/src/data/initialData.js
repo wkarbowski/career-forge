@@ -6,21 +6,22 @@ export const initialData = {
     email: '',
     website: '',
     websiteIcon: 'fas fa-globe',
+    linkedin: '',
+    github: '',
     location: ''
   },
   summary: '',
-  strengths: [
+  coreCompetencies: [
     {
       id: 1,
-      title: '',
-      description: ''
+      name: ''
     }
   ],
   languages: [
     {
       id: 1,
       name: '',
-      level: 4,
+      level: null,
       proficiency: ''
     }
   ],
@@ -51,34 +52,69 @@ export const initialData = {
   education: [
     {
       id: 1,
+      type: 'degree',
       degree: '',
       school: '',
       period: '',
       location: ''
     }
   ],
-  courses: [
-    {
-      id: 1,
-      title: '',
-      description: ''
-    }
-  ]
+  customSections: [],
+};
+
+// Predefined custom section templates
+export const customSectionTemplates = {
+  projects: {
+    name: 'Projects',
+    type: 'projects',
+    position: 'main',
+    items: [{ id: 1, title: '', description: '', technologies: '', link: '' }],
+  },
+  certifications: {
+    name: 'Certifications',
+    type: 'certifications',
+    position: 'sidebar',
+    items: [{ id: 1, name: '', issuer: '', credentialId: '', expiryDate: '' }],
+  },
+  publications: {
+    name: 'Publications',
+    type: 'publications',
+    position: 'main',
+    items: [{ id: 1, title: '', journal: '', date: '', doi: '' }],
+  },
+  volunteer: {
+    name: 'Volunteer Work',
+    type: 'volunteer',
+    position: 'main',
+    items: [{ id: 1, role: '', organization: '', period: '', description: '' }],
+  },
+  references: {
+    name: 'References',
+    type: 'references',
+    position: 'sidebar',
+    items: [{ id: 1, name: '', title: '', company: '', contact: '' }],
+  },
+  custom: {
+    name: 'Custom Section',
+    type: 'custom',
+    position: 'sidebar',
+    items: [{ id: 1, title: '', description: '' }],
+  },
 };
 
 export const initialCoverLetterData = {
-  // Absender
+  // Sender
   name: '',
   street: '',
   city: '',
   phone: '',
   email: '',
 
-  // Ort und Datum
+  // Place and Date
   place: '',
   date: '',
 
-  // Empfänger
+  // Recipient
   recipientCompany: '',
   recipientContact: '',
   recipientStreet: '',
@@ -91,4 +127,8 @@ export const initialCoverLetterData = {
   closing: '',
   signature: '',
   signatureImage: null,
+  extraPages: [],
+
+  // Linked resume
+  linkedResumeId: null,
 };

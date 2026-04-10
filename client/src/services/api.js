@@ -103,13 +103,12 @@ const authenticatedFetch = async (url, options = {}) => {
     }
   }
   
+  // If body is FormData, do not set headers (browser will set Content-Type)
+  const isFormData = options.body && typeof FormData !== 'undefined' && options.body instanceof FormData;
   const response = await fetch(url, {
     ...options,
     credentials: 'include',
-    headers: {
-      ...options.headers,
-      ...authHeaders(),
-    },
+    headers: isFormData ? authHeaders() : { ...options.headers, ...authHeaders() },
   });
   
   if (response.status === 401 && hasSession()) {
@@ -218,6 +217,33 @@ export const authApi = {
     removeTokens();
   },
 
+  async changePassword(currentPassword, newPassword) {
+    const response = await authenticatedFetch(`${API_BASE}/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    });
+    return handleResponse(response);
+  },
+
+  async forgotPassword(email) {
+    const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return handleResponse(response);
+  },
+
+  async resetPassword(token, newPassword) {
+    const response = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    });
+    return handleResponse(response);
+  },
+
   isAuthenticated() {
     // User is authenticated if we have an access token
     // Token expiry is handled automatically by authenticatedFetch
@@ -233,15 +259,26 @@ export const authApi = {
 // ============== Document API ==============
 
 export const documentApi = {
-    async uploadProfileImage(documentId, file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/upload-image`, {
-        method: 'POST',
-        body: formData,
-      });
-      return handleResponse(response);
-    },
+  async uploadProfileImage(documentId, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/upload-image`, {
+      method: 'POST',
+      body: formData,
+    });
+    return handleResponse(response);
+  },
+
+  async removeProfileImage(documentId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/profile-image`, {
+      method: 'DELETE',
+    });
+    if (!response.ok && response.status !== 204) {
+      const error = await response.json().catch(() => ({ detail: 'Remove failed' }));
+      throw new Error(error.detail);
+    }
+    return true;
+  },
   async list() {
     const response = await authenticatedFetch(`${API_BASE}/documents/`);
     return handleResponse(response);
@@ -253,19 +290,25 @@ export const documentApi = {
   },
 
   async create(title, data) {
+    // Derive document_type from the data blob (client uses 'cover-letter', server uses 'cover_letter')
+    const document_type = data?.documentType === 'cover-letter' ? 'cover_letter' : 'resume';
     const response = await authenticatedFetch(`${API_BASE}/documents/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, data }),
+      body: JSON.stringify({ title, data, document_type }),
     });
     return handleResponse(response);
   },
 
   async update(id, updates) {
+    const payload = { ...updates };
+    if (updates.data?.documentType) {
+      payload.document_type = updates.data.documentType === 'cover-letter' ? 'cover_letter' : 'resume';
+    }
     const response = await authenticatedFetch(`${API_BASE}/documents/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(payload),
     });
     return handleResponse(response);
   },
@@ -310,6 +353,72 @@ export const documentApi = {
     });
     return handleResponse(response);
   },
+
+  // ============== Version History ==============
+
+  async createVersion(documentId, versionName) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/versions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version_name: versionName }),
+    });
+    return handleResponse(response);
+  },
+
+  async listVersions(documentId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/versions`);
+    return handleResponse(response);
+  },
+
+  async getVersion(documentId, versionId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/versions/${versionId}`);
+    return handleResponse(response);
+  },
+
+  async restoreVersion(documentId, versionId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/versions/${versionId}/restore`, {
+      method: 'POST',
+    });
+    return handleResponse(response);
+  },
+
+  async deleteVersion(documentId, versionId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/versions/${versionId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to delete version');
+    }
+  },
+
+  // ============== Share Links ==============
+
+  async createShareLink(documentId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/share`, {
+      method: 'POST',
+    });
+    return handleResponse(response);
+  },
+
+  async revokeShareLink(documentId) {
+    const response = await authenticatedFetch(`${API_BASE}/documents/${documentId}/share`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to revoke share link');
+    }
+  },
 };
 
-export { getToken, setToken, removeToken, getAccessToken, getRefreshToken, setTokens, removeTokens };
+// ============== Public (No Auth) ==============
+
+const publicApi = {
+  async getSharedDocument(shareToken) {
+    const response = await fetch(`${API_BASE}/shared/${encodeURIComponent(shareToken)}`);
+    return handleResponse(response);
+  },
+};
+
+export { getToken, setToken, removeToken, getAccessToken, getRefreshToken, setTokens, removeTokens, publicApi };

@@ -170,3 +170,46 @@
     display: none;
   }
 }
+
+/* ──── Guest Warning Banner ──── */
+.guest-warning-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #fff3cd;
+  color: #856404;
+  font-size: 13px;
+  border-bottom: 1px solid #ffc107;
+}
+
+.guest-warning-banner i {
+  font-size: 16px;
+}
+
+.guest-warning-banner span {
+  flex: 0 1 auto;
+}
+
+.guest-warning-banner button {
+  padding: 4px 14px;
+  border: 1px solid #856404;
+  border-radius: 4px;
+  background: transparent;
+  color: #856404;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.guest-warning-banner button:hover {
+  background: rgba(133, 100, 4, 0.1);
+}
+
+@media print {
+  .guest-warning-banner {
+    display: none;
+  }
+}

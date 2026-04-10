@@ -52,54 +52,29 @@
     "exitGuest": "Zur Startseite",
     "templates": "Vorlagen"
   },
-  "templates": {
-    "title": "Dokumentvorlagen",
-    "subtitle": "Wählen Sie eine Vorlage für den Anfang. Farben und Abschnitte können später angepasst werden.",
-    "back": "Zurück",
-    "useTemplate": "Vorlage verwenden",
-    "types": {
-      "all": "Alle Dokumente",
-      "resume": "Lebensläufe",
-      "cover-letter": "Anschreiben"
-    },
-    "categories": {
-      "all": "Alle Stile",
-      "professional": "Professionell",
-      "modern": "Modern",
-      "creative": "Kreativ",
-      "technical": "Technisch"
-    },
-    "items": {
-      "classic-professional": {
-        "name": "Klassisch Professionell",
-        "description": "Ein sauberes, traditionelles Layout, perfekt für Unternehmens- und Fachpositionen."
-      },
-      "resume-modern": {
-        "name": "Moderner Lebenslauf",
-        "description": "Ein elegantes, zeitgemäßes Design mit klaren Linien und moderner Typografie."
-      },
-      "cover-professional": {
-        "name": "Professionelles Anschreiben",
-        "description": "Ein formelles, geschäftsgerechtes Anschreiben für Unternehmensbewerbungen."
-      }
-    }
-  },
-  "settings": {
-    "title": "Farbeinstellungen",
-    "sidebarColor1": "Seitenleiste Farbe 1:",
-    "sidebarColor2": "Seitenleiste Farbe 2:",
-    "accentColor": "Akzentfarbe:",
-    "visibleSections": "Sichtbare Abschnitte"
+  "presets": {
+    "classic": "Klassisch Navy",
+    "berlin": "Berlin Blau",
+    "modernCyan": "Modern Cyan",
+    "midnightSlate": "Mitternacht Schiefer",
+    "executiveGold": "Executive Gold",
+    "coverIndigo": "Indigo",
+    "coverTeal": "Petrol",
+    "coverViolet": "Violett",
+    "coverGold": "Gold",
+    "coverGreen": "Grün"
   },
   "sections": {
     "summary": "Zusammenfassung",
     "strengths": "Stärken",
+    "coreCompetencies": "Kernkompetenzen",
     "languages": "Sprachen",
     "skills": "Fähigkeiten",
     "achievements": "Erfolge",
     "experience": "Erfahrung",
     "education": "Ausbildung",
-    "courses": "Weiterbildung / Kurse"
+    "courses": "Kurse",
+    "customSection": "Eigener Abschnitt"
   },
   "buttons": {
     "add": "Hinzufügen",
@@ -122,7 +97,7 @@
     "company": "Firmenname",
     "period": "Zeitraum",
     "description": "Beschreiben Sie Ihre Aufgaben und Erfolge in dieser Rolle.",
-    "degree": "Abschluss und Studienrichtung",
+    "degree": "Abschluss oder Zertifizierung",
     "school": "Schule oder Universität",
     "courseTitle": "Kurstitel",
     "institution": "Institution",
@@ -133,7 +108,12 @@
     "skillName": "Fähigkeit",
     "achievementTitle": "Leistung",
     "achievementDescription": "Beschreiben Sie, was Sie getan haben und welchen Einfluss es hatte.",
-    "proficiency": "Kenntnisstufe (optional)"
+    "itemTitle": "Titel",
+    "itemDescription": "Beschreibung",
+    "proficiency": "Kenntnisstufe (optional)",
+    "linkedin": "LinkedIn-URL",
+    "github": "GitHub-URL",
+    "competency": "Kernkompetenz"
   },
   "auth": {
     "login": "Anmelden",
@@ -154,23 +134,34 @@
     "consentRequired": "Sie müssen die Datenschutzerklärung akzeptieren, um sich zu registrieren",
     "consentText": "Ich habe die",
     "privacyPolicy": "Datenschutzerklärung",
-    "consentTextEnd": " gelesen und akzeptiert und stimme der dort beschriebenen Verarbeitung meiner Daten zu."
+    "consentTextEnd": " gelesen und akzeptiert und stimme der dort beschriebenen Verarbeitung meiner Daten zu.",
+    "forgotPassword": "Passwort vergessen",
+    "resetPassword": "Passwort zurücksetzen",
+    "forgotPasswordLink": "Passwort vergessen?",
+    "backToLogin": "Zurück zur Anmeldung",
+    "resetTokenGenerated": "Ein Reset-Token wurde generiert. Verwenden Sie ihn unten, um Ihr neues Passwort festzulegen.",
+    "resetEmailSent": "Falls ein Konto mit dieser E-Mail existiert, wurde ein Reset-Link gesendet.",
+    "resetRequestFailed": "Fehler beim Zurücksetzen des Passworts. Bitte versuchen Sie es erneut.",
+    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt! Weiterleitung zur Anmeldung...",
+    "resetFailed": "Passwort konnte nicht zurückgesetzt werden. Der Token ist möglicherweise abgelaufen oder ungültig.",
+    "resetToken": "Reset-Token",
+    "resetTokenPlaceholder": "Fügen Sie hier Ihren Reset-Token ein",
+    "newPassword": "Neues Passwort"
   },
   "userMenu": {
-    "myCvs": "Meine Lebensläufe",
-    "newCv": "Neuer Lebenslauf",
-    "noCvs": "Keine gespeicherten Lebensläufe",
-    "deleteCv": "Lebenslauf löschen",
-    "confirmDelete": "Möchten Sie diesen Lebenslauf wirklich löschen?",
-    "dashboard": "Alle Lebensläufe",
+    "myCvs": "Meine Dokumente",
+    "noCvs": "Keine gespeicherten Dokumente",
+    "deleteCv": "Dokument löschen",
+    "confirmDelete": "Möchten Sie dieses Dokument wirklich löschen?",
+    "dashboard": "Alle Dokumente",
     "logoutAll": "Alle Geräte abmelden",
     "logoutAllTooltip": "Von allen Browsern und Geräten abmelden",
     "confirmLogoutAll": "Sie werden von allen Geräten abgemeldet. Fortfahren?",
     "exportData": "Meine Daten exportieren",
-    "exportDataTooltip": "Alle CV-Daten als JSON herunterladen (DSGVO-Datenportabilität)",
+    "exportDataTooltip": "Alle Dokumentdaten als JSON herunterladen (DSGVO-Datenportabilität)",
     "deleteAccount": "Konto löschen",
     "deleteAccountTooltip": "Konto dauerhaft löschen (DSGVO Recht auf Löschung)",
-    "confirmDeleteAccount": "Ihr Konto und alle Daten werden dauerhaft gelöscht. Geben Sie DELETE ein, um zu bestätigen.",
+    "confirmDeleteAccount": "Ihr Konto und alle Dokumentdaten werden dauerhaft gelöscht. Geben Sie DELETE ein, um zu bestätigen.",
     "privacyPolicy": "Datenschutzerklärung",
     "documents": "Dokumente",
     "session": "Sitzung",
@@ -180,39 +171,6 @@
     "saving": "Speichern...",
     "saved": "Gespeichert",
     "error": "Speichern fehlgeschlagen"
-  },
-  "dashboard": {
-    "title": "Lebenslauf-Übersicht",
-    "backToEditor": "Zurück zum Editor",
-    "searchPlaceholder": "Suche nach Titel, Name oder Position...",
-    "totalCvs": "{count} Lebensläufe gesamt",
-    "deleteSelected": "Ausgewählte löschen",
-    "confirmDeleteMultiple": "Möchten Sie {count} Lebenslauf/Lebensläufe wirklich löschen?",
-    "colTitle": "Titel",
-    "colName": "Name",
-    "colPosition": "Position",
-    "colCreated": "Erstellt",
-    "colUpdated": "Zuletzt geändert",
-    "colActions": "Aktionen",
-    "edit": "Bearbeiten",
-    "rename": "Umbenennen",
-    "renamePrompt": "Neuen Namen eingeben:",
-    "duplicate": "Duplizieren",
-    "print": "Drucken",
-    "savePdf": "Als PDF speichern",
-    "delete": "Löschen",
-    "copy": "Kopie",
-    "noCvs": "Noch keine Lebensläufe. Erstellen Sie Ihren ersten!",
-    "noResults": "Keine Lebensläufe gefunden",
-    "noResumes": "Keine Lebensläufe gefunden",
-    "noCoverLetters": "Keine Anschreiben gefunden",
-    "showing": "Zeige {shown} von {total} Lebensläufen",
-    "justNow": "Gerade eben",
-    "minsAgo": "vor {n} Min.",
-    "hoursAgo": "vor {n} Std.",
-    "daysAgo": "vor {n} Tagen",
-    "gridView": "Kachelansicht",
-    "tableView": "Tabellenansicht"
   },
   "pages": {
     "previous": "Vorherige Seite",
@@ -242,6 +200,19 @@
   "editor": {
     "documentTitle": "Dokumenttitel",
     "editTitle": "Dokumenttitel bearbeiten"
+  },
+  "centralToolbar": {
+    "label": "Dokumentstile",
+    "name": "Name",
+    "sender": "Absender",
+    "headings": "Abschnitte",
+    "subtitles": "Jobtitel",
+    "body": "Fließtext",
+    "colorScheme": "Farben",
+    "scale": "Textgröße",
+    "compact": "Kompakt",
+    "standard": "Standard",
+    "spacious": "Großzügig"
   },
   "coverLetter": {
     "name": "Vollständiger Name",
@@ -294,5 +265,212 @@
     "cookieExpiry": "Ablauf",
     "s7Title": "Kontakt",
     "s7Body": "Um Ihre Rechte auszuüben oder ein Datenschutzanliegen zu äußern, wenden Sie sich an den Betreiber dieser Career Forge-Instanz. Sie haben auch das Recht, eine Beschwerde bei der zuständigen Aufsichtsbehörde einzureichen."
+  },
+  "versions": {
+    "title": "Versionshistorie",
+    "namePlaceholder": "Versionsname (z.B. 'Vor Neugestaltung')",
+    "save": "Version speichern",
+    "empty": "Noch keine gespeicherte Versionen",
+    "restore": "Diese Version wiederherstellen",
+    "delete": "Version löschen"
+  },
+  "onboarding": {
+    "pickTemplate": "Vorlage auswählen",
+    "templateHint": "Sie können dies jederzeit später ändern.",
+    "basicInfo": "Ihre Grunddaten",
+    "basicInfoHint": "Wir füllen Ihren Lebenslauf damit vor.",
+    "fullName": "Vollständiger Name",
+    "jobTitle": "Berufsbezeichnung",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "chooseSections": "Abschnitte auswählen",
+    "sectionsHint": "Wählen Sie die gewünschten Abschnitte. Anpassung jederzeit möglich.",
+    "sectionExperience": "Berufserfahrung",
+    "sectionEducation": "Ausbildung",
+    "sectionSkills": "Fähigkeiten",
+    "sectionLanguages": "Sprachen",
+    "sectionCompetencies": "Kernkompetenzen",
+    "sectionSummary": "Zusammenfassung",
+    "back": "Zurück",
+    "next": "Weiter",
+    "finish": "Loslegen"
+  },
+  "account": {
+    "title": "Kontoeinstellungen",
+    "profile": "Profil",
+    "email": "E-Mail",
+    "changePassword": "Passwort ändern",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "updatePassword": "Passwort aktualisieren",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "passwordTooShort": "Passwort muss mindestens 8 Zeichen lang sein",
+    "passwordChanged": "Passwort erfolgreich geändert",
+    "passwordChangeFailed": "Passwortänderung fehlgeschlagen",
+    "security": "Sicherheit",
+    "logoutAllDevices": "Von allen Geräten abmelden",
+    "loggedOutAll": "Von allen Geräten abgemeldet",
+    "logoutAllFailed": "Abmeldung aller Geräte fehlgeschlagen",
+    "dangerZone": "Gefahrenzone",
+    "deleteAccount": "Konto löschen",
+    "deleteConfirm": "Ihr Konto und alle Daten werden dauerhaft gelöscht. Sind Sie sicher?",
+    "deleteYes": "Ja, Konto löschen",
+    "deleteNo": "Abbrechen",
+    "deleteFailed": "Kontolöschung fehlgeschlagen"
+  },
+  "completeness": {
+    "title": "Profilvollständigkeit",
+    "name": "Vollständiger Name",
+    "email": "E-Mail-Adresse",
+    "phone": "Telefonnummer",
+    "summary": "Zusammenfassung",
+    "experience": "Berufserfahrung",
+    "education": "Ausbildung",
+    "skills": "Fähigkeiten",
+    "languages": "Sprachen"
+  },
+  "keywords": {
+    "title": "Keyword-Abgleich",
+    "placeholder": "Stellenbeschreibung hier einfügen…",
+    "pastePlaceholder": "Stellenbeschreibung hier einfügen…",
+    "analyze": "Analysieren",
+    "score": "Übereinstimmung",
+    "matchScore": "Übereinstimmung",
+    "found": "Gefundene Keywords",
+    "keywordsFound": "Keywords gefunden",
+    "missing": "Fehlende Keywords",
+    "hint": "Erwägen Sie, die fehlenden Keywords hinzuzufügen, um Ihren ATS-Score zu verbessern."
+  },
+  "guest": {
+    "warningBanner": "Sie verwenden den Gastmodus. Ihre Arbeit wird nicht gespeichert.",
+    "signUp": "Jetzt registrieren"
+  },
+  "mobile": {
+    "warning": "Der Lebenslauf-Editor ist für Desktop-Bildschirme optimiert. Einige Funktionen funktionieren auf Mobilgeräten möglicherweise nicht.",
+    "dismiss": "Trotzdem fortfahren"
+  },
+  "education": {
+    "addEducation": "Eintrag hinzufügen",
+    "addDegree": "Abschluss hinzufügen",
+    "addCourse": "Kurs hinzufügen",
+    "courseLabel": "Kurs"
+  },
+  "customSections": {
+    "addSection": "Abschnitt hinzufügen",
+    "projects": "Projekte",
+    "certifications": "Zertifizierungen",
+    "publications": "Veröffentlichungen",
+    "volunteer": "Ehrenamtliche Arbeit",
+    "references": "Referenzen",
+    "custom": "Eigener Abschnitt",
+    "untitledSection": "Neuer Abschnitt"
+  },
+  "coverLetterLink": {
+    "linkedResume": "Verknüpfter Lebenslauf",
+    "noLink": "Kein Lebenslauf verknüpft",
+    "selectResume": "Lebenslauf auswählen…"
+  },
+  "settings": {
+    "title": "Farbeinstellungen",
+    "colorPreset": "Farbvorlage",
+    "sidebarColor": "Seitenleistenfarbe:",
+    "sidebarColor1": "Seitenleiste Farbe 1:",
+    "sidebarColor2": "Seitenleiste Farbe 2:",
+    "accentColor": "Akzentfarbe:",
+    "visibleSections": "Sichtbare Abschnitte",
+    "sections": "Abschnitte",
+    "visibility": "Sichtbarkeit",
+    "addSection": "Abschnitt hinzufügen",
+    "titleFont": "Überschrift-Schriftart"
+  },
+  "shared": {
+    "title": "Geteiltes Dokument",
+    "readOnly": "Dies ist eine schreibgeschützte Ansicht.",
+    "notFound": "Geteiltes Dokument nicht gefunden oder Link abgelaufen."
+  },
+  "dashboard": {
+    "title": "Lebenslauf-Übersicht",
+    "backToEditor": "Zurück zum Editor",
+    "searchPlaceholder": "Suche nach Titel, Name oder Position...",
+    "totalCvs": "{count} Lebensläufe gesamt",
+    "deleteSelected": "Ausgewählte löschen",
+    "confirmDeleteMultiple": "Möchten Sie {count} Lebenslauf/Lebensläufe wirklich löschen?",
+    "colTitle": "Titel",
+    "colType": "Typ",
+    "colName": "Name",
+    "colPosition": "Position",
+    "colCreated": "Erstellt",
+    "colUpdated": "Zuletzt geändert",
+    "colActions": "Aktionen",
+    "edit": "Bearbeiten",
+    "rename": "Umbenennen",
+    "renamePrompt": "Neuen Namen eingeben:",
+    "duplicate": "Duplizieren",
+    "print": "Drucken",
+    "savePdf": "Als PDF speichern",
+    "delete": "Löschen",
+    "copy": "Kopie",
+    "noCvs": "Noch keine Lebensläufe. Erstellen Sie Ihren ersten!",
+    "noResults": "Keine Lebensläufe gefunden",
+    "noResumes": "Keine Lebensläufe gefunden",
+    "noCoverLetters": "Keine Anschreiben gefunden",
+    "showing": "Zeige {shown} von {total} Lebensläufen",
+    "justNow": "Gerade eben",
+    "minsAgo": "vor {n} Min.",
+    "hoursAgo": "vor {n} Std.",
+    "daysAgo": "vor {n} Tagen",
+    "gridView": "Kachelansicht",
+    "tableView": "Tabellenansicht",
+    "createFirst": "Erstellen Sie Ihr erstes Dokument",
+    "emptyHint": "Wählen Sie eine Vorlage und erstellen Sie Ihren professionellen Lebenslauf.",
+    "share": "Teilen",
+    "shareCopied": "Freigabelink in die Zwischenablage kopiert!"
+  },
+  "templates": {
+    "title": "Dokumentvorlagen",
+    "back": "Zurück",
+    "useTemplate": "Vorlage verwenden",
+    "types": {
+      "all": "Alle Dokumente",
+      "resume": "Lebensläufe",
+      "cover-letter": "Anschreiben",
+      "resume-singular": "Lebenslauf",
+      "cover-letter-singular": "Anschreiben"
+    },
+    "items": {
+      "classic-professional": {
+        "name": "Klassisch Professionell",
+        "description": "Ein klares, traditionelles Layout, dem Fortune-500-Recruiter vertrauen. Tiefe Marinetöne vermitteln Zuverlässigkeit und Kompetenz."
+      },
+      "resume-modern": {
+        "name": "Modern Professionell",
+        "description": "Ein elegantes, zeitgemäßes Layout mit raffinierten Petrol-Tönen und klarer moderner Typografie. Ideal für Tech-, Kreativ- und moderne Fachberufe."
+      },
+      "executive-prestige": {
+        "name": "Executive Prestige",
+        "description": "Markante Anthrazit-Palette mit Goldakzenten und Serifenschrift. Für Führungskräfte, Direktoren und C-Level-Positionen."
+      },
+      "ats-optimized": {
+        "name": "ATS-Optimiert",
+        "description": "Ein einspaltiges, Parser-freundliches Layout, das Bewerbermanagementsysteme mit maximaler Keyword-Sichtbarkeit passiert."
+      },
+      "cover-modern": {
+        "name": "Modernes Anschreiben",
+        "description": "Ein zeitgemäßes Anschreiben mit elegantem Petrol-Akzentbalken, passend zum Modern-Professionell-Lebenslauf."
+      },
+      "cover-classic": {
+        "name": "Klassisches Anschreiben",
+        "description": "Ein sauberes, traditionelles Anschreiben mit tiefblauem Kopfbereich. Perfekt abgestimmt auf den Klassisch-Professionell-Lebenslauf."
+      },
+      "cover-executive": {
+        "name": "Executive-Anschreiben",
+        "description": "Ein markantes Anschreiben mit Anthrazit-Kopfzeile und Goldakzent. Für Führungskräfte und C-Level-Positionen."
+      },
+      "cover-professional": {
+        "name": "Standard-Anschreiben",
+        "description": "Ein formelles, geschäftsgerechtes Anschreiben mit minimalem Design. Wählen Sie aus mehreren Akzentfarben."
+      }
+    }
   }
 }

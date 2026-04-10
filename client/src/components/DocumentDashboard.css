@@ -252,8 +252,13 @@
 }
 
 .col-title {
-  width: 20%;
-  min-width: 140px;
+  width: 18%;
+  min-width: 130px;
+}
+
+.col-type {
+  width: 120px;
+  min-width: 110px;
 }
 
 .col-name {
@@ -505,6 +510,37 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.table-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.table-type-badge.resume {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.table-type-badge.cover-letter {
+  background: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
+}
+
+[data-theme='dark'] .table-type-badge.resume {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .table-type-badge.cover-letter {
+  background: rgba(20, 184, 166, 0.15);
+  color: #2dd4bf;
+}
+
 .card-type-badge {
   display: inline-flex;
   align-items: center;
@@ -523,8 +559,8 @@
 }
 
 .card-type-badge.cover-letter {
-  color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.1);
+  color: #0d9488;
+  background: rgba(13, 148, 136, 0.1);
 }
 
 .card-actions {
@@ -661,4 +697,53 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ──── Empty State ──── */
+.empty-state-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.empty-state-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent-color, #2196f3);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.empty-state-btn:hover {
+  opacity: 0.85;
+}
+
+.empty-state-hint {
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* ──── Share Button on Cards ──── */
+.share-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 14px;
+  transition: color 0.15s;
+}
+
+.share-btn:hover {
+  color: var(--accent-color, #2196f3);
 }

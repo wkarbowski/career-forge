@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
+import { authApi } from '../services/api';
 
 /**
  * AuthModal — base: local email + password authentication only.
@@ -15,7 +16,7 @@ import { useTranslation } from '../i18n';
  *   Extended callers may pass a PdfExportButton; default callers omit the prop.
  */
 const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
-  const [mode, setMode] = useState('login'); // 'login' or 'register'
+  const [mode, setMode] = useState('login'); // 'login', 'register', 'forgot', or 'reset'
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +24,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
   const [gdprConsent, setGdprConsent] = useState(false);
   const [localError, setLocalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetToken, setResetToken] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const modalRef = useRef(null);
 
   const { login, register, error, clearError } = useAuth();
@@ -68,7 +71,51 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
+    setSuccessMessage('');
     clearError();
+
+    if (mode === 'forgot') {
+      setIsSubmitting(true);
+      try {
+        const result = await authApi.forgotPassword(email);
+        if (result.reset_token) {
+          setResetToken(result.reset_token);
+          setMode('reset');
+          setSuccessMessage(t('auth.resetTokenGenerated'));
+        } else {
+          setSuccessMessage(result.message || t('auth.resetEmailSent'));
+        }
+      } catch (err) {
+        setLocalError(err.message || t('auth.resetRequestFailed'));
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (mode === 'reset') {
+      if (password !== confirmPassword) {
+        setLocalError(t('auth.passwordsNoMatch'));
+        return;
+      }
+      if (password.length < 8) {
+        setLocalError(t('auth.passwordTooShort'));
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        await authApi.resetPassword(resetToken, password);
+        setSuccessMessage(t('auth.passwordResetSuccess'));
+        setTimeout(() => {
+          setMode('login');
+          setSuccessMessage('');
+          resetForm();
+        }, 2000);
+      } catch (err) {
+        setLocalError(err.message || t('auth.resetFailed'));
+      }
+      setIsSubmitting(false);
+      return;
+    }
 
     if (mode === 'register') {
       if (password !== confirmPassword) {
@@ -117,11 +164,18 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
     setConfirmPassword('');
     setGdprConsent(false);
     setLocalError('');
+    setSuccessMessage('');
+    setResetToken('');
     clearError();
   };
 
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
+    resetForm();
+  };
+
+  const switchToForgot = () => {
+    setMode('forgot');
     resetForm();
   };
 
@@ -132,29 +186,42 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
 
   const displayError = localError || error;
 
+  const modeTitle = {
+    login: t('auth.login'),
+    register: t('auth.register'),
+    forgot: t('auth.forgotPassword'),
+    reset: t('auth.resetPassword'),
+  };
+
   return (
     <div className="auth-modal-overlay" onClick={handleClose} role="presentation">
       <div className="auth-modal" ref={modalRef} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
         <button className="auth-modal-close" onClick={handleClose} aria-label={t('common.cancel') || 'Close'}>×</button>
         
-        <h2 id="auth-modal-title">{mode === 'login' ? t('auth.login') : t('auth.register')}</h2>
+        <h2 id="auth-modal-title">{modeTitle[mode]}</h2>
         
         {displayError && (
           <div className="auth-error">{displayError}</div>
         )}
 
+        {successMessage && (
+          <div className="auth-success">{successMessage}</div>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label htmlFor="email">{t('auth.email')}</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </div>
+          {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
+            <div className="auth-field">
+              <label htmlFor="email">{t('auth.email')}</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+          )}
 
           {mode === 'register' && (
             <div className="auth-field">
@@ -171,20 +238,22 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
             </div>
           )}
 
-          <div className="auth-field">
-            <label htmlFor="password">{t('auth.password')}</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            />
-          </div>
+          {(mode === 'login' || mode === 'register' || mode === 'reset') && (
+            <div className="auth-field">
+              <label htmlFor="password">{mode === 'reset' ? t('auth.newPassword') : t('auth.password')}</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={mode === 'reset' ? 8 : 6}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
+            </div>
+          )}
 
-          {mode === 'register' && (
+          {(mode === 'register' || mode === 'reset') && (
             <div className="auth-field">
               <label htmlFor="confirmPassword">{t('auth.confirmPassword')}</label>
               <input
@@ -194,6 +263,20 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 autoComplete="new-password"
+              />
+            </div>
+          )}
+
+          {mode === 'reset' && (
+            <div className="auth-field">
+              <label htmlFor="resetToken">{t('auth.resetToken')}</label>
+              <input
+                type="text"
+                id="resetToken"
+                value={resetToken}
+                onChange={(e) => setResetToken(e.target.value)}
+                required
+                placeholder={t('auth.resetTokenPlaceholder')}
               />
             </div>
           )}
@@ -222,9 +305,21 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
             className="auth-submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? t('auth.pleaseWait') : (mode === 'login' ? t('auth.login') : t('auth.register'))}
+            {isSubmitting ? t('auth.pleaseWait') : modeTitle[mode]}
           </button>
         </form>
+
+        {mode === 'login' && (
+          <div className="auth-forgot">
+            <button type="button" onClick={switchToForgot}>{t('auth.forgotPasswordLink')}</button>
+          </div>
+        )}
+
+        {(mode === 'forgot' || mode === 'reset') && (
+          <div className="auth-forgot">
+            <button type="button" onClick={() => { setMode('login'); resetForm(); }}>{t('auth.backToLogin')}</button>
+          </div>
+        )}
 
         {/* Slot for extended OAuth / SSO providers */}
         {extraProviders && (
@@ -235,9 +330,10 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
         )}
 
         <div className="auth-switch">
-          {mode === 'login' ? (
+          {mode === 'login' && (
             <p>{t('auth.noAccount')} <button type="button" onClick={switchMode}>{t('auth.signUp')}</button></p>
-          ) : (
+          )}
+          {mode === 'register' && (
             <p>{t('auth.hasAccount')} <button type="button" onClick={switchMode}>{t('auth.login')}</button></p>
           )}
         </div>

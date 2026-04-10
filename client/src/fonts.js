@@ -31,22 +31,6 @@ import '@fontsource/poppins/500.css';
 import '@fontsource/poppins/600.css';
 import '@fontsource/poppins/700.css';
 
-import '@fontsource/nunito/400.css';
-import '@fontsource/nunito/500.css';
-import '@fontsource/nunito/600.css';
-import '@fontsource/nunito/700.css';
-
-import '@fontsource/raleway/400.css';
-import '@fontsource/raleway/500.css';
-import '@fontsource/raleway/600.css';
-import '@fontsource/raleway/700.css';
-
-// Oswald: 200–700 available
-import '@fontsource/oswald/400.css';
-import '@fontsource/oswald/500.css';
-import '@fontsource/oswald/600.css';
-import '@fontsource/oswald/700.css';
-
 // PT Sans: only 400 and 700 available
 import '@fontsource/pt-sans/400.css';
 import '@fontsource/pt-sans/700.css';
@@ -55,10 +39,6 @@ import '@fontsource/source-sans-3/400.css';
 import '@fontsource/source-sans-3/500.css';
 import '@fontsource/source-sans-3/600.css';
 import '@fontsource/source-sans-3/700.css';
-
-import '@fontsource/josefin-sans/400.css';
-import '@fontsource/josefin-sans/600.css';
-import '@fontsource/josefin-sans/700.css';
 
 // Merriweather: 300, 400, 700, 900 available
 import '@fontsource/merriweather/400.css';

@@ -52,54 +52,29 @@
     "exitGuest": "Exit to Home",
     "templates": "Templates"
   },
-  "templates": {
-    "title": "Document Templates",
-    "subtitle": "Choose a template to get started. You can customize colors and sections later.",
-    "back": "Back",
-    "useTemplate": "Use This Template",
-    "types": {
-      "all": "All Documents",
-      "resume": "Resumes",
-      "cover-letter": "Cover Letters"
-    },
-    "categories": {
-      "all": "All Styles",
-      "professional": "Professional",
-      "modern": "Modern",
-      "creative": "Creative",
-      "technical": "Technical"
-    },
-    "items": {
-      "classic-professional": {
-        "name": "Classic Professional",
-        "description": "A clean, traditional layout perfect for corporate and professional roles."
-      },
-      "resume-modern": {
-        "name": "Modern Resume",
-        "description": "A sleek, contemporary design with clean lines and modern typography."
-      },
-      "cover-professional": {
-        "name": "Professional Cover Letter",
-        "description": "A formal, business-appropriate cover letter for corporate applications."
-      }
-    }
-  },
-  "settings": {
-    "title": "Color settings",
-    "sidebarColor1": "Sidebar color 1:",
-    "sidebarColor2": "Sidebar color 2:",
-    "accentColor": "Accent color:",
-    "visibleSections": "Visible sections"
+  "presets": {
+    "classic": "Classic Navy",
+    "berlin": "Berlin Blue",
+    "modernCyan": "Modern Cyan",
+    "midnightSlate": "Midnight Slate",
+    "executiveGold": "Executive Gold",
+    "coverIndigo": "Indigo",
+    "coverTeal": "Teal",
+    "coverViolet": "Violet",
+    "coverGold": "Gold",
+    "coverGreen": "Green"
   },
   "sections": {
     "summary": "Summary",
     "strengths": "Strengths",
+    "coreCompetencies": "Core Competencies",
     "languages": "Languages",
     "skills": "Skills",
     "achievements": "Achievements",
     "experience": "Experience",
     "education": "Education",
-    "courses": "Continuing Education / Courses"
+    "courses": "Courses",
+    "customSection": "Custom Section"
   },
   "buttons": {
     "add": "Add",
@@ -122,7 +97,7 @@
     "company": "Company",
     "period": "Period",
     "description": "Describe your responsibilities and achievements in this role.",
-    "degree": "Degree and Field of Study",
+    "degree": "Degree or Certification",
     "school": "School or University",
     "courseTitle": "Course Title",
     "institution": "Institution",
@@ -133,7 +108,12 @@
     "skillName": "Skill",
     "achievementTitle": "Achievement",
     "achievementDescription": "Describe what you did and the impact.",
-    "proficiency": "Proficiency level (optional)"
+    "itemTitle": "Title",
+    "itemDescription": "Description",
+    "proficiency": "Proficiency level (optional)",
+    "linkedin": "LinkedIn URL",
+    "github": "GitHub URL",
+    "competency": "Core competency"
   },
   "auth": {
     "login": "Login",
@@ -154,23 +134,34 @@
     "consentRequired": "You must accept the Privacy Policy to register",
     "consentText": "I have read and accept the",
     "privacyPolicy": "Privacy Policy",
-    "consentTextEnd": " and consent to the processing of my data as described therein."
+    "consentTextEnd": " and consent to the processing of my data as described therein.",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "forgotPasswordLink": "Forgot your password?",
+    "backToLogin": "Back to login",
+    "resetTokenGenerated": "A reset token has been generated. Use it below to set your new password.",
+    "resetEmailSent": "If an account with that email exists, a reset link has been sent.",
+    "resetRequestFailed": "Failed to request password reset. Please try again.",
+    "passwordResetSuccess": "Password reset successfully! Redirecting to login...",
+    "resetFailed": "Failed to reset password. The token may be expired or invalid.",
+    "resetToken": "Reset Token",
+    "resetTokenPlaceholder": "Paste your reset token here",
+    "newPassword": "New Password"
   },
   "userMenu": {
-    "myCvs": "My CVs",
-    "newCv": "New CV",
-    "noCvs": "No saved CVs",
-    "deleteCv": "Delete CV",
-    "confirmDelete": "Are you sure you want to delete this CV?",
-    "dashboard": "All CVs Dashboard",
+    "myCvs": "My Documents",
+    "noCvs": "No saved documents",
+    "deleteCv": "Delete document",
+    "confirmDelete": "Are you sure you want to delete this document?",
+    "dashboard": "All Documents",
     "logoutAll": "Logout All Devices",
     "logoutAllTooltip": "Log out from all browsers and devices",
     "confirmLogoutAll": "This will log you out from all devices. Continue?",
     "exportData": "Export My Data",
-    "exportDataTooltip": "Download all your CV data as JSON (GDPR data portability)",
+    "exportDataTooltip": "Download all your document data as JSON (GDPR data portability)",
     "deleteAccount": "Delete Account",
     "deleteAccountTooltip": "Permanently delete your account (GDPR right to erasure)",
-    "confirmDeleteAccount": "This will permanently delete your account and all CV data. Type DELETE to confirm.",
+    "confirmDeleteAccount": "This will permanently delete your account and all document data. Type DELETE to confirm.",
     "privacyPolicy": "Privacy Policy",
     "documents": "Documents",
     "session": "Session",
@@ -180,39 +171,6 @@
     "saving": "Saving...",
     "saved": "Saved",
     "error": "Save failed"
-  },
-  "dashboard": {
-    "title": "CV Dashboard",
-    "backToEditor": "Back to Editor",
-    "searchPlaceholder": "Search by title, name, or position...",
-    "totalCvs": "{count} CVs total",
-    "deleteSelected": "Delete Selected",
-    "confirmDeleteMultiple": "Are you sure you want to delete {count} CV(s)?",
-    "colTitle": "Title",
-    "colName": "Name",
-    "colPosition": "Position",
-    "colCreated": "Created",
-    "colUpdated": "Last Updated",
-    "colActions": "Actions",
-    "edit": "Edit CV",
-    "rename": "Rename CV",
-    "renamePrompt": "Enter new name:",
-    "duplicate": "Duplicate CV",
-    "print": "Print",
-    "savePdf": "Save as PDF",
-    "delete": "Delete CV",
-    "copy": "Copy",
-    "noCvs": "No CVs yet. Create your first CV!",
-    "noResults": "No CVs match your search",
-    "noResumes": "No resumes found",
-    "noCoverLetters": "No cover letters found",
-    "showing": "Showing {shown} of {total} CVs",
-    "justNow": "Just now",
-    "minsAgo": "{n} min ago",
-    "hoursAgo": "{n} hours ago",
-    "daysAgo": "{n} days ago",
-    "gridView": "Grid view",
-    "tableView": "Table view"
   },
   "pages": {
     "previous": "Previous Page",
@@ -242,6 +200,19 @@
   "editor": {
     "documentTitle": "Document title",
     "editTitle": "Edit document title"
+  },
+  "centralToolbar": {
+    "label": "Document styles",
+    "name": "Name",
+    "sender": "Sender",
+    "headings": "Sections",
+    "subtitles": "Job Titles",
+    "body": "Body",
+    "colorScheme": "Colors",
+    "scale": "Text Scale",
+    "compact": "Compact",
+    "standard": "Standard",
+    "spacious": "Spacious"
   },
   "coverLetter": {
     "name": "Full name",
@@ -294,5 +265,212 @@
     "cookieExpiry": "Expiry",
     "s7Title": "Contact",
     "s7Body": "To exercise your rights or raise a data-protection concern, please contact the operator of this Career Forge instance. You also have the right to lodge a complaint with your national supervisory authority."
+  },
+  "versions": {
+    "title": "Version History",
+    "namePlaceholder": "Version name (e.g. 'Before redesign')",
+    "save": "Save Version",
+    "empty": "No saved versions yet",
+    "restore": "Restore this version",
+    "delete": "Delete version"
+  },
+  "onboarding": {
+    "pickTemplate": "Choose a Template",
+    "templateHint": "You can change this later anytime.",
+    "basicInfo": "Your Basic Info",
+    "basicInfoHint": "We'll pre-fill your resume with this.",
+    "fullName": "Full name",
+    "jobTitle": "Job title",
+    "email": "Email",
+    "phone": "Phone",
+    "chooseSections": "Choose Your Sections",
+    "sectionsHint": "Toggle which sections to include. You can adjust later.",
+    "sectionExperience": "Work Experience",
+    "sectionEducation": "Education",
+    "sectionSkills": "Skills",
+    "sectionLanguages": "Languages",
+    "sectionCompetencies": "Core Competencies",
+    "sectionSummary": "Summary",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Get Started"
+  },
+  "account": {
+    "title": "Account Settings",
+    "profile": "Profile",
+    "email": "Email",
+    "changePassword": "Change Password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "updatePassword": "Update Password",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordChanged": "Password updated successfully",
+    "passwordChangeFailed": "Failed to change password",
+    "security": "Security",
+    "logoutAllDevices": "Logout All Devices",
+    "loggedOutAll": "Logged out from all devices",
+    "logoutAllFailed": "Failed to logout all devices",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteConfirm": "This will permanently delete your account and all data. Are you sure?",
+    "deleteYes": "Yes, delete my account",
+    "deleteNo": "Cancel",
+    "deleteFailed": "Failed to delete account"
+  },
+  "completeness": {
+    "title": "Profile Completeness",
+    "name": "Full name",
+    "email": "Email address",
+    "phone": "Phone number",
+    "summary": "Summary",
+    "experience": "Work experience",
+    "education": "Education",
+    "skills": "Skills",
+    "languages": "Languages"
+  },
+  "keywords": {
+    "title": "Keyword Matcher",
+    "placeholder": "Paste the job description here…",
+    "pastePlaceholder": "Paste the job description here\u2026",
+    "analyze": "Analyze",
+    "score": "Match Score",
+    "matchScore": "Match Score",
+    "found": "Found Keywords",
+    "keywordsFound": "keywords found",
+    "missing": "Missing Keywords",
+    "hint": "Consider adding the missing keywords to improve your ATS score."
+  },
+  "guest": {
+    "warningBanner": "You are using Guest Mode. Your work will not be saved.",
+    "signUp": "Sign Up Now"
+  },
+  "mobile": {
+    "warning": "The CV editor is designed for desktop screens. Some features may not work on mobile.",
+    "dismiss": "Continue Anyway"
+  },
+  "education": {
+    "addEducation": "Add Education Entry",
+    "addDegree": "Add Degree",
+    "addCourse": "Add Course",
+    "courseLabel": "Course"
+  },
+  "customSections": {
+    "addSection": "Add Section",
+    "projects": "Projects",
+    "certifications": "Certifications",
+    "publications": "Publications",
+    "volunteer": "Volunteer Work",
+    "references": "References",
+    "custom": "Custom Section",
+    "untitledSection": "New Section"
+  },
+  "coverLetterLink": {
+    "linkedResume": "Linked Resume",
+    "noLink": "No resume linked",
+    "selectResume": "Select a resume…"
+  },
+  "settings": {
+    "title": "Color settings",
+    "colorPreset": "Color preset",
+    "sidebarColor": "Sidebar color:",
+    "sidebarColor1": "Sidebar color 1:",
+    "sidebarColor2": "Sidebar color 2:",
+    "accentColor": "Accent color:",
+    "visibleSections": "Visible sections",
+    "sections": "Sections",
+    "visibility": "Visibility",
+    "addSection": "Add Section",
+    "titleFont": "Title font"
+  },
+  "shared": {
+    "title": "Shared Document",
+    "readOnly": "This is a read-only shared view.",
+    "notFound": "Shared document not found or link expired."
+  },
+  "dashboard": {
+    "title": "CV Dashboard",
+    "backToEditor": "Back to Editor",
+    "searchPlaceholder": "Search by title, name, or position...",
+    "totalCvs": "{count} CVs total",
+    "deleteSelected": "Delete Selected",
+    "confirmDeleteMultiple": "Are you sure you want to delete {count} CV(s)?",
+    "colTitle": "Title",
+    "colType": "Type",
+    "colName": "Name",
+    "colPosition": "Position",
+    "colCreated": "Created",
+    "colUpdated": "Last Updated",
+    "colActions": "Actions",
+    "edit": "Edit CV",
+    "rename": "Rename CV",
+    "renamePrompt": "Enter new name:",
+    "duplicate": "Duplicate CV",
+    "print": "Print",
+    "savePdf": "Save as PDF",
+    "delete": "Delete CV",
+    "copy": "Copy",
+    "noCvs": "No CVs yet. Create your first CV!",
+    "noResults": "No CVs match your search",
+    "noResumes": "No resumes found",
+    "noCoverLetters": "No cover letters found",
+    "showing": "Showing {shown} of {total} CVs",
+    "justNow": "Just now",
+    "minsAgo": "{n} min ago",
+    "hoursAgo": "{n} hours ago",
+    "daysAgo": "{n} days ago",
+    "gridView": "Grid view",
+    "tableView": "Table view",
+    "createFirst": "Create Your First Document",
+    "emptyHint": "Choose a template and start building your professional resume.",
+    "share": "Share",
+    "shareCopied": "Share link copied to clipboard!"
+  },
+  "templates": {
+    "title": "Document Templates",
+    "back": "Back",
+    "useTemplate": "Use This Template",
+    "types": {
+      "all": "All Documents",
+      "resume": "Resumes",
+      "cover-letter": "Cover Letters",
+      "resume-singular": "Resume",
+      "cover-letter-singular": "Cover Letter"
+    },
+    "items": {
+      "classic-professional": {
+        "name": "Classic Professional",
+        "description": "A clean, traditional layout trusted by Fortune 500 recruiters. Deep navy tones convey reliability and competence."
+      },
+      "resume-modern": {
+        "name": "Modern Professional",
+        "description": "A sleek, contemporary layout with refined teal tones and clean modern typography. Ideal for tech, creative, and modern industry professionals."
+      },
+      "executive-prestige": {
+        "name": "Executive Prestige",
+        "description": "Commanding charcoal palette with gold accents and serif typography. Designed for senior leaders, directors, and C-suite roles."
+      },
+      "ats-optimized": {
+        "name": "ATS Optimized",
+        "description": "A single-column, parser-friendly layout designed to pass Applicant Tracking Systems with maximum keyword visibility."
+      },
+      "cover-modern": {
+        "name": "Modern Cover Letter",
+        "description": "A contemporary cover letter with a sleek teal accent bar mirroring the Modern Professional resume. Clean and eye-catching."
+      },
+      "cover-classic": {
+        "name": "Classic Cover Letter",
+        "description": "A clean, traditional cover letter with a deep navy header. Pairs perfectly with the Classic Professional resume."
+      },
+      "cover-executive": {
+        "name": "Executive Cover Letter",
+        "description": "A commanding cover letter with charcoal header band and gold accent. Designed for senior leaders and C-suite roles."
+      },
+      "cover-professional": {
+        "name": "Standard Cover Letter",
+        "description": "A formal, business-appropriate cover letter with a minimal design. Choose from multiple accent color schemes."
+      }
+    }
   }
 }

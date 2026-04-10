@@ -113,6 +113,16 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }) => {
         onClose={() => setShowAuthModal(false)} 
         onSuccess={handleAuthSuccess}
       />
+
+      {isGuest && isEditor && (
+        <div className="guest-warning-banner">
+          <i className="fas fa-exclamation-triangle"></i>
+          <span>{t('guest.warningBanner')}</span>
+          <button className="guest-warning-signup" onClick={() => setShowAuthModal(true)}>
+            {t('guest.signUpNow')}
+          </button>
+        </div>
+      )}
     </>
   );
 };
