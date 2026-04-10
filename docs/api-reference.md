@@ -15,6 +15,8 @@
 - [Health Check](#health-check)
 - [Authentication](#authentication)
 - [Documents](#documents)
+- [Document Versions](#document-versions)
+- [Document Sharing](#document-sharing)
 - [Static Files](#static-files)
 - [Error Responses](#error-responses)
 - [Rate Limiting](#rate-limiting)
@@ -252,6 +254,100 @@ Update user preferences (theme, language).
 
 ---
 
+### `POST /api/auth/change-password`
+
+Change password for the authenticated user. Requires the current password.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Request Body**
+```json
+{
+  "current_password": "OldP@ss1",
+  "new_password": "NewSecureP@ss2"
+}
+```
+
+**Validation:** `new_password` — 8+ chars, must include: uppercase, lowercase, digit, special character.
+
+**Response** `200 OK`
+```json
+{
+  "message": "Password updated successfully"
+}
+```
+
+**Errors:** `400` (current password incorrect, validation failure)
+
+---
+
+### `POST /api/auth/forgot-password`
+
+Request a password reset token for the given email.
+
+**Request Body** (no auth required)
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response** `200 OK`
+```json
+{
+  "message": "If that email exists, a reset token has been generated",
+  "reset_token": "<jwt-token>"
+}
+```
+
+> **Note:** The token is returned directly in the API response.
+
+Always returns `200` regardless of whether the email exists (prevents user enumeration).
+
+---
+
+### `POST /api/auth/reset-password`
+
+Reset a user's password using a reset token.
+
+**Request Body** (no auth required)
+```json
+{
+  "token": "<reset-token>",
+  "new_password": "NewSecureP@ss2"
+}
+```
+
+**Validation:** `new_password` — 8+ chars, must include: uppercase, lowercase, digit, special character.
+
+**Response** `200 OK`
+```json
+{
+  "message": "Password has been reset successfully"
+}
+```
+
+**Errors:** `400` (invalid/expired token, validation failure)
+
+> On success, all existing refresh tokens for the user are revoked.
+
+---
+
+### `DELETE /api/auth/me`
+
+Delete the authenticated user's account and all associated data.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK`
+```json
+{
+  "message": "Account deleted successfully"
+}
+```
+
+---
+
 ## Documents
 
 All document endpoints are prefixed with `/api/documents`. All require `Authorization: Bearer <access_token>`.
@@ -439,6 +535,146 @@ file: <image-file>
 ```
 
 Uploaded files are served from `/uploads/profile_images/`.
+
+---
+
+### `DELETE /api/documents/{document_id}/profile-image`
+
+Remove a document's profile image.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK`
+```json
+{
+  "message": "Profile image removed"
+}
+```
+
+---
+
+### `POST /api/documents/{document_id}/versions`
+
+Create a snapshot (version) of a document.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `201 Created`
+```json
+{
+  "id": 1,
+  "document_id": 1,
+  "data": "{...}",
+  "created_at": "2026-02-13T16:00:00"
+}
+```
+
+---
+
+### `GET /api/documents/{document_id}/versions`
+
+List all saved versions of a document.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "document_id": 1,
+    "created_at": "2026-02-13T16:00:00"
+  }
+]
+```
+
+---
+
+### `GET /api/documents/{document_id}/versions/{version_id}`
+
+Get a specific version with full data.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK`
+```json
+{
+  "id": 1,
+  "document_id": 1,
+  "data": "{...}",
+  "created_at": "2026-02-13T16:00:00"
+}
+```
+
+**Errors:** `404` (version not found)
+
+---
+
+### `POST /api/documents/{document_id}/versions/{version_id}/restore`
+
+Restore a document to a previous version.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK` — Updated document object with restored data.
+
+---
+
+### `DELETE /api/documents/{document_id}/versions/{version_id}`
+
+Delete a saved version.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `204 No Content`
+
+---
+
+### `POST /api/documents/{document_id}/share`
+
+Generate a shareable link for a document.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK`
+```json
+{
+  "share_token": "<random-token>",
+  "share_url": "/api/shared/<random-token>"
+}
+```
+
+---
+
+### `DELETE /api/documents/{document_id}/share`
+
+Remove the shareable link from a document.
+
+**Headers:** `Authorization: Bearer <access_token>`
+
+**Response** `200 OK`
+```json
+{
+  "message": "Share link removed"
+}
+```
+
+---
+
+### `GET /api/shared/{share_token}`
+
+Public endpoint — view a shared document (no authentication required).
+
+**Response** `200 OK`
+```json
+{
+  "title": "My Professional Resume",
+  "document_type": "resume",
+  "data": "{...}"
+}
+```
+
+**Errors:** `404` (invalid share token)
 
 ---
 
