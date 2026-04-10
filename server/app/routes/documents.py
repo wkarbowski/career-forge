@@ -1,4 +1,6 @@
+
 import os
+import secrets
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -6,8 +8,13 @@ from fastapi import UploadFile, File, Depends, HTTPException, status, APIRouter,
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import User, Document
-from app.schemas import DocumentCreate, DocumentUpdate, DocumentResponse, DocumentListResponse, DocumentExport, DocumentImport
+from app.models import User, Document, DocumentVersion
+from app.schemas import (
+    DocumentCreate, DocumentUpdate, DocumentResponse, DocumentListResponse,
+    DocumentExport, DocumentImport,
+    DocumentVersionCreate, DocumentVersionResponse, DocumentVersionDetailResponse,
+    ShareLinkResponse, SharedDocumentResponse,
+)
 from app.auth import get_current_active_user
 from app.security import InputSanitizer
 
@@ -15,6 +22,28 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'uploads', 'profile_images')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.delete("/{document_id}/profile-image", status_code=204)
+async def remove_profile_image(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Remove the profile image for a document."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if doc.profile_image:
+        file_path = os.path.join(UPLOAD_DIR, doc.profile_image)
+        if os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
+        doc.profile_image = None
+        db.commit()
+        db.refresh(doc)
+    return None
 
 # Raster-only allowlist — SVG is excluded because static SVG files served from
 # the same origin can execute embedded JavaScript (XSS).
@@ -292,3 +321,164 @@ async def get_default_document(
         )
 
     return doc
+
+
+# ============== Version History ==============
+
+MAX_VERSIONS_PER_DOCUMENT = 20
+
+
+@router.post("/{document_id}/versions", response_model=DocumentVersionResponse, status_code=status.HTTP_201_CREATED)
+async def create_version(
+    document_id: int,
+    body: DocumentVersionCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create a named snapshot of the current document state."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    count = db.query(DocumentVersion).filter(DocumentVersion.document_id == document_id).count()
+    if count >= MAX_VERSIONS_PER_DOCUMENT:
+        raise HTTPException(status_code=400, detail=f"Maximum {MAX_VERSIONS_PER_DOCUMENT} versions per document")
+
+    version = DocumentVersion(
+        document_id=document_id,
+        version_name=InputSanitizer.sanitize_string(body.version_name),
+        data=doc.data,
+    )
+    db.add(version)
+    db.commit()
+    db.refresh(version)
+    return version
+
+
+@router.get("/{document_id}/versions", response_model=List[DocumentVersionResponse])
+async def list_versions(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """List all saved versions of a document."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return (
+        db.query(DocumentVersion)
+        .filter(DocumentVersion.document_id == document_id)
+        .order_by(DocumentVersion.created_at.desc())
+        .all()
+    )
+
+
+@router.get("/{document_id}/versions/{version_id}", response_model=DocumentVersionDetailResponse)
+async def get_version(
+    document_id: int,
+    version_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get full data of a specific version."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    version = db.query(DocumentVersion).filter(
+        DocumentVersion.id == version_id,
+        DocumentVersion.document_id == document_id,
+    ).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+    return version
+
+
+@router.post("/{document_id}/versions/{version_id}/restore", response_model=DocumentResponse)
+async def restore_version(
+    document_id: int,
+    version_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Restore a document to a previous version's data."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    version = db.query(DocumentVersion).filter(
+        DocumentVersion.id == version_id,
+        DocumentVersion.document_id == document_id,
+    ).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+
+    doc.data = version.data
+    db.commit()
+    db.refresh(doc)
+    return doc
+
+
+@router.delete("/{document_id}/versions/{version_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_version(
+    document_id: int,
+    version_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Delete a saved version."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    version = db.query(DocumentVersion).filter(
+        DocumentVersion.id == version_id,
+        DocumentVersion.document_id == document_id,
+    ).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+
+    db.delete(version)
+    db.commit()
+    return None
+
+
+# ============== Share Links ==============
+
+@router.post("/{document_id}/share", response_model=ShareLinkResponse)
+async def create_share_link(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Generate a unique share token for a document."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if not doc.share_token:
+        doc.share_token = secrets.token_urlsafe(32)
+        db.commit()
+        db.refresh(doc)
+
+    return ShareLinkResponse(
+        share_token=doc.share_token,
+        url=f"/shared/{doc.share_token}",
+    )
+
+
+@router.delete("/{document_id}/share", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_share_link(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Revoke the share link for a document."""
+    doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc.share_token = None
+    db.commit()
+    return None

@@ -1153,7 +1153,15 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
     # Paths that accept form data
     FORM_ALLOWED_PATHS = {
         "/api/auth/login",  # OAuth2 form login
+        # Allow image upload endpoint to accept multipart/form-data
+        "/api/documents/upload-image",  # generic fallback (if not using path params)
     }
+
+    # Accept all /api/documents/{id}/upload-image
+    def is_form_allowed(self, path):
+        if path.startswith("/api/documents/") and path.endswith("/upload-image"):
+            return True
+        return path in self.FORM_ALLOWED_PATHS
     
     # Paths to skip validation
     SKIP_PATHS = {
@@ -1176,7 +1184,7 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # Allow form data for specific paths
-        if path in self.FORM_ALLOWED_PATHS:
+        if self.is_form_allowed(path):
             return await call_next(request)
         
         # Validate Content-Type

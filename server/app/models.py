@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
@@ -43,8 +43,23 @@ class Document(Base):
     updated_at = Column(DateTime, default=_now, onupdate=_now)
 
     profile_image = Column(String(255), nullable=True)
+    share_token = Column(String(64), unique=True, nullable=True, index=True)
 
     owner = relationship("User", back_populates="documents")
+    versions = relationship("DocumentVersion", back_populates="document", cascade="all, delete-orphan")
+
+
+class DocumentVersion(Base):
+    """Snapshot of a document at a point in time."""
+    __tablename__ = "document_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_name = Column(String(255), nullable=False)
+    data = Column(JSONB, nullable=False)
+    created_at = Column(DateTime, default=_now)
+
+    document = relationship("Document", back_populates="versions")
 
 
 class RefreshToken(Base):
