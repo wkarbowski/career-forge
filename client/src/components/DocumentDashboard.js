@@ -9,8 +9,8 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
   const { documentList, refreshDocumentList, deleteDocument, renameDocument, currentDocumentId } = useAuth();
   const { setDocumentTitle } = useAppState();
   const { t } = useTranslation();
-  const [filterType, setFilterType] = useState('all'); // all | resume | cover-letter
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+  const [filterType, setFilterType] = useState(() => sessionStorage.getItem('dash_filterType') || 'all');
+  const [viewMode, setViewMode] = useState(() => sessionStorage.getItem('dash_viewMode') || 'grid');
   
   const [sortConfig, setSortConfig] = useState({ key: 'updated_at', direction: 'desc' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +19,9 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const editInputRef = useRef(null);
+
+  useEffect(() => { sessionStorage.setItem('dash_filterType', filterType); }, [filterType]);
+  useEffect(() => { sessionStorage.setItem('dash_viewMode', viewMode); }, [viewMode]);
 
   useEffect(() => {
     if (editingId && editInputRef.current) {
@@ -34,13 +37,11 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
     return txt.value;
   };
 
-  // Heuristic to determine document type from stored data/title
+  // Determine document type from the top-level document_type field returned by the list API.
+  // Server stores 'cover_letter' (underscore); client filter uses 'cover-letter' (hyphen).
   const detectDocumentType = (cv) => {
     try {
-      const data = cv.data || {};
-      if (data.layout && String(data.layout).toLowerCase().includes('cover')) return 'cover-letter';
-      if (data.settings && data.settings.headerStyle) return 'cover-letter';
-      if (cv.title && /cover/i.test(cv.title)) return 'cover-letter';
+      if (cv.document_type === 'cover_letter') return 'cover-letter';
       return 'resume';
     } catch (err) {
       return 'resume';
@@ -152,6 +153,19 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
       }
     } catch (err) {
       console.error('Failed to duplicate document:', err);
+    }
+  };
+
+  const handleShareDocument = async (docId) => {
+    try {
+      const result = await documentApi.createShareLink(docId);
+      if (result?.url) {
+        const fullUrl = `${window.location.origin}${result.url}`;
+        await navigator.clipboard.writeText(fullUrl);
+        // Brief visual feedback could be added here
+      }
+    } catch (err) {
+      console.error('Failed to create share link:', err);
     }
   };
 
@@ -315,6 +329,14 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
                       : t('dashboard.noCoverLetters')
                 }
               </p>
+              {!searchTerm && documentList.length === 0 && (
+                <div className="empty-state-actions">
+                  <p className="empty-state-hint">{t('dashboard.emptyHint')}</p>
+                  <button className="empty-state-btn" onClick={onBack}>
+                    <i className="fas fa-plus"></i> {t('dashboard.createFirst')}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             processedCvs.map((cv) => {
@@ -336,6 +358,9 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
                       {docType === 'cover-letter' ? t('templates.types.cover-letter') : t('templates.types.resume')}
                     </div>
                     <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="card-action-btn" onClick={() => handleShareDocument(cv.id)} title={t('dashboard.share')}>
+                        <i className="fas fa-share-alt"></i>
+                      </button>
                       <button className="card-action-btn" onClick={() => handleDuplicate(cv)} title={t('dashboard.duplicate')}>
                         <i className="fas fa-copy"></i>
                       </button>
@@ -402,6 +427,7 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
                 {t('dashboard.colTitle')}
                 {getSortIcon('title')}
               </th>
+              <th className="col-type">{t('dashboard.colType')}</th>
               <th className="col-name sortable" onClick={() => handleSort('name')}>
                 {t('dashboard.colName')}
                 {getSortIcon('name')}
@@ -424,7 +450,7 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
           <tbody>
             {processedCvs.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan="7">
+                <td colSpan="8">
                   <div className="empty-state">
                     <i className="fas fa-folder-open"></i>
                     <p>
@@ -464,6 +490,17 @@ const DocumentDashboard = ({ onBack, onEditDocument, onPrintDocument, onSavePdfD
                     ) : (
                       <span className="cv-title-text">{cv.title}</span>
                     )}
+                  </td>
+                  <td className="col-type">
+                    {(() => {
+                      const docType = detectDocumentType(cv);
+                      return (
+                        <span className={`table-type-badge ${docType}`}>
+                          <i className={`fas ${docType === 'cover-letter' ? 'fa-envelope' : 'fa-file-alt'}`}></i>
+                          {docType === 'cover-letter' ? t('templates.types.cover-letter-singular') : t('templates.types.resume-singular')}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="col-name">
                     {decodeEntities(cv.data?.data?.personal?.name) || <span className="empty-cell">—</span>}

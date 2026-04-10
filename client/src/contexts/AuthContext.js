@@ -23,6 +23,8 @@ export const AuthProvider = ({ children }) => {
   const { resetToInitial } = useAppState();
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
       try {
         const guestFlag = window.sessionStorage.getItem('isGuest');
@@ -30,28 +32,53 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
       }
 
-      // Try a silent refresh via HttpOnly cookie
-      if (!authApi.isAuthenticated()) {
+      // If we have an access token, try to use it directly
+      if (authApi.isAuthenticated()) {
         try {
-          await authApi.refreshToken();
-        } catch (_err) {
+          const userData = await authApi.getCurrentUser();
+          if (cancelled) return;
+          setUser(userData);
+          try {
+            const docs = await documentApi.list();
+            if (!cancelled) setDocumentList(docs);
+          } catch (_listErr) {
+            // document list failure is non-fatal; user stays logged in
+          }
           setLoading(false);
           return;
+        } catch (err) {
+          // Access token exists but /me failed — try refreshing below
         }
+      }
+
+      // No valid access token, or it was rejected — try silent refresh
+      try {
+        await authApi.refreshToken();
+      } catch (_err) {
+        if (!cancelled) setLoading(false);
+        return;
       }
 
       try {
         const userData = await authApi.getCurrentUser();
+        if (cancelled) return;
         setUser(userData);
-        const docs = await documentApi.list();
-        setDocumentList(docs);
+        try {
+          const docs = await documentApi.list();
+          if (!cancelled) setDocumentList(docs);
+        } catch (_listErr) {
+          // non-fatal
+        }
       } catch (err) {
+        // Refresh succeeded but /me still fails — clear tokens
         await authApi.logout();
-        setUser(null);
+        if (!cancelled) setUser(null);
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     };
     checkAuth();
+
+    return () => { cancelled = true; };
   }, []);
 
   const login = useCallback(async (email, password) => {
