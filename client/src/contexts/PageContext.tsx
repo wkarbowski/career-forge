@@ -1,6 +1,37 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
+import type { Page, PageConfig } from '../types';
 
-const PageContext = createContext();
+type ViewMode = 'pages' | 'continuous';
+
+export interface PageContextValue {
+  pages: Page[];
+  setPages: React.Dispatch<React.SetStateAction<Page[]>>;
+  currentPageIndex: number;
+  setCurrentPageIndex: React.Dispatch<React.SetStateAction<number>>;
+  currentPage: Page;
+  totalPages: number;
+  addPage: (afterIndex?: number | null) => void;
+  removePage: (pageIndex: number) => void;
+  goToPage: (pageIndex: number) => void;
+  nextPage: () => void;
+  prevPage: () => void;
+  registerPageRef: (pageIndex: number, ref: HTMLElement | null) => void;
+  zoom: number;
+  setZoom: React.Dispatch<React.SetStateAction<number>>;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetZoom: () => void;
+  viewMode: ViewMode;
+  setViewMode: React.Dispatch<React.SetStateAction<ViewMode>>;
+  minPages: number;
+  setMinPages: React.Dispatch<React.SetStateAction<number>>;
+  resetPages: () => void;
+  userForcedMaxRef: React.MutableRefObject<number | null>;
+  setUserForcedMax: (count: number) => void;
+  PAGE_CONFIG: PageConfig;
+}
+
+const PageContext = createContext<PageContextValue | null>(null);
 
 export const PAGE_CONFIG = {
   width: 794,
@@ -17,32 +48,33 @@ export const PAGE_CONFIG = {
   },
 };
 
-const createDefaultPage = (pageNumber = 1) => ({
+const createDefaultPage = (pageNumber: number = 1): Page => ({
   id: `page-${Date.now()}-${pageNumber}`,
   pageNumber,
   sections: {
-    sidebar: null,  // null = continue from previous, or specific section IDs
-    main: null,     // null = continue from previous, or specific section IDs
+    sidebar: null,
+    main: null,
   },
 });
 
-export function PageProvider({ children }) {
-  const [pages, setPages] = useState([createDefaultPage(1)]);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [zoom, setZoom] = useState(1);
-  const [viewMode, setViewMode] = useState('pages'); // 'pages' or 'continuous'
-  const [minPages, setMinPages] = useState(1);
-  const pageRefs = useRef({});
-  // When a user explicitly deletes a page, store the chosen count here so
-  // calculatePages in CVPagesEditor won't immediately re-add the page.
-  // Also set when restoring pages from the server so the value survives refreshes.
-  const userForcedMaxRef = useRef(null);
+interface PageProviderProps {
+  children: ReactNode;
+}
 
-  const setUserForcedMax = useCallback((count) => {
+export function PageProvider({ children }: PageProviderProps) {
+  const [pages, setPages] = useState<Page[]>([createDefaultPage(1)]);
+  const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
+  const [zoom, setZoom] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<ViewMode>('pages');
+  const [minPages, setMinPages] = useState<number>(1);
+  const pageRefs = useRef<Record<number, HTMLElement | null>>({});
+  const userForcedMaxRef = useRef<number | null>(null);
+
+  const setUserForcedMax = useCallback((count: number): void => {
     userForcedMaxRef.current = count;
   }, []);
 
-  const addPage = useCallback((afterIndex = null) => {
+  const addPage = useCallback((afterIndex: number | null = null): void => {
     setPages(prev => {
       const insertIndex = afterIndex !== null ? afterIndex + 1 : prev.length;
       const newPage = createDefaultPage(insertIndex + 1);
@@ -52,7 +84,7 @@ export function PageProvider({ children }) {
     });
   }, []);
 
-  const removePage = useCallback((pageIndex) => {
+  const removePage = useCallback((pageIndex: number): void => {
     setPages(prev => {
       if (prev.length <= 1) return prev; // Keep at least one page
       const newPages = prev.filter((_, idx) => idx !== pageIndex);
@@ -61,7 +93,7 @@ export function PageProvider({ children }) {
     setCurrentPageIndex(prev => Math.min(prev, pages.length - 2));
   }, [pages.length]);
 
-  const goToPage = useCallback((pageIndex) => {
+  const goToPage = useCallback((pageIndex: number): void => {
     if (pageIndex >= 0 && pageIndex < pages.length) {
       setCurrentPageIndex(pageIndex);
       const pageEl = pageRefs.current[pageIndex];
@@ -79,7 +111,7 @@ export function PageProvider({ children }) {
     goToPage(currentPageIndex - 1);
   }, [currentPageIndex, goToPage]);
 
-  const registerPageRef = useCallback((pageIndex, ref) => {
+  const registerPageRef = useCallback((pageIndex: number, ref: HTMLElement | null): void => {
     pageRefs.current[pageIndex] = ref;
   }, []);
 
@@ -134,7 +166,7 @@ export function PageProvider({ children }) {
   );
 }
 
-export function usePages() {
+export function usePages(): PageContextValue {
   const context = useContext(PageContext);
   if (!context) {
     throw new Error('usePages must be used within a PageProvider');
