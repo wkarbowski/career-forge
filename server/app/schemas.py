@@ -173,6 +173,7 @@ class DocumentBase(BaseModel):
 
 class DocumentCreate(DocumentBase):
     data: Any  # JSON content for the document
+    linked_resume_id: Optional[int] = None
 
 
 class DocumentUpdate(BaseModel):
@@ -180,6 +181,7 @@ class DocumentUpdate(BaseModel):
     document_type: Optional[str] = Field(None, pattern="^(resume|cover_letter)$")
     data: Optional[Any] = None
     is_default: Optional[bool] = None
+    linked_resume_id: Optional[int] = None
 
 
 class DocumentResponse(DocumentBase):
@@ -187,6 +189,8 @@ class DocumentResponse(DocumentBase):
     data: Any
     owner_id: int
     is_default: bool
+    share_token: Optional[str] = None
+    linked_resume_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 
@@ -198,8 +202,11 @@ class DocumentListResponse(DocumentBase):
     id: int
     owner_id: int
     is_default: bool
+    share_token: Optional[str] = None
+    linked_resume_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
+    job_title: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -43,9 +43,17 @@ class Document(Base):
 
     profile_image = Column(String(255), nullable=True)
     share_token = Column(String(64), unique=True, nullable=True, index=True)
+    linked_resume_id = Column(
+        Integer,
+        ForeignKey("documents.id", ondelete="SET NULL"),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
 
     owner = relationship("User", back_populates="documents")
     versions = relationship("DocumentVersion", back_populates="document", cascade="all, delete-orphan")
+    linked_resume = relationship("Document", remote_side=[id], foreign_keys=[linked_resume_id])
 
 
 class DocumentVersion(Base):
