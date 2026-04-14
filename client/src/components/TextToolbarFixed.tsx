@@ -29,14 +29,24 @@ const FONT_GROUPS = [
 
 const FONT_SIZE_OPTIONS = [8,9,10,11,12,13,14,15,16,17,18,20,22,24,26,28,30,32,36,40,48,60,72];
 
-const TextToolbar = ({ position, onClose }) => {
+interface TextToolbarPosition {
+  top: number;
+  left: number;
+}
+
+interface TextToolbarProps {
+  position: TextToolbarPosition | null;
+  onClose: () => void;
+}
+
+const TextToolbar = ({ position, onClose }: TextToolbarProps) => {
   const { t } = useTranslation();
   const [fontSize, setFontSize] = useState('16');
   const [fontFamily, setFontFamily] = useState('Rubik');
-  const toolbarRef = useRef(null);
-  const [adjPosition, setAdjPosition] = useState(position || { top: 0, left: 0 });
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [adjPosition, setAdjPosition] = useState<TextToolbarPosition>(position || { top: 0, left: 0 });
   const { zoom } = usePages();
-  const savedRangeRef = useRef(null);
+  const savedRangeRef = useRef<Range | null>(null);
 
   useEffect(() => {
     const detectCurrentStyles = () => {
@@ -45,22 +55,20 @@ const TextToolbar = ({ position, onClose }) => {
       
       // Use the focus node (end of selection) for better accuracy when
       // dragging a selection across text with different styles
-      let node = selection.focusNode || selection.anchorNode;
+      let node: Node | null = selection.focusNode || selection.anchorNode;
       if (node && node.nodeType === 3) {
-        node = node.parentElement;
+        node = (node as Text).parentElement;
       }
       
       if (node && node.nodeType === 1) {
         try {
-          const computed = window.getComputedStyle(node);
+          const computed = window.getComputedStyle(node as Element);
           
-                  // Prefer inline style font-size so the toolbar shows the
-                  // actual CSS value (unaffected by browser zoom).
-                  const findInlineFontSize = (el) => {
+                  const findInlineFontSize = (el: Node | null): string | null => {
                     let cur = el;
                     while (cur && cur.nodeType === 1) {
-                      if (cur.style && cur.style.fontSize) return cur.style.fontSize;
-                      cur = cur.parentElement;
+                      if ((cur as HTMLElement).style && (cur as HTMLElement).style.fontSize) return (cur as HTMLElement).style.fontSize;
+                      cur = (cur as HTMLElement).parentElement;
                     }
                     return null;
                   };
@@ -98,18 +106,18 @@ const TextToolbar = ({ position, onClose }) => {
   }, [position, zoom]); // Re-detect when position or zoom changes (new selection)
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (toolbarRef.current && !toolbarRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(event.target as Node)) {
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) {
           onClose();
           return;
         }
 
-        let node = selection.anchorNode;
+        let node: Node | null = selection.anchorNode;
         let isContentEditable = false;
         while (node) {
-          if (node.nodeType === 1 && node.contentEditable === 'true') {
+          if (node.nodeType === 1 && (node as HTMLElement).contentEditable === 'true') {
             isContentEditable = true;
             break;
           }
@@ -172,7 +180,7 @@ const TextToolbar = ({ position, onClose }) => {
   }, [position]);
 
   useEffect(() => {
-    const onKeyDown = (e) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         onClose();
       }
@@ -181,7 +189,7 @@ const TextToolbar = ({ position, onClose }) => {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const handleToolbarMouseDown = (e) => {
+  const handleToolbarMouseDown = (_e: React.MouseEvent) => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       savedRangeRef.current = sel.getRangeAt(0).cloneRange();
@@ -203,16 +211,16 @@ const TextToolbar = ({ position, onClose }) => {
     return true;
   };
 
-  const execCommand = (command, value = null) => {
+  const execCommand = (command: string, value: string | null = null) => {
     restoreSelection();
-    document.execCommand(command, false, value);
+    document.execCommand(command, false, value ?? undefined);
     // Dispatch input event so React state picks up the formatting change
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
-      let editableEl = sel.anchorNode;
-      if (editableEl && editableEl.nodeType === 3) editableEl = editableEl.parentElement;
-      while (editableEl && editableEl.contentEditable !== 'true') {
-        editableEl = editableEl.parentElement;
+      let editableEl: Node | null = sel.anchorNode;
+      if (editableEl && editableEl.nodeType === 3) editableEl = (editableEl as Text).parentElement;
+      while (editableEl && (editableEl as HTMLElement).contentEditable !== 'true') {
+        editableEl = (editableEl as HTMLElement).parentElement;
       }
       if (editableEl) {
         editableEl.dispatchEvent(new Event('input', { bubbles: true }));
@@ -220,7 +228,7 @@ const TextToolbar = ({ position, onClose }) => {
     }
   };
 
-  const applyStyleToSelection = (prop, value) => {
+  const applyStyleToSelection = (prop: string, value: string) => {
     restoreSelection();
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
@@ -233,16 +241,16 @@ const TextToolbar = ({ position, onClose }) => {
       try {
         const startNode = range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer;
         if (startNode && startNode.nodeType === 1) {
-          const computed = window.getComputedStyle(startNode);
+          const computed = window.getComputedStyle(startNode as Element);
           const preserve = ['color', 'backgroundColor', 'fontFamily', 'fontSize'];
           preserve.forEach((p) => {
-            if (p !== prop && computed[p]) span.style[p] = computed[p];
+            if (p !== prop && computed[p as keyof CSSStyleDeclaration]) (span.style as unknown as Record<string, string>)[p] = computed[p as keyof CSSStyleDeclaration] as string;
           });
         }
       } catch (err) {
       }
 
-      span.style[prop] = value;
+      (span.style as unknown as Record<string, string>)[prop] = value;
       range.insertNode(span);
       const newRange = document.createRange();
       newRange.setStart(span, 0);
@@ -250,7 +258,7 @@ const TextToolbar = ({ position, onClose }) => {
       selection.removeAllRanges();
       selection.addRange(newRange);
       
-      let editableEl = span;
+      let editableEl: HTMLElement | null = span;
       while (editableEl && editableEl.contentEditable !== 'true') {
         editableEl = editableEl.parentElement;
       }
@@ -262,34 +270,31 @@ const TextToolbar = ({ position, onClose }) => {
 
     // If selection spans block-level elements, apply style to blocks
     // directly instead of extracting and wrapping inline.
-    const isBlockElement = (el) => {
+    const isBlockElement = (el: Node | null): el is HTMLElement => {
       if (!el || el.nodeType !== 1) return false;
-      const display = window.getComputedStyle(el).display;
+      const display = window.getComputedStyle(el as Element).display;
       if (display === 'block' || display === 'list-item' || display === 'table' || display === 'flex') return true;
       const blockTags = ['P','DIV','LI','UL','OL','H1','H2','H3','H4','H5','H6','PRE'];
-      return blockTags.includes(el.tagName);
+      return blockTags.includes((el as Element).tagName);
     };
 
     try {
-      const common = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentElement : range.commonAncestorContainer;
+      const common = range.commonAncestorContainer.nodeType === 3 ? (range.commonAncestorContainer as Text).parentElement! : range.commonAncestorContainer as HTMLElement;
       const walker = document.createTreeWalker(common, NodeFilter.SHOW_ELEMENT, null);
-      const blocks = new Set();
-      let node = walker.currentNode;
-      // Never apply styles directly to the contentEditable root — its own
-      // inline style attribute is NOT part of innerHTML, so handleInput
-      // would never capture the change and it would be lost on save.
+      const blocks = new Set<HTMLElement>();
+      let node: Node | null = walker.currentNode;
       if (isBlockElement(common) && range.intersectsNode(common) && common.contentEditable !== 'true') blocks.add(common);
       while ((node = walker.nextNode())) {
-        if (isBlockElement(node) && range.intersectsNode(node) && node.contentEditable !== 'true') {
-          blocks.add(node);
+        if (isBlockElement(node) && range.intersectsNode(node) && (node as HTMLElement).contentEditable !== 'true') {
+          blocks.add(node as HTMLElement);
         }
       }
       if (blocks.size > 0) {
         blocks.forEach((blk) => {
-          try { blk.style[prop] = value; } catch (e) { /* ignore */ }
+          try { (blk.style as unknown as Record<string, string>)[prop] = value; } catch (e) { /* ignore */ }
         });
 
-        let editableEl = common;
+        let editableEl: HTMLElement | null = common;
         while (editableEl && editableEl.contentEditable !== 'true') editableEl = editableEl.parentElement;
         if (editableEl) editableEl.dispatchEvent(new Event('input', { bubbles: true }));
         return;
@@ -300,10 +305,10 @@ const TextToolbar = ({ position, onClose }) => {
     const content = range.extractContents();
     const wrapper = document.createElement('span');
 
-    const findInlineStyle = (node, styleProp) => {
-      let el = node.nodeType === 3 ? node.parentElement : node;
+    const findInlineStyle = (node: Node, styleProp: string): string | null => {
+      let el: HTMLElement | null = node.nodeType === 3 ? (node as Text).parentElement : node as HTMLElement;
       while (el) {
-        if (el.style && el.style[styleProp]) return el.style[styleProp];
+        if (el.style && (el.style as unknown as Record<string, string>)[styleProp]) return (el.style as unknown as Record<string, string>)[styleProp];
         el = el.parentElement;
       }
       return null;
@@ -313,19 +318,19 @@ const TextToolbar = ({ position, onClose }) => {
     try {
       const startNode = range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer;
       if (startNode && startNode.nodeType === 1) {
-        const computed = window.getComputedStyle(startNode);
+        const computed = window.getComputedStyle(startNode as Element);
         const preserve = ['color', 'backgroundColor', 'fontFamily', 'fontSize'];
         preserve.forEach((p) => {
           if (p === prop) return;
           const inlineVal = findInlineStyle(startNode, p);
-          const useVal = inlineVal || computed[p];
-          if (useVal) wrapper.style[p] = useVal;
+          const useVal = inlineVal || (computed[p as keyof CSSStyleDeclaration] as string);
+          if (useVal) (wrapper.style as unknown as Record<string, string>)[p] = useVal;
         });
       }
     } catch (err) {
     }
 
-    wrapper.style[prop] = value;
+    (wrapper.style as unknown as Record<string, string>)[prop] = value;
     wrapper.appendChild(content);
     range.insertNode(wrapper);
 
@@ -334,7 +339,7 @@ const TextToolbar = ({ position, onClose }) => {
     newRange.selectNodeContents(wrapper);
     selection.addRange(newRange);
 
-    let editableEl = wrapper;
+    let editableEl: HTMLElement | null = wrapper;
     while (editableEl && editableEl.contentEditable !== 'true') {
       editableEl = editableEl.parentElement;
     }
@@ -343,7 +348,7 @@ const TextToolbar = ({ position, onClose }) => {
     }
   };
 
-  const handleFontSize = (e) => {
+  const handleFontSize = (e: { target: { value: string } }) => {
     const size = e.target.value;
     setFontSize(size);
     const numeric = parseFloat(size) || 0;
@@ -353,17 +358,17 @@ const TextToolbar = ({ position, onClose }) => {
     }
   };
 
-  const handleFontFamily = (e) => {
+  const handleFontFamily = (e: { target: { value: string } }) => {
     const family = e.target.value;
     setFontFamily(family);
     applyStyleToSelection('fontFamily', family);
   };
 
-  const handleColor = (e) => {
+  const handleColor = (e: React.ChangeEvent<HTMLInputElement>) => {
     applyStyleToSelection('color', e.target.value);
   };
 
-  const handleBackgroundColor = (e) => {
+  const handleBackgroundColor = (e: React.ChangeEvent<HTMLInputElement>) => {
     applyStyleToSelection('backgroundColor', e.target.value);
   };
 

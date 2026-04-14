@@ -7,10 +7,17 @@ import { useAppState } from '../contexts/AppStateContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
 import { documentApi } from '../services/api';
+import type { Page } from '../types';
 import './CVPagesEditor.css';
 
 
-const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
+interface CVPagesEditorProps {
+  profileImage?: string | null;
+  onImageUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageRemove?: () => void;
+}
+
+const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUpload, onImageRemove }) => {
   const { zoom, setZoom, pages: contextPages, setPages, viewMode, registerPageRef, setMinPages, removePage, userForcedMaxRef } = usePages();
   const { settings } = useAppState();
   const { isAuthenticated, currentDocumentId, documentList, refreshDocumentList } = useAuth();
@@ -20,8 +27,8 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
   const [linkBusy, setLinkBusy] = useState(false);           // async lock
   // Defensive: ensure profileImage is string or null
   const safeProfileImage = typeof profileImage === 'string' ? profileImage : null;
-  const containerRef = useRef(null);
-  const contentRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const pageCount = contextPages.length;
 
   const linkedCoverLetters = React.useMemo(() => {
@@ -44,7 +51,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
     if (!linkingCoverId || linkBusy) return;
     setLinkBusy(true);
     try {
-      await documentApi.linkToResume(linkingCoverId, currentDocumentId);
+      await documentApi.linkToResume(linkingCoverId, currentDocumentId!);
       await refreshDocumentList();
       setLinkingCoverId('');
     } catch (err) {
@@ -55,7 +62,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
   };
 
   // Detach a cover letter from this resume
-  const handleUnlink = async (coverLetterId) => {
+  const handleUnlink = async (coverLetterId: string) => {
     if (linkBusy) return;
     setLinkBusy(true);
     try {
@@ -79,13 +86,13 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
       '.section, .experience-item, .sidebar-section, .education-item, h2, h3'
     );
 
-    breakableElements.forEach(el => {
-      el.style.paddingTop = '';
+    breakableElements.forEach((el: Element) => {
+      (el as HTMLElement).style.paddingTop = '';
     });
 
-    breakableElements.forEach(el => {
+    breakableElements.forEach((el: Element) => {
       const rect = el.getBoundingClientRect();
-      const contentRect = contentRef.current.getBoundingClientRect();
+      const contentRect = contentRef.current!.getBoundingClientRect();
       const relativeTop = rect.top - contentRect.top;
       
       const startPage = Math.floor(relativeTop / pageHeight);
@@ -95,7 +102,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
       if (elementBottom > pageEndY && relativeTop < pageEndY) {
         const pushPadding = pageEndY - relativeTop + marginTop;
         if (pushPadding < pageHeight / 2) { // Only push if less than half a page
-          el.style.paddingTop = `${pushPadding}px`;
+          (el as HTMLElement).style.paddingTop = `${pushPadding}px`;
         }
       }
     });
@@ -104,7 +111,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
   const calculatePages = useCallback(() => {
     if (!contentRef.current) return;
 
-    const rawHeight = contentRef.current.scrollHeight;
+    const rawHeight = contentRef.current!.scrollHeight;
     // The measurer is position:absolute with a fixed width inside the scaled
     // canvas, so its scrollHeight already reflects the true unscaled layout
     // height — do NOT divide by zoom.
@@ -127,7 +134,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
         // Content genuinely overflowed the user's count — release the lock
         userForcedMaxRef.current = null;
       }
-      return Array.from({ length: measured }, (_, i) => ({ id: `page-${Date.now()}-${i + 1}`, pageNumber: i + 1 }));
+      return Array.from({ length: measured }, (_, i) => ({ id: `page-${Date.now()}-${i + 1}`, pageNumber: i + 1 })) as Page[];
     });
 
     applyPageBreaks();
@@ -140,7 +147,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
   useEffect(() => {
     calculatePages();
 
-    let resizeTimeout;
+    let resizeTimeout: ReturnType<typeof setTimeout> | undefined;
     const observer = new ResizeObserver(() => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(calculatePages, 100);
@@ -160,7 +167,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
     const el = containerRef.current;
     if (!el) return;
 
-    const onWheel = (e) => {
+    const onWheel = (e: WheelEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
 
       e.preventDefault();
@@ -176,14 +183,14 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
     };
 
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
   }, [setZoom]);
 
   // Mobile warning
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
     setShowMobileWarning(mq.matches);
-    const handler = (e) => setShowMobileWarning(e.matches);
+    const handler = (e: MediaQueryListEvent) => setShowMobileWarning(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
@@ -213,7 +220,7 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
     '--accent-color': settings?.accentColor || '#6366f1',
   };
 
-  const renderLayout = (heightStyle) => {
+  const renderLayout = (heightStyle: number | null) => {
     if (layout === 'top-header') {
       return (
         <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>

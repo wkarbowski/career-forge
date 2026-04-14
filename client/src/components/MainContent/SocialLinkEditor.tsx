@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import SocialIconPicker from './SocialIconPicker';
 import EditableText from './EditableText';
 
-const stripHtml = (html) => html ? html.replace(/<[^>]+>/g, '').trim() : '';
+const stripHtml = (html: string): string => html ? html.replace(/<[^>]+>/g, '').trim() : '';
 
 const btnBase = {
   background: 'none',
@@ -14,7 +14,15 @@ const btnBase = {
   alignItems: 'center',
 };
 
-const SocialLinkEditor = ({ icon, url, onIconChange, onUrlChange, t }) => {
+interface SocialLinkEditorProps {
+  icon: string;
+  url: string;
+  onIconChange: (iconClass: string) => void;
+  onUrlChange: (url: string) => void;
+  t: (key: string) => string;
+}
+
+const SocialLinkEditor = ({ icon, url, onIconChange, onUrlChange, t }: SocialLinkEditorProps) => {
   const [editing, setEditing] = useState(false);
   const [originalUrl, setOriginalUrl] = useState('');
 

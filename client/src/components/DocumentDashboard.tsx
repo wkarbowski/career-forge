@@ -4,8 +4,21 @@ import { useAppState } from '../contexts/AppStateContext';
 import { useTranslation } from '../i18n';
 import { documentApi } from '../services/api';
 import './DocumentDashboard.css';
+import type { Document as AppDocument } from '../types';
 
-const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument }) => {
+interface ShareModalState {
+  docId: string;
+  url: string;
+  token: string;
+}
+
+interface DocumentDashboardProps {
+  onEditDocument: (documentId: string) => void;
+  onPrintDocument?: (documentId: string) => void;
+  onSavePdfDocument?: (documentId: string) => void;
+}
+
+const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument }: DocumentDashboardProps) => {
   const { documentList, refreshDocumentList, deleteDocument, renameDocument, currentDocumentId } = useAuth();
   const { setDocumentTitle } = useAppState();
   const { t } = useTranslation();
@@ -14,14 +27,14 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
   const [viewMode, setViewMode] = useState(() => sessionStorage.getItem('dash_viewMode') || 'grid');
   const [sortConfig, setSortConfig] = useState({ key: 'updated_at', direction: 'desc' });
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCvs, setSelectedCvs] = useState(new Set());
+  const [selectedCvs, setSelectedCvs] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
-  const editInputRef = useRef(null);
-  const [shareModal, setShareModal] = useState(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+  const [shareModal, setShareModal] = useState<ShareModalState | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
-  const [linkPickerFor, setLinkPickerFor] = useState(null);
+  const [linkPickerFor, setLinkPickerFor] = useState<string | null>(null);
   const [linkPickerValue, setLinkPickerValue] = useState('');
 
   useEffect(() => { sessionStorage.setItem('dash_filterType', filterType); }, [filterType]);
@@ -33,7 +46,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     }
   }, [editingId]);
 
-  const detectDocumentType = (cv) => {
+  const detectDocumentType = (cv: AppDocument): string => {
     try {
       if (cv.document_type === 'cover_letter') return 'cover-letter';
       return 'resume';
@@ -46,7 +59,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
   const { applicationGroups, standaloneDocuments } = useMemo(() => {
     const docs = documentList || [];
     const resumeById = new Map();
-    const linkedCoverLetters = [];
+    const linkedCoverLetters: Array<{ resume: AppDocument; coverLetter: AppDocument }> = [];
     const usedResumeIds = new Set();
     const linkedCLIds = new Set();
 
@@ -66,8 +79,8 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     });
 
     linkedCoverLetters.sort((a, b) => {
-      const aT = Math.max(new Date(a.resume.updated_at).getTime(), new Date(a.coverLetter.updated_at).getTime());
-      const bT = Math.max(new Date(b.resume.updated_at).getTime(), new Date(b.coverLetter.updated_at).getTime());
+      const aT = Math.max(new Date(a.resume.updated_at || 0).getTime(), new Date(a.coverLetter.updated_at || 0).getTime());
+      const bT = Math.max(new Date(b.resume.updated_at || 0).getTime(), new Date(b.coverLetter.updated_at || 0).getTime());
       return bT - aT;
     });
 
@@ -90,13 +103,13 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
       filtered = filtered.filter((cv) => cv.title.toLowerCase().includes(term));
     }
     filtered.sort((a, b) => {
-      let aVal = a[sortConfig.key];
-      let bVal = b[sortConfig.key];
+      let aVal: string | number = (a as unknown as Record<string, string>)[sortConfig.key] ?? '';
+      let bVal: string | number = (b as unknown as Record<string, string>)[sortConfig.key] ?? '';
       if (sortConfig.key === 'created_at' || sortConfig.key === 'updated_at') {
-        aVal = new Date(aVal).getTime();
-        bVal = new Date(bVal).getTime();
+        aVal = new Date(aVal as string).getTime();
+        bVal = new Date(bVal as string).getTime();
       }
-      if (typeof aVal === 'string') { aVal = aVal.toLowerCase(); bVal = (bVal || '').toLowerCase(); }
+      if (typeof aVal === 'string') { aVal = aVal.toLowerCase(); bVal = String(bVal || '').toLowerCase(); }
       if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
@@ -117,7 +130,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
   }, [applicationGroups, searchTerm, filterType]);
 
   /* ===== Handlers ===== */
-  const handleLinkDocument = async (coverLetterId, resumeId) => {
+  const handleLinkDocument = async (coverLetterId: string, resumeId: string) => {
     try {
       await documentApi.linkToResume(coverLetterId, resumeId);
       await refreshDocumentList();
@@ -126,22 +139,22 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     } catch (err) { console.error('Failed to link documents:', err); }
   };
 
-  const handleUnlinkDocument = async (coverLetterId) => {
+  const handleUnlinkDocument = async (coverLetterId: string) => {
     try {
       await documentApi.unlinkFromResume(coverLetterId);
       await refreshDocumentList();
     } catch (err) { console.error('Failed to unlink documents:', err); }
   };
 
-  const handleSort = (key) => {
+  const handleSort = (key: string) => {
     setSortConfig((prev) => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
   };
 
-  const handleSelectAll = (e) => {
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedCvs(e.target.checked ? new Set(processedCvs.map((cv) => cv.id)) : new Set());
   };
 
-  const handleSelectOne = (cvId) => {
+  const handleSelectOne = (cvId: string) => {
     setSelectedCvs((prev) => {
       const s = new Set(prev);
       s.has(cvId) ? s.delete(cvId) : s.add(cvId);
@@ -151,7 +164,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
 
   const handleDeleteSelected = async () => {
     if (selectedCvs.size === 0) return;
-    if (!window.confirm(t('dashboard.confirmDeleteMultiple').replace('{count}', selectedCvs.size))) return;
+    if (!window.confirm(t('dashboard.confirmDeleteMultiple').replace('{count}', String(selectedCvs.size)))) return;
     setIsDeleting(true);
     try {
       for (const cvId of selectedCvs) await deleteDocument(cvId);
@@ -160,12 +173,12 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     setIsDeleting(false);
   };
 
-  const handleDeleteOne = async (cvId) => {
+  const handleDeleteOne = async (cvId: string) => {
     if (!window.confirm(t('userMenu.confirmDelete'))) return;
     await deleteDocument(cvId);
   };
 
-  const handleDuplicate = async (cv) => {
+  const handleDuplicate = async (cv: AppDocument) => {
     try {
       const fullDoc = await documentApi.get(cv.id);
       const result = await documentApi.create(`${cv.title} (${t('dashboard.copy')})`, fullDoc.data);
@@ -173,16 +186,16 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     } catch (err) { console.error('Failed to duplicate:', err); }
   };
 
-  const handleShareDocument = async (docId) => {
+  const handleShareDocument = async (docId: string) => {
     try {
-      const doc = documentList.find((d) => d.id === docId);
+      const doc = documentList.find((d: AppDocument) => d.id === docId);
       if (doc?.share_token) {
         setShareModal({ docId, url: `${window.location.origin}/shared/${doc.share_token}`, token: doc.share_token });
         return;
       }
-      const result = await documentApi.createShareLink(docId);
+      const result = await documentApi.createShareLink(docId) as { url?: string; share_token?: string } | null;
       if (result?.url) {
-        setShareModal({ docId, url: `${window.location.origin}${result.url}`, token: result.share_token });
+        setShareModal({ docId, url: `${window.location.origin}${result.url}`, token: result.share_token || '' });
         await refreshDocumentList();
       }
     } catch (err) { console.error('Failed to create share link:', err); }
@@ -206,10 +219,10 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     } catch (err) { console.error('Failed to revoke:', err); }
   };
 
-  const handleRename = (cv) => { setEditingId(cv.id); setEditingTitle(cv.title); };
+  const handleRename = (cv: AppDocument) => { setEditingId(cv.id); setEditingTitle(cv.title); };
 
-  const handleRenameSubmit = async (cvId) => {
-    if (editingTitle.trim() && editingTitle.trim() !== documentList.find((c) => c.id === cvId)?.title) {
+  const handleRenameSubmit = async (cvId: string) => {
+    if (editingTitle.trim() && editingTitle.trim() !== documentList.find((c: AppDocument) => c.id === cvId)?.title) {
       try {
         await renameDocument(cvId, editingTitle.trim());
         if (cvId === currentDocumentId) setDocumentTitle(editingTitle.trim());
@@ -221,30 +234,30 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
 
   const handleRenameCancel = () => { setEditingId(null); setEditingTitle(''); };
 
-  const handleRenameKeyDown = (e, cvId) => {
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, cvId: string) => {
     if (e.key === 'Enter') { e.preventDefault(); handleRenameSubmit(cvId); }
     else if (e.key === 'Escape') handleRenameCancel();
   };
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(undefined, {
       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   };
 
-  const formatRelativeDate = (dateStr) => {
+  const formatRelativeDate = (dateStr: string) => {
     const diffMs = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diffMs / 60000);
     const hrs = Math.floor(diffMs / 3600000);
     const days = Math.floor(diffMs / 86400000);
     if (mins < 1) return t('dashboard.justNow');
-    if (mins < 60) return t('dashboard.minsAgo').replace('{n}', mins);
-    if (hrs < 24) return t('dashboard.hoursAgo').replace('{n}', hrs);
-    if (days < 7) return t('dashboard.daysAgo').replace('{n}', days);
+    if (mins < 60) return t('dashboard.minsAgo').replace('{n}', String(mins));
+    if (hrs < 24) return t('dashboard.hoursAgo').replace('{n}', String(hrs));
+    if (days < 7) return t('dashboard.daysAgo').replace('{n}', String(days));
     return formatDate(dateStr);
   };
 
-  const getSortIcon = (key) => {
+  const getSortIcon = (key: string) => {
     if (sortConfig.key !== key) return <i className="fas fa-sort sort-icon inactive"></i>;
     return sortConfig.direction === 'asc'
       ? <i className="fas fa-sort-up sort-icon"></i>
@@ -292,7 +305,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
         </div>
         <div className="dd-toolbar-right">
           <span className="dd-count">
-            {t('dashboard.totalDocs').replace('{count}', documentList.length)}
+            {t('dashboard.totalDocs').replace('{count}', String(documentList.length))}
           </span>
           <div className="dd-view-toggle" role="radiogroup" aria-label={t('dashboard.viewMode') || 'View mode'}>
             <button
@@ -354,7 +367,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                         <p className="dd-subtitle">{group.resume.job_title}</p>
                       )}
                       <span className="dd-pkg-doc-date">
-                        <i className="fas fa-clock"></i> {formatRelativeDate(group.resume.updated_at)}
+                        <i className="fas fa-clock"></i> {formatRelativeDate(group.resume.updated_at || '')}
                       </span>
                     </div>
                     <div className="dd-pkg-link-icon">
@@ -377,7 +390,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                       </div>
                       <h4 className="dd-pkg-doc-name">{group.coverLetter.title}</h4>
                       <span className="dd-pkg-doc-date">
-                        <i className="fas fa-clock"></i> {formatRelativeDate(group.coverLetter.updated_at)}
+                        <i className="fas fa-clock"></i> {formatRelativeDate(group.coverLetter.updated_at || '')}
                       </span>
                     </div>
                   </div>
@@ -419,8 +432,8 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                     <span className="dd-pkg-row-date">
                       <i className="fas fa-clock"></i>
                       {formatRelativeDate(
-                        new Date(group.resume.updated_at) > new Date(group.coverLetter.updated_at)
-                          ? group.resume.updated_at : group.coverLetter.updated_at
+                        new Date(group.resume.updated_at || 0) > new Date(group.coverLetter.updated_at || 0)
+                          ? (group.resume.updated_at || '') : (group.coverLetter.updated_at || '')
                       )}
                     </span>
                     <button className="dd-pkg-row-unlink" onClick={() => handleUnlinkDocument(group.coverLetter.id)} title={t('dashboard.unlinkDocument')}>
@@ -503,7 +516,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                               <option value="">{t('dashboard.selectResume')}</option>
                               {availableResumes.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
                             </select>
-                            <button className="dd-link-picker-ok" disabled={!linkPickerValue} onClick={() => handleLinkDocument(cv.id, Number(linkPickerValue))}>
+                            <button className="dd-link-picker-ok" disabled={!linkPickerValue} onClick={() => handleLinkDocument(cv.id, linkPickerValue)}>
                               <i className="fas fa-check"></i>
                             </button>
                             <button className="dd-link-picker-no" onClick={() => { setLinkPickerFor(null); setLinkPickerValue(''); }}>
@@ -519,8 +532,8 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                     )}
                   </div>
                   <div className="dd-card-bottom">
-                    <span className="dd-card-date" title={formatDate(cv.updated_at)}>
-                      <i className="fas fa-clock"></i> {formatRelativeDate(cv.updated_at)}
+                    <span className="dd-card-date" title={formatDate(cv.updated_at || '')}>
+                      <i className="fas fa-clock"></i> {formatRelativeDate(cv.updated_at || '')}
                     </span>
                     <div className="dd-card-quick" onClick={(e) => e.stopPropagation()}>
                       <button className="dd-card-act" onClick={() => handleRename(cv)} title={t('dashboard.rename')}>
@@ -563,7 +576,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
             <tbody>
               {processedCvs.length === 0 ? (
                 <tr>
-                  <td colSpan="6">
+                  <td colSpan={6}>
                     <div className="dd-empty">
                       <i className="fas fa-folder-open"></i>
                       <p>{searchTerm ? t('dashboard.noResults') : t('dashboard.noCvs')}</p>
@@ -609,7 +622,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                                 <option value="">{t('dashboard.selectResume')}</option>
                                 {availableResumes.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
                               </select>
-                              <button className="dd-link-picker-ok" disabled={!linkPickerValue} onClick={() => handleLinkDocument(cv.id, Number(linkPickerValue))}>
+                              <button className="dd-link-picker-ok" disabled={!linkPickerValue} onClick={() => handleLinkDocument(cv.id, linkPickerValue)}>
                                 <i className="fas fa-check"></i>
                               </button>
                               <button className="dd-link-picker-no" onClick={() => { setLinkPickerFor(null); setLinkPickerValue(''); }}>
@@ -623,8 +636,8 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
                           )
                         )}
                       </td>
-                      <td className="dd-col-updated" title={formatDate(cv.updated_at)}>
-                        {formatRelativeDate(cv.updated_at)}
+                      <td className="dd-col-updated" title={formatDate(cv.updated_at || '')}>
+                        {formatRelativeDate(cv.updated_at || '')}
                       </td>
                       <td className="dd-col-actions">
                         <div className="dd-row-actions">
@@ -649,7 +662,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
 
       {processedCvs.length > 0 && (
         <div className="dd-footer-info">
-          {t('dashboard.showing').replace('{shown}', processedCvs.length).replace('{total}', documentList.length)}
+          {t('dashboard.showing').replace('{shown}', String(processedCvs.length)).replace('{total}', String(documentList.length))}
         </div>
       )}
 

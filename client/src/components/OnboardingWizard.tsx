@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../i18n';
+import type { CVTemplate } from '../types';
+
+interface OnboardingResult {
+  templateId: string | null;
+  basics: { fullName: string; jobTitle: string; email: string; phone: string };
+  visibleSections: string[];
+}
+
+interface OnboardingWizardProps {
+  templates: CVTemplate[];
+  onComplete: (result: OnboardingResult) => void;
+}
 
 const STEPS = ['template', 'basics', 'sections'];
 
-const OnboardingWizard = ({ templates, onComplete }) => {
+const OnboardingWizard = ({ templates, onComplete }: OnboardingWizardProps) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [basics, setBasics] = useState({ fullName: '', jobTitle: '', email: '', phone: '' });
   const [selectedSections, setSelectedSections] = useState(['experience', 'education', 'skills', 'languages']);
 
@@ -19,7 +31,7 @@ const OnboardingWizard = ({ templates, onComplete }) => {
     { id: 'summary', label: t('onboarding.sectionSummary') },
   ];
 
-  const toggleSection = (id) => {
+  const toggleSection = (id: string) => {
     setSelectedSections((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
     );

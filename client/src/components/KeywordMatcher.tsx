@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../i18n';
 
-const KeywordMatcher = ({ resumeText }) => {
+interface KeywordMatcherProps {
+  resumeText: string;
+}
+
+interface KeywordResult {
+  keywords: Array<{ word: string; count: number; found: boolean }>;
+  score: number;
+  found: number;
+  total: number;
+}
+
+const KeywordMatcher = ({ resumeText }: KeywordMatcherProps) => {
   const { t } = useTranslation();
   const [jobDescription, setJobDescription] = useState('');
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<KeywordResult | null>(null);
 
   const analyzeKeywords = () => {
     if (!jobDescription.trim() || !resumeText) return;
@@ -17,7 +28,7 @@ const KeywordMatcher = ({ resumeText }) => {
       'about', 'could', 'other', 'into', 'than', 'them', 'very', 'also', 'just',
     ]);
 
-    const extractWords = (text) => {
+    const extractWords = (text: string): string[] => {
       return text
         .toLowerCase()
         .replace(/<[^>]*>/g, '') // strip HTML
@@ -30,7 +41,7 @@ const KeywordMatcher = ({ resumeText }) => {
     const resumeWords = new Set(extractWords(resumeText));
 
     // Count JD keyword frequencies
-    const jdFreq = {};
+    const jdFreq: Record<string, number> = {};
     jdWords.forEach(w => { jdFreq[w] = (jdFreq[w] || 0) + 1; });
 
     // Sort by frequency

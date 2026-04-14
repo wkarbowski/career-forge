@@ -132,6 +132,7 @@ export type LayoutType =
   | 'sidebar-left'
   | 'sidebar-right'
   | 'top-header'
+  | 'minimal'
   | 'ats-single-column';
 
 export interface CVSettings {
@@ -139,6 +140,7 @@ export interface CVSettings {
   sidebarColor2: string;
   accentColor: string;
   layout: LayoutType;
+  clStyle?: string;
   nameFont: string;
   nameFontSize: number;
   headingFont: string;
@@ -281,6 +283,8 @@ export interface Document {
   created_at?: string;
   updated_at?: string;
   share_token?: string;
+  linked_resume_id?: string | number | null;
+  job_title?: string;
 }
 
 export interface DocumentVersion {

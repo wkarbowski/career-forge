@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
@@ -8,7 +8,12 @@ import UserMenu from './UserMenu';
 import AuthModal from './AuthModal';
 import './GlobalHeader.css';
 
-const GlobalHeader = ({ onLoadDocument, saveStatus }) => {
+interface GlobalHeaderProps {
+  onLoadDocument?: (id: string) => void;
+  saveStatus?: 'saving' | 'saved' | 'error' | null;
+}
+
+const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -102,7 +107,7 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }) => {
           
           <UserMenu 
             onLogin={() => setShowAuthModal(true)} 
-            onLoadDocument={onLoadDocument}
+            onLoadDocument={onLoadDocument ?? (() => {})}
             onExitGuest={handleExitGuest}
           />
         </div>

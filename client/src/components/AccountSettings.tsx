@@ -9,10 +9,10 @@ const AccountSettings = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const handleChangePassword = async (e) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     if (newPassword !== confirmPassword) {

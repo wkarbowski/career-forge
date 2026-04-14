@@ -5,8 +5,22 @@ import EditableText from './EditableText';
 // ...existing code...
 import SocialLinkEditor from './SocialLinkEditor';
 import { useAppState } from '../../contexts/AppStateContext';
+import type { CVData, CVSettings, VisibleSections, Experience, Education, CustomSection, CustomSectionItem } from '../../types';
 
-const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addArrayItem, settings, visibleSections, showHeader = true, headerOnly = false }) => {
+interface MainContentProps {
+  data?: CVData;
+  updateField?: (field: string, value: unknown) => void;
+  updateArrayItem?: (arrayName: string, id: string | number, key: string, value: unknown) => void;
+  deleteArrayItem?: (arrayName: string, id: string | number) => void;
+  addArrayItem?: (arrayName: string, item: Record<string, unknown>) => void;
+  settings?: CVSettings;
+  visibleSections?: VisibleSections;
+  showHeader?: boolean;
+  headerOnly?: boolean;
+  pageIndex?: number;
+}
+
+const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addArrayItem, settings, visibleSections, showHeader = true, headerOnly = false }: MainContentProps) => {
   const { t } = useTranslation();
   const appState = useAppState();
 
@@ -16,29 +30,36 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
   const educationArr = Array.isArray(_data.education) ? _data.education : [];
   const _settings = settings ?? appState.settings;
   const _visibleSections = visibleSections ?? appState.visibleSections;
-  const _updateField = updateField ?? ((field, value) => appState.setData(prev => {
+  const _updateField = updateField ?? ((field: string, value: unknown) => appState.setData(prev => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
-      return { ...prev, [parent]: { ...prev[parent], [child]: value } };
+      return { ...prev, [parent]: { ...(prev as unknown as Record<string, Record<string, unknown>>)[parent], [child]: value } };
     }
     return { ...prev, [field]: value };
   }));
-  const _updateArrayItem = updateArrayItem ?? ((arrayName, id, key, value) => appState.setData(prev => ({
+  const _updateArrayItem = updateArrayItem ?? ((arrayName: string, id: string | number, key: string, value: unknown) => appState.setData(prev => ({
     ...prev,
-    [arrayName]: prev[arrayName].map(item => (item.id === id ? { ...item, [key]: value } : item))
+    [arrayName]: ((prev as unknown as Record<string, unknown>)[arrayName] as Array<Record<string, unknown>>).map((item: Record<string, unknown>) => (item.id === id ? { ...item, [key]: value } : item))
   })));
-  const _deleteArrayItem = deleteArrayItem ?? ((arrayName, id) => appState.setData(prev => ({
+  const _deleteArrayItem = deleteArrayItem ?? ((arrayName: string, id: string | number) => appState.setData(prev => ({
     ...prev,
-    [arrayName]: prev[arrayName].filter(item => item.id !== id)
+    [arrayName]: ((prev as unknown as Record<string, unknown>)[arrayName] as Array<Record<string, unknown>>).filter((item: Record<string, unknown>) => item.id !== id)
   })));
-  const _addArrayItem = addArrayItem ?? ((arrayName, item) => appState.setData(prev => ({
+  const _addArrayItem = addArrayItem ?? ((arrayName: string, item: Record<string, unknown>) => appState.setData(prev => ({
     ...prev,
-    [arrayName]: [...prev[arrayName], { ...item, id: Date.now() }]
+    [arrayName]: [...((prev as unknown as Record<string, unknown>)[arrayName] as Array<Record<string, unknown>>), { ...item, id: Date.now() }]
   })));
 
-  const isCoursesSection = (section) => {
+  const isCoursesSection = (section: CustomSection) => {
     const normalizedTitle = (section?.title || '').trim().toLowerCase();
     return section?.type === 'courses' || normalizedTitle === 'courses' || normalizedTitle === 'kurse';
+  };
+
+  const handleContactClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    if (!(e.target as HTMLElement).isContentEditable) {
+      const ed = e.currentTarget.querySelector('[contenteditable]') as HTMLElement | null;
+      if (ed) ed.focus();
+    }
   };
 
   return (
@@ -60,7 +81,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
           placeholder={t('placeholders.position')}
         />
         <div className="contact-info">
-          <span className="contact-item" onClick={(e) => { if (!e.target.isContentEditable) { const ed = e.currentTarget.querySelector('[contenteditable]'); if (ed) ed.focus(); } }}>
+          <span className="contact-item" onClick={handleContactClick}>
             <i className="fas fa-phone"></i>
             <EditableText
               value={_data.contact.phone}
@@ -68,7 +89,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
               placeholder={t('placeholders.phone')}
             />
           </span>
-          <span className="contact-item" onClick={(e) => { if (!e.target.isContentEditable) { const ed = e.currentTarget.querySelector('[contenteditable]'); if (ed) ed.focus(); } }}>
+          <span className="contact-item" onClick={handleContactClick}>
             <i className="fas fa-envelope"></i>
             <EditableText
               value={_data.contact.email}
@@ -83,7 +104,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
             onUrlChange={(val) => _updateField('contact.website', val)}
             t={t}
           />
-          <span className="contact-item" onClick={(e) => { if (!e.target.isContentEditable) { const ed = e.currentTarget.querySelector('[contenteditable]'); if (ed) ed.focus(); } }}>
+          <span className="contact-item" onClick={handleContactClick}>
             <i className="fas fa-map-marker-alt"></i>
             <EditableText
               value={_data.contact.location}
@@ -92,7 +113,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
             />
           </span>
           {_data.contact.linkedin && (
-          <span className="contact-item" onClick={(e) => { if (!e.target.isContentEditable) { const ed = e.currentTarget.querySelector('[contenteditable]'); if (ed) ed.focus(); } }}>
+          <span className="contact-item" onClick={handleContactClick}>
             <i className="fab fa-linkedin"></i>
             <EditableText
               value={_data.contact.linkedin}
@@ -102,7 +123,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
           </span>
           )}
           {_data.contact.github && (
-          <span className="contact-item" onClick={(e) => { if (!e.target.isContentEditable) { const ed = e.currentTarget.querySelector('[contenteditable]'); if (ed) ed.focus(); } }}>
+          <span className="contact-item" onClick={handleContactClick}>
             <i className="fab fa-github"></i>
             <EditableText
               value={_data.contact.github}
@@ -121,7 +142,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
       {_visibleSections.experience && (
         <div className="section">
           <h2 className="section-title">{t('sections.experience')}</h2>
-          {experienceArr.map(exp => (
+          {experienceArr.map((exp: Experience) => (
             <div key={exp.id} className="experience-item">
               <div className="experience-header">
                 <div className="experience-top">
@@ -195,7 +216,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
       {_visibleSections.education && (
         <div className="section">
           <h2 className="section-title">{t('sections.education')}</h2>
-          {educationArr.map(edu => (
+          {educationArr.map((edu: Education) => (
             <div key={edu.id} className="experience-item education-degree">
               <div className="experience-header">
                 <div className="experience-top">
@@ -258,14 +279,14 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
       )}
 
       {/* Custom Sections (main position) */}
-      {(_data.customSections || []).filter(s => s.position === 'main').map(section => (
+      {(_data.customSections || []).filter((s: CustomSection) => s.position === 'main').map((section: CustomSection) => (
         _visibleSections[section.id] !== false && (
           <div className="section" key={section.id}>
             <div className="section-title-row">
               <EditableText
-                value={section.title}
+                value={section.title || ''}
                 onChange={(val) => {
-                  const updated = (_data.customSections || []).map(s =>
+                  const updated = (_data.customSections || []).map((s: CustomSection) =>
                     s.id === section.id ? { ...s, title: val } : s
                   );
                   _updateField('customSections', updated);
@@ -282,7 +303,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
             </div>
-            {section.items.map(item => (
+            {section.items.map((item: CustomSectionItem) => (
               <div key={item.id} className="experience-item">
                 {(() => {
                   const coursesSection = isCoursesSection(section);
@@ -291,7 +312,7 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
                 <div className="experience-header">
                   <div className="experience-top">
                     <EditableText
-                      value={item.title}
+                      value={item.title || ''}
                       onChange={(val) => {
                         const updated = (_data.customSections || []).map(s =>
                           s.id === section.id ? {

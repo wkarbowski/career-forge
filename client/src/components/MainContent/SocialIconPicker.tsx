@@ -12,14 +12,19 @@ const SOCIAL_ICONS = [
   { cls: 'fab fa-dribbble',      label: 'Dribbble'      },
 ];
 
-const SocialIconPicker = ({ value = 'fas fa-globe', onChange }) => {
+interface SocialIconPickerProps {
+  value?: string;
+  onChange: (iconClass: string) => void;
+}
+
+const SocialIconPicker = ({ value = 'fas fa-globe', onChange }: SocialIconPickerProps) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    const onClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);

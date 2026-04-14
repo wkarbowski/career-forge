@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 
-const Modal = ({ children }) => (
+interface ModalProps {
+  children: ReactNode;
+}
+
+const Modal = ({ children }: ModalProps) => (
   <div style={{
     position: 'fixed',
     top: 0,

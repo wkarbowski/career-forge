@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from '../i18n';
 import { useAppState } from '../contexts/AppStateContext';
 import { cvTemplates, CL_COLOR_PRESETS } from '../data/templates';
+import type { CVSettings, VisibleSections, ColorPreset } from '../types';
 
 // Derive a lighter tint from a hex color for sidebarColor2
-const deriveLighter = (hex, amount = 40) => {
+const deriveLighter = (hex: string, amount = 40) => {
   const num = parseInt(hex.replace('#', ''), 16);
   const r = Math.min(255, (num >> 16) + amount);
   const g = Math.min(255, ((num >> 8) & 0xff) + amount);
@@ -12,7 +13,7 @@ const deriveLighter = (hex, amount = 40) => {
   return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
 };
 
-const SECTION_ICONS = {
+const SECTION_ICONS: Record<string, string> = {
   summary: 'align-left',
   experience: 'briefcase',
   education: 'graduation-cap',
@@ -28,14 +29,21 @@ const SECTION_ICONS = {
 const LEGACY_KEYS = new Set(['strengths', 'courses']);
 const NON_TOGGLABLE_KEYS = new Set(['experience', 'education']);
 
-const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection }) => {
+interface VerticalMenuProps {
+  settings?: CVSettings;
+  updateSettings?: (key: string, val: string) => void;
+  visibleSections?: VisibleSections;
+  toggleSection?: (key: string) => void;
+}
+
+const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection }: VerticalMenuProps) => {
   const { t } = useTranslation();
   const app = useAppState();
 
-  const _settings = settings ?? app?.settings ?? { sidebarColor1: '#312e81', sidebarColor2: '#4f46e5', accentColor: '#6366f1' };
-  const _visibleSections = visibleSections ?? app?.visibleSections ?? {};
-  const _updateSettings = updateSettings ?? ((key, val) => app?.setSettings(prev => ({ ...(prev || {}), [key]: val })));
-  const _toggleSection = (key) => {
+  const _settings = settings ?? app?.settings ?? { sidebarColor1: '#312e81', sidebarColor2: '#4f46e5', accentColor: '#6366f1' } as CVSettings;
+  const _visibleSections = visibleSections ?? app?.visibleSections ?? {} as VisibleSections;
+  const _updateSettings = updateSettings ?? ((key: string, val: string) => app?.setSettings(prev => ({ ...(prev || {} as CVSettings), [key]: val })));
+  const _toggleSection = (key: string) => {
     if (NON_TOGGLABLE_KEYS.has(key)) return;
     if (toggleSection) {
       toggleSection(key);
@@ -49,24 +57,24 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
   const colorPresets = useMemo(() => {
     if (documentType === 'cover-letter') {
       const clStyle = _settings?.clStyle || 'standard';
-      return CL_COLOR_PRESETS[clStyle] || [];
+      return CL_COLOR_PRESETS[clStyle as keyof typeof CL_COLOR_PRESETS] || [];
     }
     const layout = _settings?.layout || 'sidebar-left';
     const template = cvTemplates.find(t => t.type === 'resume' && t.settings?.layout === layout);
     return template?.colorPresets || [];
   }, [_settings?.layout, _settings?.clStyle, documentType]);
 
-  const [openPanel, setOpenPanel] = useState(null); // 'colors' | 'sections' | null
-  const panelRef = useRef(null);
-  const colorsBtnRef = useRef(null);
-  const sectionsBtnRef = useRef(null);
-  const [panelPos, setPanelPos] = useState(null);
+  const [openPanel, setOpenPanel] = useState<'colors' | 'sections' | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const colorsBtnRef = useRef<HTMLButtonElement>(null);
+  const sectionsBtnRef = useRef<HTMLButtonElement>(null);
+  const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(null);
 
   useEffect(() => {
-    const onDocClick = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target) &&
-          !colorsBtnRef.current.contains(e.target) &&
-          !sectionsBtnRef.current?.contains(e.target)) {
+    const onDocClick = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node) &&
+          !colorsBtnRef.current?.contains(e.target as Node) &&
+          !sectionsBtnRef.current?.contains(e.target as Node)) {
         setOpenPanel(null);
       }
     };
@@ -81,7 +89,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
       return;
     }
 
-    const anchorMap = { colors: colorsBtnRef, sections: sectionsBtnRef };
+    const anchorMap: Record<string, React.RefObject<HTMLButtonElement | null>> = { colors: colorsBtnRef, sections: sectionsBtnRef };
     const anchor = anchorMap[openPanel]?.current;
     if (!anchor) return;
 
@@ -107,14 +115,14 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
     return () => clearTimeout(id);
   }, [openPanel]);
 
-  const toggle = (panel) => {
+  const toggle = (panel: 'colors' | 'sections') => {
     setOpenPanel(openPanel === panel ? null : panel);
   };
 
   const handleAddCustomSection = () => {
     if (app?.addCustomSection) {
       app.addCustomSection({
-        title: t('sections.customSection') || 'Custom Section',
+        name: t('sections.customSection') || 'Custom Section',
         type: 'custom',
         position: 'main',
         items: [{ id: `item_${Date.now()}`, title: '', description: '' }],
@@ -126,7 +134,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
   const handleAddCoursesSidebarSection = () => {
     if (app?.addCustomSection) {
       app.addCustomSection({
-        title: t('sections.courses') || 'Courses',
+        name: t('sections.courses') || 'Courses',
         type: 'courses',
         position: 'sidebar',
         items: [{ id: `item_${Date.now()}`, title: '', description: '' }],
@@ -136,7 +144,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
   };
 
   // Simplified single sidebar color handler — auto-derives sidebarColor2
-  const handleSidebarColorChange = (e) => {
+  const handleSidebarColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const color = e.target.value;
     _updateSettings('sidebarColor1', color);
     _updateSettings('sidebarColor2', deriveLighter(color));
@@ -182,7 +190,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
                 <div className="preset-section">
                   <label className="preset-label">{t('settings.colorPreset')}</label>
                   <div className="preset-swatches">
-                    {colorPresets.map((preset) => {
+                    {colorPresets.map((preset: ColorPreset) => {
                       const isCoverLetter = !preset.sidebarColor1;
                       const isActive = isCoverLetter
                         ? _settings.accentColor === preset.accentColor
@@ -194,7 +202,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
                           className={`preset-swatch${isActive ? ' preset-swatch--active' : ''}${isCoverLetter ? ' preset-swatch--single' : ''}`}
                           title={t(preset.nameKey)}
                           onClick={() => {
-                            const update = { accentColor: preset.accentColor };
+                            const update: Partial<CVSettings> = { accentColor: preset.accentColor };
                             if (preset.sidebarColor1) {
                               update.sidebarColor1 = preset.sidebarColor1;
                               update.sidebarColor2 = preset.sidebarColor2 || deriveLighter(preset.sidebarColor1);

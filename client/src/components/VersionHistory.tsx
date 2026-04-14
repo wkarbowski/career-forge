@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../i18n';
 import { documentApi } from '../services/api';
+import type { DocumentVersion, Document as AppDocument } from '../types';
 
-const VersionHistory = ({ documentId, onRestore }) => {
+interface VersionHistoryProps {
+  documentId: string | null;
+  onRestore?: (doc: AppDocument) => void;
+}
+
+const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
   const { t } = useTranslation();
-  const [versions, setVersions] = useState([]);
+  const [versions, setVersions] = useState<DocumentVersion[]>([]);
   const [loading, setLoading] = useState(false);
   const [versionName, setVersionName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [previewId, setPreviewId] = useState(null); // eslint-disable-line no-unused-vars
+  const [previewId, setPreviewId] = useState<string | null>(null); // eslint-disable-line no-unused-vars
 
   const loadVersions = async () => {
     if (!documentId) return;
@@ -41,7 +47,7 @@ const VersionHistory = ({ documentId, onRestore }) => {
     }
   };
 
-  const handleRestore = async (versionId) => {
+  const handleRestore = async (versionId: string) => {
     if (!documentId) return;
     try {
       const doc = await documentApi.restoreVersion(documentId, versionId);
@@ -51,7 +57,7 @@ const VersionHistory = ({ documentId, onRestore }) => {
     }
   };
 
-  const handleDelete = async (versionId) => {
+  const handleDelete = async (versionId: string) => {
     if (!documentId) return;
     try {
       await documentApi.deleteVersion(documentId, versionId);
@@ -61,7 +67,7 @@ const VersionHistory = ({ documentId, onRestore }) => {
     }
   };
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };

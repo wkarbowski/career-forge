@@ -4,9 +4,25 @@ import EditableText from './EditableText';
 import LanguageLevel from './LanguageLevel';
 import { useAppState } from '../../contexts/AppStateContext';
 import { initialData } from '../../data/initialData';
+import type { CVData, CVSettings, VisibleSections, CoreCompetency, Language, Skill, Achievement, CustomSection, CustomSectionItem } from '../../types';
 
+interface SidebarProps {
+  data?: CVData;
+  updateField?: (field: string, value: unknown) => void;
+  updateArrayItem?: (arrayName: string, id: number | string, key: string, value: unknown) => void;
+  deleteArrayItem?: (arrayName: string, id: number | string) => void;
+  addArrayItem?: (arrayName: string, item: Record<string, unknown>) => void;
+  settings?: Partial<CVSettings>;
+  visibleSections?: VisibleSections;
+  profileImage?: string | null;
+  onImageUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageRemove?: () => void;
+  sidebarOrder?: string[];
+  onMoveSectionUp?: (name: string) => void;
+  onMoveSectionDown?: (name: string) => void;
+}
 
-const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArrayItem, settings, visibleSections, profileImage, onImageUpload, onImageRemove, sidebarOrder, onMoveSectionUp, onMoveSectionDown }) => {
+const Sidebar: React.FC<SidebarProps> = ({ data, updateField, updateArrayItem, deleteArrayItem, addArrayItem, settings, visibleSections, profileImage, onImageUpload, onImageRemove, sidebarOrder, onMoveSectionUp, onMoveSectionDown }) => {
   const { t } = useTranslation();
   const appState = useAppState();
 
@@ -48,20 +64,20 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
   const _visibleSections = visibleSections ?? safeApp.visibleSections;
   const _sidebarOrder = sidebarOrder ?? safeApp.sidebarOrder;
 
-  const _updateField = updateField ?? ((field, value) => safeApp.setData(prev => ({ ...prev, [field]: value })));
-  const _updateArrayItem = updateArrayItem ?? ((arrayName, id, key, value) => safeApp.setData(prev => ({
-    ...prev,
-    [arrayName]: prev[arrayName].map(item => (item.id === id ? { ...item, [key]: value } : item))
-  })));
-  const _deleteArrayItem = deleteArrayItem ?? ((arrayName, id) => safeApp.setData(prev => ({
-    ...prev,
-    [arrayName]: prev[arrayName].filter(item => item.id !== id)
-  })));
-  const _addArrayItem = addArrayItem ?? ((arrayName, item) => safeApp.setData(prev => ({
-    ...prev,
-    [arrayName]: [...prev[arrayName], { ...item, id: Date.now() }]
-  })));
-  const _onMoveSectionUp = onMoveSectionUp ?? ((name) => {
+  const _updateField = updateField ?? ((field: string, value: unknown) => safeApp.setData(prev => ({ ...prev, [field]: value })));
+  const _updateArrayItem = updateArrayItem ?? ((arrayName: string, id: number | string, key: string, value: unknown) => safeApp.setData(prev => {
+    const arr = (prev as unknown as Record<string, unknown[]>)[arrayName] || [];
+    return { ...prev, [arrayName]: arr.map((item: unknown) => ((item as Record<string, unknown>).id === id ? { ...(item as Record<string, unknown>), [key]: value } : item)) };
+  }));
+  const _deleteArrayItem = deleteArrayItem ?? ((arrayName: string, id: number | string) => safeApp.setData(prev => {
+    const arr = (prev as unknown as Record<string, unknown[]>)[arrayName] || [];
+    return { ...prev, [arrayName]: arr.filter((item: unknown) => (item as Record<string, unknown>).id !== id) };
+  }));
+  const _addArrayItem = addArrayItem ?? ((arrayName: string, item: Record<string, unknown>) => safeApp.setData(prev => {
+    const arr = (prev as unknown as Record<string, unknown[]>)[arrayName] || [];
+    return { ...prev, [arrayName]: [...arr, { ...item, id: Date.now() }] };
+  }));
+  const _onMoveSectionUp = onMoveSectionUp ?? ((name: string) => {
     const idx = safeApp.sidebarOrder.indexOf(name);
     if (idx > 0) {
       const arr = [...safeApp.sidebarOrder];
@@ -69,7 +85,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
       safeApp.setSidebarOrder(arr);
     }
   });
-  const _onMoveSectionDown = onMoveSectionDown ?? ((name) => {
+  const _onMoveSectionDown = onMoveSectionDown ?? ((name: string) => {
     const idx = safeApp.sidebarOrder.indexOf(name);
     if (idx >= 0 && idx < safeApp.sidebarOrder.length - 1) {
       const arr = [...safeApp.sidebarOrder];
@@ -78,12 +94,12 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
     }
   });
 
-  const isCoursesSection = (section) => {
+  const isCoursesSection = (section: CustomSection) => {
     const normalizedTitle = (section?.title || '').trim().toLowerCase();
     return section?.type === 'courses' || normalizedTitle === 'courses' || normalizedTitle === 'kurse';
   };
 
-  const sections = {
+  const sections: Record<string, React.ReactElement> = {
     summary: (
       <div className="sidebar-section" key="summary">
         <div className="section-header-with-controls">
@@ -120,7 +136,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
           </div>
         </div>
         <div className="competency-chips">
-          {(_data.coreCompetencies || []).map(comp => (
+          {(_data.coreCompetencies || []).map((comp: CoreCompetency) => (
             <span key={comp.id} className="competency-chip">
               <EditableText
                 value={comp.name}
@@ -160,7 +176,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
             </button>
           </div>
         </div>
-        {_data.languages.map(language => (
+        {_data.languages.map((language: Language) => (
           <div key={language.id} className="sidebar-item language-item">
             <div className="sidebar-item-content" style={{ flex: 1 }}>
               <EditableText
@@ -207,7 +223,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
             </button>
           </div>
         </div>
-        {_data.skills.map(skill => (
+        {_data.skills.map((skill: Skill) => (
           <div key={skill.id} className="sidebar-item">
             <div className="sidebar-item-content" style={{ flex: 1 }}>
               <EditableText
@@ -248,7 +264,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
             </button>
           </div>
         </div>
-        {_data.achievements.map(achievement => (
+        {_data.achievements.map((achievement: Achievement) => (
           <div key={achievement.id} className="sidebar-item">
             <div className="sidebar-item-content" style={{ flex: 1 }}>
               <EditableText
@@ -287,15 +303,15 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
 
   // Add custom sections that belong in the sidebar
   const customSections = _data.customSections || [];
-  customSections.forEach(section => {
+  customSections.forEach((section: CustomSection) => {
     if (section.position === 'sidebar') {
       sections[section.id] = (
         <div className="sidebar-section" key={section.id}>
           <div className="section-header-with-controls">
             <EditableText
-              value={section.title}
+              value={section.title || ''}
               onChange={(val) => {
-                const updated = customSections.map(s =>
+                const updated = customSections.map((s: CustomSection) =>
                   s.id === section.id ? { ...s, title: val } : s
                 );
                 _updateField('customSections', updated);
@@ -319,7 +335,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
               </button>
             </div>
           </div>
-          {section.items.map(item => (
+          {section.items.map((item: CustomSectionItem) => (
             <div key={item.id} className="sidebar-item">
               <div className="sidebar-item-content" style={{ flex: 1 }}>
                 {(() => {
@@ -327,12 +343,12 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
                   return (
                     <>
                 <EditableText
-                  value={item.title}
+                  value={item.title || ''}
                   onChange={(val) => {
-                    const updated = customSections.map(s =>
+                    const updated = customSections.map((s: CustomSection) =>
                       s.id === section.id ? {
                         ...s,
-                        items: s.items.map(i => i.id === item.id ? { ...i, title: val } : i)
+                        items: s.items.map((i: CustomSectionItem) => i.id === item.id ? { ...i, title: val } : i)
                       } : s
                     );
                     _updateField('customSections', updated);
@@ -343,10 +359,10 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
                 <EditableText
                   value={item.description || ''}
                   onChange={(val) => {
-                    const updated = customSections.map(s =>
+                    const updated = customSections.map((s: CustomSection) =>
                       s.id === section.id ? {
                         ...s,
-                        items: s.items.map(i => i.id === item.id ? { ...i, description: val } : i)
+                        items: s.items.map((i: CustomSectionItem) => i.id === item.id ? { ...i, description: val } : i)
                       } : s
                     );
                     _updateField('customSections', updated);
@@ -361,10 +377,10 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
               <button
                 className="delete-btn"
                 onClick={() => {
-                  const updated = customSections.map(s =>
+                  const updated = customSections.map((s: CustomSection) =>
                     s.id === section.id ? {
                       ...s,
-                      items: s.items.filter(i => i.id !== item.id)
+                      items: s.items.filter((i: CustomSectionItem) => i.id !== item.id)
                     } : s
                   );
                   _updateField('customSections', updated);
@@ -377,7 +393,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
           <button
             className="add-btn"
             onClick={() => {
-              const updated = customSections.map(s =>
+              const updated = customSections.map((s: CustomSection) =>
                 s.id === section.id ? {
                   ...s,
                   items: [...s.items, { id: Date.now(), title: '', description: '' }]
@@ -417,7 +433,7 @@ const Sidebar = ({ data, updateField, updateArrayItem, deleteArrayItem, addArray
       </div>
 
       {_sidebarOrder
-        .map(sectionName => _visibleSections[sectionName] && sections[sectionName])
+        .map((sectionName: string) => _visibleSections[sectionName] && sections[sectionName])
         .filter(Boolean)
       }
     </div>

@@ -1,10 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
-import Modal from './Modal'; // Assume you have a Modal component or use a simple div overlay
+import Modal from './Modal';
 import { useAppState } from '../contexts/AppStateContext';
 
-// Utility to crop the image using canvas and croppedAreaPixels
-function getCroppedImg(imageSrc, croppedAreaPixels) {
+interface CroppedAreaPixels {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function getCroppedImg(imageSrc: string, croppedAreaPixels: CroppedAreaPixels): Promise<Blob | null> {
   return new Promise((resolve) => {
     const image = new window.Image();
     image.src = imageSrc;
@@ -12,7 +18,7 @@ function getCroppedImg(imageSrc, croppedAreaPixels) {
       const canvas = document.createElement('canvas');
       canvas.width = croppedAreaPixels.width;
       canvas.height = croppedAreaPixels.height;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d')!;
       ctx.drawImage(
         image,
         croppedAreaPixels.x,
@@ -31,19 +37,26 @@ function getCroppedImg(imageSrc, croppedAreaPixels) {
   });
 }
 
-const ImageCropperModal = ({ imageSrc, onCancel, onCropComplete, aspect = 1 }) => {
+interface ImageCropperModalProps {
+  imageSrc: string | null;
+  onCancel: () => void;
+  onCropComplete: (blob: Blob | null) => void;
+  aspect?: number;
+}
+
+const ImageCropperModal = ({ imageSrc, onCancel, onCropComplete, aspect = 1 }: ImageCropperModalProps) => {
   const { settings } = useAppState();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CroppedAreaPixels | null>(null);
 
-  const onCropChange = useCallback((newCrop) => setCrop(newCrop), []);
-  const onZoomChange = useCallback((newZoom) => setZoom(newZoom), []);
-  const onCropAreaChange = useCallback((_, croppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels), []);
+  const onCropChange = useCallback((newCrop: { x: number; y: number }) => setCrop(newCrop), []);
+  const onZoomChange = useCallback((newZoom: number) => setZoom(newZoom), []);
+  const onCropAreaChange = useCallback((_: unknown, croppedAreaPixels: CroppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels), []);
 
   const handleCrop = async () => {
     if (!croppedAreaPixels) return;
-    const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+    const croppedBlob = await getCroppedImg(imageSrc!, croppedAreaPixels);
     onCropComplete(croppedBlob);
   };
 

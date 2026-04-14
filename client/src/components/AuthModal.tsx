@@ -1,22 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
 import { authApi } from '../services/api';
 
-/**
- * AuthModal — base: local email + password authentication only.
- *
- * Extension pattern:
- *   Pass an `extraProviders` node to inject OAuth/SSO buttons without
- *   modifying this file:
- *
- *     import OAuthButtons from '../cloud/components/OAuthButtons';
- *     <AuthModal extraProviders={<OAuthButtons onSuccess={...} />} />
- *
- *   Extended callers may pass a PdfExportButton; default callers omit the prop.
- */
-const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
-  const [mode, setMode] = useState('login'); // 'login', 'register', 'forgot', or 'reset'
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  extraProviders?: ReactNode;
+}
+
+const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }: AuthModalProps) => {
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +21,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetToken, setResetToken] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const { login, register, error, clearError } = useAuth();
   const { t } = useTranslation();
@@ -34,7 +29,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
   // Focus trap + Escape key handling
   useEffect(() => {
     if (!isOpen) return;
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
         return;
@@ -44,8 +39,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
       if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const first = focusable[0] as HTMLElement;
+      const last = focusable[focusable.length - 1] as HTMLElement;
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -57,7 +52,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
     document.addEventListener('keydown', handleKeyDown);
     // Focus first input on open
     const timer = setTimeout(() => {
-      const firstInput = modalRef.current?.querySelector('input');
+      const firstInput = modalRef.current?.querySelector('input') as HTMLElement | null;
       if (firstInput) firstInput.focus();
     }, 50);
     return () => {
@@ -68,7 +63,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
     setSuccessMessage('');
@@ -77,7 +72,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
     if (mode === 'forgot') {
       setIsSubmitting(true);
       try {
-        const result = await authApi.forgotPassword(email);
+        const result = await authApi.forgotPassword(email) as { reset_token?: string; message?: string };
         if (result.reset_token) {
           setResetToken(result.reset_token);
           setMode('reset');
@@ -86,7 +81,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
           setSuccessMessage(result.message || t('auth.resetEmailSent'));
         }
       } catch (err) {
-        setLocalError(err.message || t('auth.resetRequestFailed'));
+        setLocalError((err as Error).message || t('auth.resetRequestFailed'));
       }
       setIsSubmitting(false);
       return;
@@ -111,7 +106,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
           resetForm();
         }, 2000);
       } catch (err) {
-        setLocalError(err.message || t('auth.resetFailed'));
+        setLocalError((err as Error).message || t('auth.resetFailed'));
       }
       setIsSubmitting(false);
       return;
@@ -186,7 +181,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }) => {
 
   const displayError = localError || error;
 
-  const modeTitle = {
+  const modeTitle: Record<string, string> = {
     login: t('auth.login'),
     register: t('auth.register'),
     forgot: t('auth.forgotPassword'),

@@ -1,9 +1,29 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './ToolbarDropdown.css';
 
-const ToolbarDropdown = ({ value, onChange, groups, className = '', ariaLabel, placeholder }) => {
+interface DropdownOption {
+  value: string;
+  label: string;
+  style?: React.CSSProperties;
+}
+
+interface DropdownGroup {
+  label: string;
+  options: DropdownOption[];
+}
+
+interface ToolbarDropdownProps {
+  value: string;
+  onChange: (e: { target: { value: string } }) => void;
+  groups: DropdownGroup[];
+  className?: string;
+  ariaLabel?: string;
+  placeholder?: string;
+}
+
+const ToolbarDropdown = ({ value, onChange, groups, className = '', ariaLabel, placeholder }: ToolbarDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const rootRef = useRef(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const options = useMemo(
     () => groups.flatMap((group) => group.options.map((option) => ({ ...option, groupLabel: group.label }))),
@@ -15,13 +35,13 @@ const ToolbarDropdown = ({ value, onChange, groups, className = '', ariaLabel, p
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const handlePointerDown = (event) => {
-      if (rootRef.current && !rootRef.current.contains(event.target)) {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    const handleEscape = (event) => {
+    const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
       }
@@ -36,7 +56,7 @@ const ToolbarDropdown = ({ value, onChange, groups, className = '', ariaLabel, p
     };
   }, [isOpen]);
 
-  const handleSelect = (nextValue) => {
+  const handleSelect = (nextValue: string) => {
     onChange({ target: { value: nextValue } });
     setIsOpen(false);
   };

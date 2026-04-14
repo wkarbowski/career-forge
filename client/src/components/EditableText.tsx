@@ -1,6 +1,18 @@
 import React, { useRef, useEffect } from 'react';
 import DOMPurify from 'dompurify';
 
+type EditableTag = 'span' | 'div' | 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
+interface EditableTextProps {
+  value: string;
+  onChange?: (value: string) => void;
+  className?: string;
+  tag?: EditableTag;
+  style?: React.CSSProperties;
+  placeholder?: string;
+  autoFocus?: boolean;
+}
+
 const DOMPURIFY_CONFIG = {
   ALLOWED_TAGS: ['b', 'i', 'u', 'strong', 'em', 'br', 'p', 'ul', 'ol', 'li', 'a', 'span', 'div', 's', 'strike', 'del'],
   ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style'],
@@ -20,10 +32,10 @@ const ALLOWED_CSS = [
 // Convert <font color="..."> (produced by execCommand('foreColor'))
 // into <span style="color: ..."> before DOMPurify strips the <font> tag.
 DOMPurify.addHook('uponSanitizeElement', (node, data) => {
-  if (data.tagName === 'font' && node.getAttribute && node.getAttribute('color')) {
-    const color = node.getAttribute('color');
+  if (data.tagName === 'font' && (node as Element).getAttribute?.('color')) {
+    const color = (node as Element).getAttribute('color');
     const span = document.createElement('span');
-    span.style.color = color;
+    span.style.color = color ?? '';
     while (node.firstChild) span.appendChild(node.firstChild);
     node.parentNode?.replaceChild(span, node);
   }
@@ -44,10 +56,10 @@ DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
   }
 });
 
-const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', style = {}, placeholder = '' }) => {
-  const ref = useRef(null);
+const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', style = {}, placeholder = '' }: EditableTextProps) => {
+  const ref = useRef<HTMLElement>(null);
 
-  const decodeEntities = (str) => {
+  const decodeEntities = (str: string) => {
     if (!str) return '';
     const txt = document.createElement('textarea');
     txt.innerHTML = str;
@@ -56,20 +68,20 @@ const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', styl
 
   // Treat content that is only whitespace / <br> tags as empty so the
   // CSS placeholder can show.
-  const isContentEmpty = (el) => {
+  const isContentEmpty = (el: HTMLElement | null) => {
     if (!el) return true;
     const text = el.innerText || '';
     return !text.replace(/\n/g, '').trim();
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
 
-    const clipboard = e.clipboardData || window.clipboardData;
-    const html = clipboard.getData && clipboard.getData('text/html');
-    const text = clipboard.getData && clipboard.getData('text/plain');
+    const clipboard = e.clipboardData;
+    const html = clipboard.getData('text/html');
+    const text = clipboard.getData('text/plain');
     const selection = window.getSelection();
-    if (!selection.rangeCount) return;
+    if (!selection || !selection.rangeCount) return;
     const range = selection.getRangeAt(0);
     range.deleteContents();
 
@@ -94,8 +106,8 @@ const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', styl
 
     range.insertNode(fragment);
     range.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    selection!.removeAllRanges();
+    selection!.addRange(range);
 
     setTimeout(() => document.dispatchEvent(new Event('selectionchange')), 0);
 
@@ -105,10 +117,10 @@ const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', styl
     }
   };
 
-  const handleInput = (e) => {
+  const handleInput = (e: React.FormEvent<HTMLElement>) => {
     if (onChange) {
-      const html = e.target.innerHTML;
-      onChange(isContentEmpty(e.target) ? '' : DOMPurify.sanitize(html, DOMPURIFY_CONFIG));
+      const html = (e.target as HTMLElement).innerHTML;
+      onChange(isContentEmpty(e.target as HTMLElement) ? '' : DOMPurify.sanitize(html, DOMPURIFY_CONFIG));
     }
   };
 
@@ -131,7 +143,7 @@ const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', styl
 
   return (
     <Tag
-      ref={ref}
+      ref={ref as React.RefObject<HTMLDivElement>}
       contentEditable
       suppressContentEditableWarning
       onPaste={handlePaste}
