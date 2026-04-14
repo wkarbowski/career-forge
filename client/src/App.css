@@ -187,31 +187,34 @@ body {
 }
 
 select {
-  padding: 10px 36px 10px 14px;
+  padding: 9px 36px 9px 14px;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-input, var(--bg-tertiary));
   color: var(--text-primary);
   cursor: pointer;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 select:hover {
   border-color: var(--border-hover);
   background-color: var(--bg-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 select:focus {
   border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-muted), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 select option {
@@ -473,14 +476,14 @@ select option {
 .vertical-panel .font-select {
   flex: 1;
   min-width: 0;
-  padding: 5px 8px;
+  padding: 5px 28px 5px 8px;
   font-size: 13px;
   background: var(--bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .vertical-panel .font-select:focus {
@@ -1595,7 +1598,7 @@ select option {
   border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: 0 12px 40px var(--shadow-color);
-  z-index: 100;
+  z-index: 400;
   overflow: hidden;
   animation: dropdownSlideIn 0.18s ease;
 }
@@ -2146,15 +2149,17 @@ select option {
 
 .export-dropdown-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   right: 0;
-  min-width: 150px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  padding: 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%), var(--glass-bg, var(--bg-secondary));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--glass-border, var(--border-color));
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.2)), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   z-index: 300;
-  overflow: hidden;
   animation: dropdownSlideIn 0.15s ease;
 }
 
@@ -2163,19 +2168,20 @@ select option {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 12px;
   background: transparent;
-  border: none;
-  border-radius: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .export-dropdown-menu button:hover {
   background: var(--bg-hover);
+  border-color: var(--border-hover);
 }
 
 .export-dropdown-menu button i {
