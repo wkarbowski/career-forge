@@ -4,20 +4,69 @@ import Sidebar from './Sidebar/Sidebar';
 import MainContent from './MainContent/MainContent';
 import PageControls from './PageControls';
 import { useAppState } from '../contexts/AppStateContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
+import { documentApi } from '../services/api';
 import './CVPagesEditor.css';
 
 
 const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
   const { zoom, setZoom, pages: contextPages, setPages, viewMode, registerPageRef, setMinPages, removePage, userForcedMaxRef } = usePages();
   const { settings } = useAppState();
+  const { isAuthenticated, currentDocumentId, documentList, refreshDocumentList } = useAuth();
   const { t } = useTranslation();
   const [showMobileWarning, setShowMobileWarning] = useState(false);
+  const [linkingCoverId, setLinkingCoverId] = useState('');  // selected in dropdown
+  const [linkBusy, setLinkBusy] = useState(false);           // async lock
   // Defensive: ensure profileImage is string or null
   const safeProfileImage = typeof profileImage === 'string' ? profileImage : null;
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const pageCount = contextPages.length;
+
+  const linkedCoverLetters = React.useMemo(() => {
+    if (!isAuthenticated || !currentDocumentId || currentDocumentId === 'template') return [];
+    return (documentList || []).filter((doc) => {
+      if (doc.document_type !== 'cover_letter') return false;
+      return doc.linked_resume_id != null && doc.linked_resume_id === currentDocumentId;
+    });
+  }, [currentDocumentId, documentList, isAuthenticated]);
+
+  const unlinkedCoverLetters = React.useMemo(() => {
+    if (!isAuthenticated || !currentDocumentId || currentDocumentId === 'template') return [];
+    return (documentList || []).filter(
+      (doc) => doc.document_type === 'cover_letter' && doc.linked_resume_id == null
+    );
+  }, [currentDocumentId, documentList, isAuthenticated]);
+
+  // Attach a cover letter to this resume
+  const handleLink = async () => {
+    if (!linkingCoverId || linkBusy) return;
+    setLinkBusy(true);
+    try {
+      await documentApi.linkToResume(linkingCoverId, currentDocumentId);
+      await refreshDocumentList();
+      setLinkingCoverId('');
+    } catch (err) {
+      console.error('Failed to link cover letter:', err);
+    } finally {
+      setLinkBusy(false);
+    }
+  };
+
+  // Detach a cover letter from this resume
+  const handleUnlink = async (coverLetterId) => {
+    if (linkBusy) return;
+    setLinkBusy(true);
+    try {
+      await documentApi.unlinkFromResume(coverLetterId);
+      await refreshDocumentList();
+    } catch (err) {
+      console.error('Failed to unlink cover letter:', err);
+    } finally {
+      setLinkBusy(false);
+    }
+  };
 
   const applyPageBreaks = useCallback(() => {
     if (!contentRef.current) return;
@@ -287,6 +336,62 @@ const CVPagesEditor = ({ profileImage, onImageUpload, onImageRemove }) => {
               {t('mobile.continue')}
             </button>
           </div>
+        </div>
+      )}
+      {isAuthenticated && currentDocumentId && currentDocumentId !== 'template' && (
+        <div className="cv-linked-cover-letters">
+          <div className="cv-linked-cover-letters-header">
+            <i className="fas fa-link"></i>
+            <span>{t('coverLetterLink.linkedCoverLetters')}</span>
+          </div>
+
+          {/* Linked chips with remove buttons */}
+          {linkedCoverLetters.length > 0 && (
+            <div className="cv-linked-cover-letters-list">
+              {linkedCoverLetters.map((doc) => (
+                <span key={doc.id} className="cv-linked-cover-letter-chip">
+                  {doc.title}
+                  <button
+                    className="cv-linked-chip-remove"
+                    onClick={() => handleUnlink(doc.id)}
+                    disabled={linkBusy}
+                    title={t('coverLetterLink.unlink')}
+                    aria-label={t('coverLetterLink.unlink')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Add-link row */}
+          {unlinkedCoverLetters.length > 0 ? (
+            <div className="cv-linked-add-row">
+              <select
+                className="cv-linked-add-select"
+                value={linkingCoverId}
+                onChange={(e) => setLinkingCoverId(e.target.value)}
+                disabled={linkBusy}
+              >
+                <option value="">{t('coverLetterLink.selectCoverLetter')}</option>
+                {unlinkedCoverLetters.map((doc) => (
+                  <option key={doc.id} value={doc.id}>{doc.title}</option>
+                ))}
+              </select>
+              <button
+                className="cv-linked-add-btn"
+                onClick={handleLink}
+                disabled={!linkingCoverId || linkBusy}
+              >
+                {linkBusy
+                  ? <i className="fas fa-spinner fa-spin"></i>
+                  : <><i className="fas fa-plus"></i> {t('coverLetterLink.link')}</>}
+              </button>
+            </div>
+          ) : linkedCoverLetters.length === 0 && (
+            <p className="cv-linked-cover-letters-empty">{t('coverLetterLink.noLinkedCoverLetters')}</p>
+          )}
         </div>
       )}
       <div 

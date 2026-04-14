@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppState } from '../contexts/AppStateContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
+import { documentApi } from '../services/api';
 import ToolbarDropdown from './ToolbarDropdown';
 
 const FONT_OPTIONS_SANS = [
@@ -126,7 +128,8 @@ const removeFormat = () => {
 
 const CLToolbar = () => {
   const { t } = useTranslation();
-  const { clSettings, setClSettings, coverLetterData, setCoverLetterData } = useAppState();
+  const { clSettings, setClSettings } = useAppState();
+  const { isAuthenticated, documentList, currentDocumentId, refreshDocumentList } = useAuth();
   const toolbarRef = useRef(null);
   const savedRangeRef = useRef(null);
 
@@ -244,7 +247,19 @@ const CLToolbar = () => {
   const subjectFont    = clSettings?.subjectFont    || 'Open Sans';
   const bodyFont       = clSettings?.bodyFont       || 'Open Sans';
 
-  const linkedResumeId = coverLetterData?.linkedResumeId || null;
+  const linkedResumeId = (() => {
+    if (!isAuthenticated || !currentDocumentId) return null;
+    const doc = (documentList || []).find(d => d.id === currentDocumentId);
+    return doc?.linked_resume_id ?? null;
+  })();
+  const resumeOptions = isAuthenticated
+    ? (documentList || [])
+        .filter((document) => document.document_type !== 'cover_letter')
+        .map((document) => ({
+          label: document.title,
+          value: String(document.id),
+        }))
+    : [];
 
   return (
     <div
@@ -300,20 +315,35 @@ const CLToolbar = () => {
         <div className="ct-group">
           <span className="ct-label">
             <i className="fas fa-link ct-label-icon" />
-            {t('coverLetter.linkedResume')}
+            {t('coverLetterLink.linkedResume')}
           </span>
           <ToolbarDropdown
-            value={linkedResumeId || ''}
-            onChange={e => setCoverLetterData(prev => ({ ...prev, linkedResumeId: e.target.value || null }))}
+            value={linkedResumeId ? String(linkedResumeId) : ''}
+            onChange={async (e) => {
+              const newId = e.target.value ? Number(e.target.value) : null;
+              try {
+                if (newId) {
+                  await documentApi.linkToResume(currentDocumentId, newId);
+                } else {
+                  await documentApi.unlinkFromResume(currentDocumentId);
+                }
+                await refreshDocumentList();
+              } catch (err) {
+                console.error('Failed to update link:', err);
+              }
+            }}
             groups={[
               {
                 label: '',
-                options: [{ label: t('coverLetter.noLinkedResume'), value: '' }],
+                options: [{ label: t('coverLetterLink.noLink'), value: '' }],
               },
+              ...(resumeOptions.length > 0
+                ? [{ label: t('templates.types.resume'), options: resumeOptions }]
+                : []),
             ]}
             className="toolbar-dropdown--wide"
-            ariaLabel={t('coverLetter.linkedResume')}
-            placeholder={t('coverLetter.noLinkedResume')}
+            ariaLabel={t('coverLetterLink.linkedResume')}
+            placeholder={t('coverLetterLink.noLink')}
           />
         </div>
       </div>

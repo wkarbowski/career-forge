@@ -633,3 +633,48 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* ── Linked Resume Selector ── */
+
+.cl-linked-resume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cl-linked-resume i {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cl-linked-resume label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.cl-linked-resume select {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media print {
+  .cl-linked-resume {
+    display: none;
+  }
+}
