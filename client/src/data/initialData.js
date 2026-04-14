@@ -128,7 +128,4 @@ export const initialCoverLetterData = {
   signature: '',
   signatureImage: null,
   extraPages: [],
-
-  // Linked resume
-  linkedResumeId: null,
 };
