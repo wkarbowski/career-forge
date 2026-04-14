@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.config import get_settings
 from app.database import Base
-from app.models import User, Document, RefreshToken
+from app.models import User, Document, DocumentVersion, RefreshToken
 from app.audit import AuditLog
 
 settings = get_settings()
