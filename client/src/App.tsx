@@ -29,7 +29,7 @@ import KeywordMatcher from './components/KeywordMatcher';
 import ProfileCompleteness from './components/ProfileCompleteness';
 import { UndoProvider } from './contexts/UndoContext';
 
-import type { CVData, CVSettings, CLSettings, VisibleSections, CoverLetterData, Page, DocumentType, CVTemplate, Document as AppDocument } from './types';
+import type { CVData, CVSettings, VisibleSections, CVTemplate, Document as AppDocument } from './types';
 
 const decodeEntities = (str: string): string => {
   if (typeof str !== 'string') return str;

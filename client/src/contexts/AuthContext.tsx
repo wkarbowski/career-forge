@@ -3,12 +3,6 @@ import type { User, Document as AppDocument, AuthResult } from '../types';
 import { authApi, documentApi } from '../services/api';
 import { useAppState } from './AppStateContext';
 
-interface DocumentUpdatePayload {
-  title?: string;
-  data?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
