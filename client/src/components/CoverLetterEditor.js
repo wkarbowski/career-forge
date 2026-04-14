@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { usePages, PAGE_CONFIG } from '../contexts/PageContext';
 import { useAppState } from '../contexts/AppStateContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
+import { documentApi } from '../services/api';
 import EditableText from './EditableText';
 import PageControls from './PageControls';
 import './CoverLetterEditor.css';
@@ -15,6 +17,7 @@ import './CoverLetterEditor.css';
 const CoverLetterEditor = () => {
   const { zoom, setZoom, pages, removePage, userForcedMaxRef } = usePages();
   const { coverLetterData, setCoverLetterData, clSettings, settings } = useAppState();
+  const { isAuthenticated, documentList, currentDocumentId, refreshDocumentList } = useAuth();
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -31,6 +34,32 @@ const CoverLetterEditor = () => {
 
   const set = (field, value) =>
     setCoverLetterData(prev => ({ ...prev, [field]: value }));
+
+  // Filter document list to resumes only for the linking dropdown
+  const resumeList = (documentList || []).filter(doc => {
+    try { return doc.document_type !== 'cover_letter'; } catch { return true; }
+  });
+
+  // Get current linked_resume_id from document metadata (not JSONB)
+  const currentDoc = (documentList || []).find(d => d.id === currentDocumentId);
+  const linkedResumeId = currentDoc?.linked_resume_id ?? null;
+  const linkedResumeTitle = linkedResumeId
+    ? (resumeList.find(r => r.id === linkedResumeId)?.title || null)
+    : null;
+
+  const handleLinkChange = async (e) => {
+    const newResumeId = e.target.value ? Number(e.target.value) : null;
+    try {
+      if (newResumeId) {
+        await documentApi.linkToResume(currentDocumentId, newResumeId);
+      } else {
+        await documentApi.unlinkFromResume(currentDocumentId);
+      }
+      await refreshDocumentList();
+    } catch (err) {
+      console.error('Failed to update link:', err);
+    }
+  };
 
   const getCanvasPos = (e, canvas) => {
     const rect = canvas.getBoundingClientRect();
@@ -135,6 +164,27 @@ const CoverLetterEditor = () => {
 
   return (
     <div className="cl-editor" ref={containerRef} style={{ paddingBottom: zoomPaddingBottom }}>
+      {/* ── Linked Resume Selector ── */}
+      {isAuthenticated && resumeList.length > 0 && (
+        <div className="cl-linked-resume">
+          <i className="fas fa-link"></i>
+          <label>{t('coverLetterLink.linkedResume')}</label>
+          <select
+            value={linkedResumeId || ''}
+            onChange={handleLinkChange}
+          >
+            <option value="">{t('coverLetterLink.selectResume')}</option>
+            {resumeList.map(r => (
+              <option key={r.id} value={r.id}>{r.title}</option>
+            ))}
+          </select>
+          {linkedResumeTitle && (
+            <span className="cl-linked-info">
+              ↳ {linkedResumeTitle}
+            </span>
+          )}
+        </div>
+      )}
       <div
         className="cl-canvas"
         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
