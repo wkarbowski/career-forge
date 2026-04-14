@@ -1,4 +1,6 @@
-export const cvTemplates = [
+import type { CVTemplate } from '../types';
+
+export const cvTemplates: CVTemplate[] = [
   // ─────────────────────────────────────────────────────────
   //  RESUME TEMPLATES
   // ─────────────────────────────────────────────────────────
@@ -265,17 +267,22 @@ export const CL_COLOR_PRESETS = {
   ],
 };
 
-export const documentTypes = [
+interface DocumentTypeOption {
+  id: string;
+  name: string;
+}
+
+export const documentTypes: DocumentTypeOption[] = [
   { id: 'all', name: 'All' },
   { id: 'resume', name: 'Resumes' },
   { id: 'cover-letter', name: 'Cover Letters' },
 ];
 
-export const getTemplateById = (id) => {
+export const getTemplateById = (id: string): CVTemplate => {
   return cvTemplates.find(t => t.id === id) || cvTemplates[0];
 };
 
-export const getTemplatesByType = (type) => {
+export const getTemplatesByType = (type: string): CVTemplate[] => {
   if (type === 'all') return cvTemplates;
   return cvTemplates.filter(t => t.type === type);
 };

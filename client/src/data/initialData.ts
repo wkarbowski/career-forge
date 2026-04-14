@@ -1,4 +1,6 @@
-export const initialData = {
+import type { CVData, CoverLetterData, CustomSectionTemplate } from '../types';
+
+export const initialData: CVData = {
   name: '',
   position: '',
   contact: {
@@ -63,7 +65,7 @@ export const initialData = {
 };
 
 // Predefined custom section templates
-export const customSectionTemplates = {
+export const customSectionTemplates: Record<string, CustomSectionTemplate> = {
   projects: {
     name: 'Projects',
     type: 'projects',
@@ -102,7 +104,7 @@ export const customSectionTemplates = {
   },
 };
 
-export const initialCoverLetterData = {
+export const initialCoverLetterData: CoverLetterData = {
   // Sender
   name: '',
   street: '',

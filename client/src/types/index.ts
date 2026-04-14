@@ -61,7 +61,7 @@ export interface Education {
 
 export interface CustomSectionItem {
   id: number | string;
-  title: string;
+  title?: string;
   description?: string;
   subtitle?: string;
   period?: string;
@@ -183,8 +183,8 @@ export type DocumentType = 'resume' | 'cover-letter';
 export interface ColorPreset {
   id: string;
   nameKey: string;
-  sidebarColor1: string;
-  sidebarColor2: string;
+  sidebarColor1?: string;
+  sidebarColor2?: string;
   accentColor: string;
 }
 
@@ -201,7 +201,7 @@ export interface CVTemplate {
   category: string;
   atsOptimized?: boolean;
   preview: TemplatePreview;
-  settings: Partial<CVSettings>;
+  settings: Partial<CVSettings> & Record<string, unknown>;
   clSettings?: Partial<CLSettings>;
   colorPresets: ColorPreset[];
   visibleSections?: Partial<VisibleSections>;
