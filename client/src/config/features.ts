@@ -11,8 +11,10 @@
  *       
  */
 
+import type { Features } from '../types';
 
-export const FEATURES = Object.freeze({
+
+export const FEATURES: Readonly<Features> = Object.freeze({
   /**
    * Master switch for optional extended features.
    * All other flags below derive from this unless individually overridden.
