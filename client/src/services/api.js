@@ -93,6 +93,22 @@ const authHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+const buildAuthenticatedHeaders = (options = {}) => {
+  const method = (options.method || 'GET').toUpperCase();
+  const isFormData = options.body && typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = new Headers(options.headers || {});
+
+  Object.entries(authHeaders()).forEach(([key, value]) => {
+    headers.set(key, value);
+  });
+
+  if (!isFormData && ['POST', 'PUT', 'PATCH'].includes(method) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  return headers;
+};
+
 // Fetch wrapper with automatic token refresh
 const authenticatedFetch = async (url, options = {}) => {
   if (isTokenExpired() && hasSession()) {
@@ -102,31 +118,26 @@ const authenticatedFetch = async (url, options = {}) => {
       console.warn('Token refresh failed:', error.message);
     }
   }
-  
-  // If body is FormData, do not set headers (browser will set Content-Type)
-  const isFormData = options.body && typeof FormData !== 'undefined' && options.body instanceof FormData;
+
   const response = await fetch(url, {
     ...options,
     credentials: 'include',
-    headers: isFormData ? authHeaders() : { ...options.headers, ...authHeaders() },
+    headers: buildAuthenticatedHeaders(options),
   });
-  
+
   if (response.status === 401 && hasSession()) {
     try {
       await refreshAccessToken();
       return fetch(url, {
         ...options,
         credentials: 'include',
-        headers: {
-          ...options.headers,
-          ...authHeaders(),
-        },
+        headers: buildAuthenticatedHeaders(options),
       });
     } catch (error) {
       return response;
     }
   }
-  
+
   return response;
 };
 
@@ -409,6 +420,16 @@ export const documentApi = {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.detail || 'Failed to revoke share link');
     }
+  },
+
+  // ============== Document Linking ==============
+
+  async linkToResume(coverLetterId, resumeId) {
+    return this.update(coverLetterId, { linked_resume_id: resumeId });
+  },
+
+  async unlinkFromResume(coverLetterId) {
+    return this.update(coverLetterId, { linked_resume_id: null });
   },
 };
 
