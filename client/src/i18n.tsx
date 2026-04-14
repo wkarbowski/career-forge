@@ -3,7 +3,6 @@ import type { I18nContextValue } from './types';
 import en from './locales/en.json';
 import de from './locales/de.json';
 
-type LocaleKey = keyof typeof locales;
 type LocaleData = Record<string, unknown>;
 
 const locales: Record<string, LocaleData> = { en, de };

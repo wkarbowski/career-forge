@@ -14,7 +14,7 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
   const [loading, setLoading] = useState(false);
   const [versionName, setVersionName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [previewId, setPreviewId] = useState<string | null>(null); // eslint-disable-line no-unused-vars
+  const [previewId, setPreviewId] = useState<string | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const loadVersions = async () => {
     if (!documentId) return;

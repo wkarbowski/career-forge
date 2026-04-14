@@ -203,19 +203,8 @@ export const authApi = {
       body: JSON.stringify(preferences),
     });
     return handleResponse<User>(response);
-    try {
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({}),
-      });
-    } catch (error) {
-      console.warn('Failed to revoke token on server:', error);
-    }
-    removeTokens();
   },
-  
+
   async logoutAllDevices(): Promise<unknown> {
     const response = await authenticatedFetch(`${API_BASE}/auth/logout/all`, {
       method: 'POST',
