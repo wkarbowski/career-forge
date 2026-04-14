@@ -36,10 +36,8 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Copy custom Nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Enable gzip compression in Nginx (optional)
-RUN echo "gzip on;" >> /etc/nginx/nginx.conf \
- && echo "gzip_types text/plain application/javascript text/css application/json image/svg+xml;" >> /etc/nginx/nginx.conf \
- && echo "gzip_min_length 256;" >> /etc/nginx/nginx.conf
+# Enable gzip compression in Nginx http block
+RUN sed -i '/http {/a \    gzip on;\n    gzip_vary on;\n    gzip_proxied any;\n    gzip_comp_level 6;\n    gzip_min_length 256;\n    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;' /etc/nginx/nginx.conf
 
 # Copy built static assets from build stage
 COPY --from=build /app/build /usr/share/nginx/html
