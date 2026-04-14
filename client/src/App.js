@@ -23,7 +23,6 @@ import { FEATURES } from './config/features';
 import { documentApi } from './services/api';
 import { getTemplateById } from './data/templates';
 import ImageCropperModal from './components/ImageCropperModal';
-import OnboardingWizard from './components/OnboardingWizard';
 import AccountSettings from './components/AccountSettings';
 import VersionHistory from './components/VersionHistory';
 import KeywordMatcher from './components/KeywordMatcher';
@@ -115,7 +114,6 @@ function CVEditor({ onSaveStatusChange }) {
   const { theme } = useTheme();
   
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [activePanel, setActivePanel] = useState(null); // 'versions' | 'keywords' | null
   const exportMenuRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -210,39 +208,6 @@ function CVEditor({ onSaveStatusChange }) {
       console.error('Image upload failed:', err);
     }
     // ...existing code...
-  };
-
-  const handleOnboardingComplete = ({ templateId, basics, visibleSections: onboardingSections }) => {
-    setShowOnboarding(false);
-    const template = getTemplateById(templateId);
-    if (template) {
-      if (template.settings) setSettings({ ...defaultSettings, ...template.settings });
-      if (template.visibleSections) setVisibleSections(template.visibleSections);
-      if (template.sidebarOrder) setSidebarOrder(template.sidebarOrder);
-    }
-    if (onboardingSections) {
-      setVisibleSections(prev => {
-        const updated = { ...prev };
-        Object.keys(updated).forEach(key => {
-          updated[key] = onboardingSections.includes(key);
-        });
-        return updated;
-      });
-    }
-    if (basics) {
-      setData(prev => ({
-        ...prev,
-        name: basics.fullName || prev.name,
-        position: basics.jobTitle || prev.position,
-        contact: {
-          ...prev.contact,
-          email: basics.email || prev.contact?.email,
-          phone: basics.phone || prev.contact?.phone,
-        },
-      }));
-    }
-    sessionStorage.setItem('onboarding_done', 'true');
-    documentLoadedRef.current = true;
   };
 
   // localStorage is the source of truth — push local prefs to server on login
@@ -459,9 +424,9 @@ function CVEditor({ onSaveStatusChange }) {
             navigate(`/editor/${doc.id}`, { replace: true });
           }
         } catch (_err) {
-          // No documents found — show onboarding if not done before
-          if (sessionStorage.getItem('onboarding_done') !== 'true' && sessionStorage.getItem('isTemplate') !== 'true') {
-            setShowOnboarding(true);
+          // No documents found — redirect to Templates so user can pick one
+          if (sessionStorage.getItem('isTemplate') !== 'true') {
+            navigate('/templates', { replace: true, state: { fromEditor: true } });
           }
           documentLoadedRef.current = true;
         }
@@ -663,14 +628,6 @@ function CVEditor({ onSaveStatusChange }) {
 
   return (
     <>
-      {showOnboarding && (
-        <div className="onboarding-overlay">
-          <OnboardingWizard
-            templates={require('./data/templates').cvTemplates.filter(t => t.type === 'resume')}
-            onComplete={handleOnboardingComplete}
-          />
-        </div>
-      )}
       {cropperOpen && cropperImage && (
         <ImageCropperModal
           imageSrc={cropperImage}
@@ -866,8 +823,11 @@ function HomePageWrapper() {
 
 function TemplatesGalleryWrapper() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
   const { setSettings, setClSettings, setVisibleSections, setSidebarOrder, setData, setProfileImage, setDocumentType, setCoverLetterData } = useAppState();
-  const { isAuthenticated, isGuest, setCurrentDocumentId } = useAuth();
+  const { isAuthenticated, isGuest, setCurrentDocumentId, documentList } = useAuth();
+  const [showBanner, setShowBanner] = useState(!!location.state?.fromEditor);
 
   const handleSelectTemplate = (template) => {
     if (template.type === 'cover-letter') {
@@ -909,7 +869,7 @@ function TemplatesGalleryWrapper() {
   };
 
   const handleBack = () => {
-    if (isAuthenticated || isGuest) {
+    if ((isAuthenticated || isGuest) && documentList && documentList.length > 0) {
       navigate('/editor');
     } else {
       navigate('/');
@@ -917,10 +877,21 @@ function TemplatesGalleryWrapper() {
   };
 
   return (
-    <TemplatesGallery 
-      onSelectTemplate={handleSelectTemplate}
-      onBack={handleBack}
-    />
+    <>
+      {showBanner && (
+        <div className="templates-start-banner" role="status">
+          <i className="fas fa-info-circle"></i>
+          <span>{t('templates.chooseToStart')}</span>
+          <button className="templates-banner-close" onClick={() => setShowBanner(false)} aria-label="Dismiss">
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      )}
+      <TemplatesGallery
+        onSelectTemplate={handleSelectTemplate}
+        onBack={handleBack}
+      />
+    </>
   );
 }
 
@@ -939,9 +910,13 @@ function DashboardWrapper() {
     navigate(`/editor/${documentId}?pdf=1`);
   };
 
+  const handleNewDocument = (type) => {
+    navigate('/templates', { state: { docType: type } });
+  };
+
   return (
     <DocumentDashboard 
-      onBack={() => navigate('/editor')}
+      onNewDocument={handleNewDocument}
       onEditDocument={handleEditDocument}
       onPrintDocument={handlePrintDocument}
       onSavePdfDocument={handleSavePdfDocument}
