@@ -170,10 +170,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const saveDocument = useCallback(async (title, data) => {
+  const saveDocument = useCallback(async (title, data, extraFields) => {
     if (!user) return null;
+    const payload = { title, data, ...extraFields };
     if (currentDocumentId && currentDocumentId !== 'template') {
-      const updated = await documentApi.update(currentDocumentId, { title, data });
+      const updated = await documentApi.update(currentDocumentId, payload);
       await refreshDocumentList();
       return updated;
     } else {
