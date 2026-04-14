@@ -1,10 +1,43 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import type { User, Document as AppDocument, AuthResult } from '../types';
 import { authApi, documentApi } from '../services/api';
 import { useAppState } from './AppStateContext';
 
-const AuthContext = createContext(null);
+interface DocumentUpdatePayload {
+  title?: string;
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
-export const useAuth = () => {
+interface AuthContextValue {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+  isGuest: boolean;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (email: string, username: string, password: string) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+  logoutAllDevices: () => Promise<AuthResult>;
+  startGuestMode: () => void;
+  exitGuestMode: () => void;
+  clearError: () => void;
+  documentList: AppDocument[];
+  currentDocumentId: string | null;
+  saveDocument: (title: string, data: Record<string, unknown>, extraFields?: Record<string, unknown>) => Promise<AppDocument | null>;
+  loadDocument: (id: string) => Promise<AppDocument | null>;
+  createNewDocument: () => void;
+  deleteDocument: (id: string) => Promise<boolean>;
+  refreshDocumentList: () => Promise<void>;
+  renameDocument: (id: string, newTitle: string) => Promise<AppDocument | null>;
+  setCurrentDocumentId: React.Dispatch<React.SetStateAction<string | null>>;
+  updatePreferences: (preferences: Record<string, unknown>) => Promise<User | null>;
+  deleteAccount: () => Promise<AuthResult>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -12,12 +45,12 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [documentList, setDocumentList] = useState([]);
-  const [currentDocumentId, setCurrentDocumentId] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [documentList, setDocumentList] = useState<AppDocument[]>([]);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
   const [isGuest, setIsGuest] = useState(false);
   
   const { resetToInitial } = useAppState();
@@ -81,7 +114,7 @@ export const AuthProvider = ({ children }) => {
     return () => { cancelled = true; };
   }, []);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email: string, password: string): Promise<AuthResult> => {
     setError(null);
     try {
       await authApi.login(email, password);
@@ -91,19 +124,19 @@ export const AuthProvider = ({ children }) => {
       setDocumentList(docs);
       return { success: true };
     } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
+      setError((err as Error).message);
+      return { success: false, error: (err as Error).message };
     }
   }, []);
 
-  const register = useCallback(async (email, username, password) => {
+  const register = useCallback(async (email: string, username: string, password: string): Promise<AuthResult> => {
     setError(null);
     try {
       await authApi.register(email, username, password);
       return login(email, password);
     } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
+      setError((err as Error).message);
+      return { success: false, error: (err as Error).message };
     }
   }, [login]);
 
@@ -136,7 +169,7 @@ export const AuthProvider = ({ children }) => {
       window.sessionStorage.removeItem('selectedTemplateId');
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: (err as Error).message };
     }
   }, [resetToInitial]);
 
@@ -170,7 +203,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const saveDocument = useCallback(async (title, data, extraFields) => {
+  const saveDocument = useCallback(async (title: string, data: Record<string, unknown>, extraFields?: Record<string, unknown>): Promise<AppDocument | null> => {
     if (!user) return null;
     const payload = { title, data, ...extraFields };
     if (currentDocumentId && currentDocumentId !== 'template') {
@@ -187,14 +220,14 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user, currentDocumentId, refreshDocumentList]);
 
-  const loadDocument = useCallback(async (id) => {
+  const loadDocument = useCallback(async (id: string): Promise<AppDocument | null> => {
     if (!user) return null;
     try {
       const doc = await documentApi.get(id);
       setCurrentDocumentId(doc.id);
       return doc;
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
       return null;
     }
   }, [user]);
@@ -205,7 +238,7 @@ export const AuthProvider = ({ children }) => {
     window.sessionStorage.removeItem('selectedTemplateId');
   }, []);
 
-  const deleteDocument = useCallback(async (id) => {
+  const deleteDocument = useCallback(async (id: string): Promise<boolean> => {
     if (!user) return false;
     try {
       await documentApi.delete(id);
@@ -215,25 +248,25 @@ export const AuthProvider = ({ children }) => {
       await refreshDocumentList();
       return true;
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
       return false;
     }
   }, [user, currentDocumentId, refreshDocumentList]);
 
-  const renameDocument = useCallback(async (id, newTitle) => {
+  const renameDocument = useCallback(async (id: string, newTitle: string): Promise<AppDocument | null> => {
     if (!user) return null;
     try {
       const updated = await documentApi.update(id, { title: newTitle });
       setDocumentList(prev => prev.map(doc => (doc.id === id ? { ...doc, title: newTitle } : doc)));
       return updated;
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
       console.error('Failed to rename document:', err);
       return null;
     }
   }, [user]);
 
-  const updatePreferences = useCallback(async (preferences) => {
+  const updatePreferences = useCallback(async (preferences: Record<string, unknown>): Promise<User | null> => {
     if (!user) return null;
     try {
       const updatedUser = await authApi.updatePreferences(preferences);
@@ -245,7 +278,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const deleteAccount = useCallback(async () => {
+  const deleteAccount = useCallback(async (): Promise<AuthResult> => {
     try {
       await authApi.deleteAccount();
       setUser(null);
@@ -257,12 +290,12 @@ export const AuthProvider = ({ children }) => {
       resetToInitial();
       return { success: true };
     } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
+      setError((err as Error).message);
+      return { success: false, error: (err as Error).message };
     }
   }, [resetToInitial]);
 
-  const value = {
+  const value: AuthContextValue = {
     user,
     loading,
     error,

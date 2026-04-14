@@ -1,11 +1,19 @@
-import React, { createContext, useContext, useCallback, useRef, useEffect, useState } from 'react';
+import React, { createContext, useContext, useCallback, useRef, useEffect, useState, type ReactNode } from 'react';
+import type { AppStateContextValue } from './AppStateContext';
 import { useAppState } from './AppStateContext';
 
-const UndoContext = createContext();
+interface UndoContextValue {
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+}
+
+const UndoContext = createContext<UndoContextValue | null>(null);
 
 const MAX_HISTORY = 50;
 
-function snapshot(appState) {
+function snapshot(appState: AppStateContextValue): string {
   return JSON.stringify({
     data: appState.data,
     visibleSections: appState.visibleSections,
@@ -13,11 +21,11 @@ function snapshot(appState) {
   });
 }
 
-export function UndoProvider({ children }) {
+export function UndoProvider({ children }: { children: ReactNode }) {
   const appState = useAppState();
-  const undoStack = useRef([]);
-  const redoStack = useRef([]);
-  const lastSnapshot = useRef(null);
+  const undoStack = useRef<string[]>([]);
+  const redoStack = useRef<string[]>([]);
+  const lastSnapshot = useRef<string | null>(null);
   const skipNextCapture = useRef(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -64,7 +72,7 @@ export function UndoProvider({ children }) {
     if (undoStack.current.length === 0) return;
     const currentSnap = snapshot(appState);
     redoStack.current.push(currentSnap);
-    const prevSnap = undoStack.current.pop();
+    const prevSnap = undoStack.current.pop()!;
     const prev = JSON.parse(prevSnap);
 
     skipNextCapture.current = true;
@@ -81,7 +89,7 @@ export function UndoProvider({ children }) {
     if (redoStack.current.length === 0) return;
     const currentSnap = snapshot(appState);
     undoStack.current.push(currentSnap);
-    const nextSnap = redoStack.current.pop();
+    const nextSnap = redoStack.current.pop()!;
     const next = JSON.parse(nextSnap);
 
     skipNextCapture.current = true;
@@ -96,10 +104,10 @@ export function UndoProvider({ children }) {
 
   // Keyboard shortcuts: Ctrl+Z / Ctrl+Shift+Z (only when no contentEditable focused)
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
       // Don't intercept if a contentEditable is focused
-      const active = document.activeElement;
+      const active = document.activeElement as HTMLElement | null;
       if (active && (active.isContentEditable || active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
 
       if (e.key === 'z' && !e.shiftKey) {
@@ -121,6 +129,8 @@ export function UndoProvider({ children }) {
   );
 }
 
-export function useUndo() {
-  return useContext(UndoContext);
+export function useUndo(): UndoContextValue {
+  const ctx = useContext(UndoContext);
+  if (!ctx) throw new Error('useUndo must be used within UndoProvider');
+  return ctx;
 }
