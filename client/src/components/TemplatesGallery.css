@@ -752,3 +752,43 @@
   height: 2px;
   width: 100%;
 }
+
+/* ===== Start banner (shown when redirected from editor with no document) ===== */
+.templates-start-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  margin: 16px 24px 0;
+  background: var(--accent-muted, rgba(33, 150, 243, 0.12));
+  border: 1px solid var(--accent-color, #2196f3);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.templates-start-banner .fa-info-circle {
+  color: var(--accent-color, #2196f3);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.templates-start-banner span {
+  flex: 1;
+}
+
+.templates-banner-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.templates-banner-close:hover {
+  color: var(--text-primary);
+}
