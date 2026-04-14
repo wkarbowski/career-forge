@@ -13,9 +13,11 @@
  *       
  */
 
-const CLOUD = process.env.REACT_APP_CLOUD_FEATURES === 'true';
+import type { Features } from '../types';
 
-export const FEATURES = Object.freeze({
+const CLOUD: boolean = process.env.REACT_APP_CLOUD_FEATURES === 'true';
+
+export const FEATURES: Readonly<Features> = Object.freeze({
   /**
    * Master switch for optional extended features.
    * All other flags below derive from this unless individually overridden.
