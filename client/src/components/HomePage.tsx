@@ -4,7 +4,15 @@ import ThemeToggle from './ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 import './HomePage.css';
 
-const HomePage = ({ onLogin, onGuestStart, onBrowseTemplates, isLoggedIn, isGuest }) => {
+interface HomePageProps {
+  onLogin: () => void;
+  onGuestStart: () => void;
+  onBrowseTemplates: () => void;
+  isLoggedIn: boolean;
+  isGuest: boolean;
+}
+
+const HomePage = ({ onLogin, onGuestStart, onBrowseTemplates, isLoggedIn, isGuest }: HomePageProps) => {
   const { t } = useTranslation();
 
   const features = [

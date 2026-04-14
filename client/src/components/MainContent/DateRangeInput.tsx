@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Helper to format YYYY-MM to MM/YYYY
-function formatMonthYear(value) {
+function formatMonthYear(value: string): string {
   if (!value) return '';
   const [year, month] = value.split('-');
   if (!year || !month) return '';
@@ -9,11 +9,19 @@ function formatMonthYear(value) {
 }
 
 // Helper to parse MM/YYYY to YYYY-MM
-function parseMonthYear(value) {
+function parseMonthYear(value: string): string {
   if (!value) return '';
   const [month, year] = value.split('/');
   if (!month || !year) return '';
   return `${year.padStart(4, '0')}-${month.padStart(2, '0')}`;
+}
+
+interface DateRangeInputProps {
+  start?: string;
+  end?: string;
+  onChange: (value: { start: string; end: string }) => void;
+  placeholder?: string;
+  className?: string;
 }
 
 export default function DateRangeInput({
@@ -22,13 +30,12 @@ export default function DateRangeInput({
   onChange,
   placeholder = 'MM/YYYY',
   className = '',
-}) {
-  // Accepts and emits values as YYYY-MM
-  const handleStartChange = (e) => {
+}: DateRangeInputProps) {
+  const handleStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     onChange({ start: val, end });
   };
-  const handleEndChange = (e) => {
+  const handleEndChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     onChange({ start, end: val });
   };

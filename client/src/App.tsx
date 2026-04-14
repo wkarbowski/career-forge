@@ -29,19 +29,21 @@ import KeywordMatcher from './components/KeywordMatcher';
 import ProfileCompleteness from './components/ProfileCompleteness';
 import { UndoProvider } from './contexts/UndoContext';
 
-const decodeEntities = (str) => {
+import type { CVData, CVSettings, CLSettings, VisibleSections, CoverLetterData, Page, DocumentType, CVTemplate, Document as AppDocument } from './types';
+
+const decodeEntities = (str: string): string => {
   if (typeof str !== 'string') return str;
   const txt = document.createElement('textarea');
   txt.innerHTML = str;
   return txt.value;
 };
 
-const decodeData = (item) => {
+const decodeData = (item: unknown): unknown => {
   if (Array.isArray(item)) return item.map(decodeData);
   if (item && typeof item === 'object') {
-    const out = {};
+    const out: Record<string, unknown> = {};
     Object.keys(item).forEach((k) => {
-      out[k] = decodeData(item[k]);
+      out[k] = decodeData((item as Record<string, unknown>)[k]);
     });
     return out;
   }
@@ -49,7 +51,7 @@ const decodeData = (item) => {
   return item;
 };
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
   
@@ -69,7 +71,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-const EditorRoute = ({ children }) => {
+const EditorRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isGuest, loading } = useAuth();
   
   if (loading) {
@@ -88,7 +90,11 @@ const EditorRoute = ({ children }) => {
   return children;
 };
 
-function CVEditor({ onSaveStatusChange }) {
+interface CVEditorProps {
+  onSaveStatusChange: (status: 'saving' | 'saved' | 'error' | '') => void;
+}
+
+function CVEditor({ onSaveStatusChange }: CVEditorProps) {
     // ...existing code...
     const { data, setData, settings, setSettings, clSettings, setClSettings, profileImage, setProfileImage, visibleSections, setVisibleSections, sidebarOrder, setSidebarOrder, documentType, setDocumentType, coverLetterData, setCoverLetterData, documentTitle, setDocumentTitle } = useAppState();
     // Defensive: ensure profileImage is always string or null
@@ -102,9 +108,9 @@ function CVEditor({ onSaveStatusChange }) {
   const location = useLocation();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editingTitleValue, setEditingTitleValue] = useState('');
-  const titleInputRef = useRef(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
-  const [cropperImage, setCropperImage] = useState(null);
+  const [cropperImage, setCropperImage] = useState<string | null>(null);
   const STANDARD_SIZE = 320;
 
   // (removed duplicate destructuring)
@@ -114,16 +120,16 @@ function CVEditor({ onSaveStatusChange }) {
   const { theme } = useTheme();
   
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [activePanel, setActivePanel] = useState(null); // 'versions' | 'keywords' | null
-  const exportMenuRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const saveTimeoutRef = useRef(null);
-  const lastSavedDataRef = useRef(null);
-  const lastSavedTitleRef = useRef(null);
+  const [activePanel, setActivePanel] = useState<string | null>(null); // 'versions' | 'keywords' | null
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedDataRef = useRef<string | null>(null);
+  const lastSavedTitleRef = useRef<string | null>(null);
   const prefsInitializedRef = useRef(false);
   const documentLoadedRef = useRef(false);
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     if (!isAuthenticated || !currentDocumentId) {
@@ -177,20 +183,20 @@ function CVEditor({ onSaveStatusChange }) {
   };
 
   // Helper to read file as data URL
-  const readFileAsDataURL = (file) => {
+  const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new window.FileReader();
-      reader.onload = () => resolve(reader.result);
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
   };
 
   // Handle crop confirm
-  const handleCropComplete = async (croppedBlob) => {
+  const handleCropComplete = async (croppedBlob: Blob | null) => {
     setCropperOpen(false);
     setCropperImage(null);
-    if (!isAuthenticated || !currentDocumentId) return;
+    if (!croppedBlob || !isAuthenticated || !currentDocumentId) return;
     try {
       const croppedFile = new File([croppedBlob], 'profile.png', { type: 'image/png' });
       const result = await documentApi.uploadProfileImage(currentDocumentId, croppedFile);
@@ -241,7 +247,13 @@ function CVEditor({ onSaveStatusChange }) {
   }, [lang, isAuthenticated, updatePreferences, user?.language]);
 
   // Track pending (unsaved) data for flush-on-unload
-  const pendingSaveRef = useRef(null);
+  interface PendingSave {
+    title: string;
+    documentData: Record<string, unknown>;
+    currentData: string;
+    currentTitle: string;
+  }
+  const pendingSaveRef = useRef<PendingSave | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || isGuest) return;
@@ -326,7 +338,7 @@ function CVEditor({ onSaveStatusChange }) {
             const documentData = doc.data;
             const mergedSettings = { ...defaultSettings, ...(documentData.settings || {}) };
             const loadedImage = documentData.profileImage || null;
-            if (documentData.data) setData(decodeData(documentData.data));
+            if (documentData.data) setData(decodeData(documentData.data) as CVData);
             setSettings(mergedSettings);
             if (documentData.visibleSections) setVisibleSections(documentData.visibleSections);
             if (documentData.sidebarOrder) setSidebarOrder(documentData.sidebarOrder);
@@ -389,7 +401,7 @@ function CVEditor({ onSaveStatusChange }) {
             const documentData = doc.data;
             const mergedSettings = { ...defaultSettings, ...(documentData.settings || {}) };
             const loadedImage = documentData.profileImage || null;
-            if (documentData.data) setData(decodeData(documentData.data));
+            if (documentData.data) setData(decodeData(documentData.data) as CVData);
             setSettings(mergedSettings);
             if (documentData.visibleSections) setVisibleSections(documentData.visibleSections);
             if (documentData.sidebarOrder) setSidebarOrder(documentData.sidebarOrder);
@@ -444,8 +456,8 @@ function CVEditor({ onSaveStatusChange }) {
         const template = getTemplateById(selectedTemplateId);
         if (template && template.type === 'resume') {
 
-          if (template.settings) setSettings({ ...defaultSettings, ...template.settings });
-          if (template.visibleSections) setVisibleSections(template.visibleSections);
+          if (template.settings) setSettings({ ...defaultSettings, ...template.settings } as CVSettings);
+          if (template.visibleSections) setVisibleSections({ ...({} as VisibleSections), ...template.visibleSections } as VisibleSections);
           if (template.sidebarOrder) setSidebarOrder(template.sidebarOrder);
           setCurrentDocumentId('template');
           const titleVal = template.name || 'Template';
@@ -494,7 +506,7 @@ function CVEditor({ onSaveStatusChange }) {
     setIsEditingTitle(false);
   };
 
-  const handleTitleKeyDown = (e) => {
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleTitleSave();
@@ -519,8 +531,8 @@ function CVEditor({ onSaveStatusChange }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    const fileName = data?.personal?.name 
-      ? `${data.personal.name.replace(/\s+/g, '-')}-cv-${new Date().toISOString().split('T')[0]}.json`
+    const fileName = data?.name 
+      ? `${data.name.replace(/\s+/g, '-')}-cv-${new Date().toISOString().split('T')[0]}.json`
       : `cv-export-${new Date().toISOString().split('T')[0]}.json`;
     a.download = fileName;
     document.body.appendChild(a);
@@ -536,8 +548,8 @@ function CVEditor({ onSaveStatusChange }) {
 
   // Close export dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
         setShowExportMenu(false);
       }
     };
@@ -547,14 +559,14 @@ function CVEditor({ onSaveStatusChange }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showExportMenu]);
 
-  const handleImport = (e) => {
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = (event: ProgressEvent<FileReader>) => {
       try {
-        const importedData = JSON.parse(event.target.result);
+        const importedData = JSON.parse(event.target!.result as string);
         
         if (importedData.data) setData(importedData.data);
         if (importedData.settings) setSettings({ ...defaultSettings, ...importedData.settings });
@@ -583,19 +595,19 @@ function CVEditor({ onSaveStatusChange }) {
     }
   };
 
-  const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel);
+  const togglePanel = (panel: string) => setActivePanel(prev => prev === panel ? null : panel);
 
-  const handleVersionRestore = (doc) => {
+  const handleVersionRestore = (doc: AppDocument) => {
     if (!doc) return;
     try {
-      const restored = typeof doc.data === 'string' ? JSON.parse(doc.data) : doc.data;
-      if (restored) {
-        const decoded = decodeData(restored);
-        if (decoded.data) setData(decoded.data);
-        if (decoded.settings) setSettings(decoded.settings);
-        if (decoded.visibleSections) setVisibleSections(decoded.visibleSections);
-        if (decoded.sidebarOrder) setSidebarOrder(decoded.sidebarOrder);
-        setProfileImage(decoded.profileImage || null);
+      const docData = doc.data;
+      if (docData) {
+        const decoded = decodeData(docData) as Record<string, unknown>;
+        if (decoded.data) setData(decoded.data as CVData);
+        if (decoded.settings) setSettings(decoded.settings as CVSettings);
+        if (decoded.visibleSections) setVisibleSections(decoded.visibleSections as VisibleSections);
+        if (decoded.sidebarOrder) setSidebarOrder(decoded.sidebarOrder as string[]);
+        setProfileImage((decoded.profileImage as string | null) || null);
       }
       setActivePanel(null);
     } catch (err) {
@@ -606,11 +618,11 @@ function CVEditor({ onSaveStatusChange }) {
   // Build plain text from CV data for keyword matching
   const resumeText = React.useMemo(() => {
     const parts = [];
-    if (data.contact?.fullName) parts.push(data.contact.fullName);
-    if (data.contact?.position) parts.push(data.contact.position);
+    if (data?.name) parts.push(data.name);
+    if (data?.position) parts.push(data.position);
     if (data.summary) parts.push(data.summary);
     (data.experience || []).forEach(e => {
-      if (e.position) parts.push(e.position);
+      if (e.title) parts.push(e.title);
       if (e.company) parts.push(e.company);
       if (e.description) parts.push(e.description);
     });
@@ -753,14 +765,14 @@ function CVEditor({ onSaveStatusChange }) {
 function SharedDocumentViewer() {
   const { shareToken } = useParams();
   const { t } = useTranslation();
-  const [doc, setDoc] = useState(null);
-  const [error, setError] = useState(null);
+  const [doc, setDoc] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState<boolean | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const { publicApi } = require('./services/api');
     publicApi.getSharedDocument(shareToken)
-      .then(d => { if (!cancelled) setDoc(d); })
+      .then((d: Record<string, unknown>) => { if (!cancelled) setDoc(d); })
       .catch(() => { if (!cancelled) setError(true); });
     return () => { cancelled = true; };
   }, [shareToken]);
@@ -770,7 +782,7 @@ function SharedDocumentViewer() {
 
   return (
     <div className="shared-document-viewer">
-      <h1>{doc.title}</h1>
+      <h1>{doc.title as string}</h1>
       <div className="shared-document-readonly" dangerouslySetInnerHTML={{ __html: '' }}>
       </div>
       <p className="shared-doc-notice">{t('shared.readOnly')}</p>
@@ -811,6 +823,8 @@ function HomePageWrapper() {
         onLogin={() => setShowAuthModal(true)} 
         onGuestStart={handleGuestStart}
         onBrowseTemplates={() => navigate('/templates')}
+        isLoggedIn={false}
+        isGuest={false}
       />
       <AuthModal 
         isOpen={showAuthModal} 
@@ -829,7 +843,7 @@ function TemplatesGalleryWrapper() {
   const { isAuthenticated, isGuest, setCurrentDocumentId, documentList } = useAuth();
   const [showBanner, setShowBanner] = useState(!!location.state?.fromEditor);
 
-  const handleSelectTemplate = (template) => {
+  const handleSelectTemplate = (template: CVTemplate) => {
     if (template.type === 'cover-letter') {
       const { initialCoverLetterData } = require('./data/initialData');
       setCoverLetterData({ ...initialCoverLetterData });
@@ -853,11 +867,11 @@ function TemplatesGalleryWrapper() {
       setProfileImage(null); // Clear any existing profile image
       setDocumentType('resume');
       
-      if (template.settings) setSettings(template.settings);
+      if (template.settings) setSettings(template.settings as CVSettings);
       setCurrentDocumentId("template");
       sessionStorage.setItem("isTemplate", "true");
       sessionStorage.setItem("selectedTemplateId", template.id);
-      if (template.visibleSections) setVisibleSections(template.visibleSections);
+      if (template.visibleSections) setVisibleSections({ ...({} as VisibleSections), ...template.visibleSections } as VisibleSections);
       if (template.sidebarOrder) setSidebarOrder(template.sidebarOrder);
       
       if (isAuthenticated || isGuest) {
@@ -898,25 +912,24 @@ function TemplatesGalleryWrapper() {
 function DashboardWrapper() {
   const navigate = useNavigate();
 
-  const handleEditDocument = (documentId) => {
+  const handleEditDocument = (documentId: string) => {
     navigate(`/editor/${documentId}`);
   };
 
-  const handlePrintDocument = (documentId) => {
+  const handlePrintDocument = (documentId: string) => {
     navigate(`/editor/${documentId}?print=1`);
   };
 
-  const handleSavePdfDocument = (documentId) => {
+  const handleSavePdfDocument = (documentId: string) => {
     navigate(`/editor/${documentId}?pdf=1`);
   };
 
-  const handleNewDocument = (type) => {
+  const handleNewDocument = (type: string) => {
     navigate('/templates', { state: { docType: type } });
   };
 
   return (
     <DocumentDashboard 
-      onNewDocument={handleNewDocument}
       onEditDocument={handleEditDocument}
       onPrintDocument={handlePrintDocument}
       onSavePdfDocument={handleSavePdfDocument}
@@ -925,13 +938,13 @@ function DashboardWrapper() {
 }
 
 function AppContentInner() {
-  const [saveStatus, setSaveStatus] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | 'error' | ''>('');
   const { resetToInitial } = useAppState();
   const { resetPages } = usePages();
   const { setCurrentDocumentId } = useAuth();
   const navigate = useNavigate();
 
-  const handleLoadDocument = useCallback((docId) => {
+  const handleLoadDocument = useCallback((docId: string | null) => {
     if (!docId) {
       resetToInitial();
       resetPages();
@@ -946,7 +959,7 @@ function AppContentInner() {
   return (
     <>
       <a href="#main-content" className="skip-to-content">Skip to content</a>
-      <GlobalHeader onLoadDocument={handleLoadDocument} saveStatus={saveStatus} />
+      <GlobalHeader onLoadDocument={handleLoadDocument} saveStatus={saveStatus || null} />
       <main className="app-main" id="main-content">
         <Routes>
           <Route path="/" element={<HomePageWrapper />} />

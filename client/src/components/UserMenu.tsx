@@ -4,13 +4,19 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
 import { documentApi } from '../services/api';
 
-const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
+interface UserMenuProps {
+  onLogin: () => void;
+  onLoadDocument: (id: string) => void;
+  onExitGuest: () => void;
+}
+
+const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showCvList, setShowCvList] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [operationError, setOperationError] = useState('');
-  const menuRef = useRef(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const { 
     user, 
@@ -26,8 +32,8 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setShowCvList(false);
       }
@@ -90,11 +96,11 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      setOperationError('Export failed: ' + err.message);
+      setOperationError('Export failed: ' + (err as Error).message);
     }
   };
 
-  const handleLoadDocument = (docId) => {
+  const handleLoadDocument = (docId: string) => {
     onLoadDocument(docId);
     setIsOpen(false);
     setShowCvList(false);
@@ -105,14 +111,14 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
     setIsOpen(false);
   };
 
-  const handleDeleteDocument = async (e, cvId) => {
+  const handleDeleteDocument = async (e: React.MouseEvent, cvId: string) => {
     e.stopPropagation();
     if (window.confirm(t('userMenu.confirmDelete'))) {
       await deleteDocument(cvId);
     }
   };
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString();
   };
 
@@ -156,9 +162,9 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="user-avatar">
-          {user.username.charAt(0).toUpperCase()}
+          {user?.username.charAt(0).toUpperCase()}
         </div>
-        <span className="user-name">{user.username}</span>
+        <span className="user-name">{user?.username}</span>
         <svg 
           className={`user-menu-arrow ${isOpen ? 'open' : ''}`}
           viewBox="0 0 24 24" 
@@ -173,7 +179,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
       {isOpen && (
         <div className="user-menu-dropdown" role="menu">
           <div className="user-menu-header">
-            <span className="user-email">{user.email}</span>
+            <span className="user-email">{user?.email}</span>
           </div>
 
           {operationError && (
@@ -232,7 +238,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
                     >
                       <div className="cv-list-item-info">
                         <span className="cv-title">{doc.title}</span>
-                        <span className="cv-date">{formatDate(doc.updated_at)}</span>
+                        <span className="cv-date">{formatDate(doc.updated_at ?? '')}</span>
                       </div>
                       <button 
                         className="cv-delete-btn"

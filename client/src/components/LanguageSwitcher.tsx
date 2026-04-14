@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from '../i18n';
 import ToolbarDropdown from './ToolbarDropdown';
 
-const languageNames = {
+const languageNames: Record<string, string> = {
   en: 'EN',
   de: 'DE',
 };

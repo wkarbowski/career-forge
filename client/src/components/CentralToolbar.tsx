@@ -1,15 +1,49 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppState } from '../contexts/AppStateContext';
-import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
-import { documentApi } from '../services/api';
 import ToolbarDropdown from './ToolbarDropdown';
+import './CentralToolbar.css';
 
 const FONT_OPTIONS_SANS = [
   'Inter', 'Rubik', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
   'Poppins', 'PT Sans', 'Source Sans 3',
 ];
 const FONT_OPTIONS_SERIF = ['Playfair Display', 'Merriweather', 'Lora'];
+
+// Scale presets: [name, heading, subtitle, body]
+const SCALE_PRESETS = {
+  compact:  { nameFontSize: 28, headingFontSize: 12, subtitleFontSize: 12, bodyFontSize: 11 },
+  standard: { nameFontSize: 36, headingFontSize: 14, subtitleFontSize: 14, bodyFontSize: 13 },
+  spacious: { nameFontSize: 44, headingFontSize: 18, subtitleFontSize: 18, bodyFontSize: 16 },
+};
+
+const getActivePresetKey = (settings: Record<string, unknown> | null | undefined) => {
+  const currentSizes = {
+    nameFontSize: settings?.nameFontSize,
+    headingFontSize: settings?.headingFontSize,
+    subtitleFontSize: settings?.subtitleFontSize,
+    bodyFontSize: settings?.bodyFontSize,
+  };
+
+  return Object.entries(SCALE_PRESETS).find(([, preset]) => (
+    preset.nameFontSize === currentSizes.nameFontSize &&
+    preset.headingFontSize === currentSizes.headingFontSize &&
+    preset.subtitleFontSize === currentSizes.subtitleFontSize &&
+    preset.bodyFontSize === currentSizes.bodyFontSize
+  ))?.[0] || null;
+};
+
+const interpolateScale = (t: number) => {
+  // t: 0 = compact, 0.5 = standard, 1 = spacious
+  const from = t <= 0.5 ? SCALE_PRESETS.compact : SCALE_PRESETS.standard;
+  const to = t <= 0.5 ? SCALE_PRESETS.standard : SCALE_PRESETS.spacious;
+  const local = t <= 0.5 ? t * 2 : (t - 0.5) * 2;
+  const result: Record<string, number> = {};
+  for (const key of Object.keys(from)) {
+    result[key] = Math.round((from as Record<string, number>)[key] + ((to as Record<string, number>)[key] - (from as Record<string, number>)[key]) * local);
+  }
+  return result;
+};
 
 const fontGroups = [
   {
@@ -22,7 +56,7 @@ const fontGroups = [
   },
 ];
 
-const FontSelect = ({ value, onChange, ariaLabel }) => (
+const FontSelect = ({ value, onChange, ariaLabel }: { value: string; onChange: (e: { target: { value: string } }) => void; ariaLabel: string }) => (
   <ToolbarDropdown
     value={value}
     onChange={onChange}
@@ -33,21 +67,18 @@ const FontSelect = ({ value, onChange, ariaLabel }) => (
   />
 );
 
-const colorInputStyle = {
-  position: 'absolute', left: 0, top: 0,
-  width: '100%', height: '100%',
-  opacity: 0, border: 0, padding: 0, margin: 0, cursor: 'pointer',
-};
+// ── Inline formatting via Selection/Range API ──
 
-// ── Selection/Range inline formatting helpers ──
-
-const wrapSelectionWith = (tagName, style) => {
+const wrapSelectionWith = (tagName: string, style?: Record<string, string>) => {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
   const range = sel.getRangeAt(0);
   const wrapper = document.createElement(tagName);
   if (style) Object.assign(wrapper.style, style);
-  try { range.surroundContents(wrapper); } catch {
+  try {
+    range.surroundContents(wrapper);
+  } catch {
+    // surroundContents fails if range spans partial nodes — fall back to extractContents
     const frag = range.extractContents();
     wrapper.appendChild(frag);
     range.insertNode(wrapper);
@@ -59,57 +90,68 @@ const wrapSelectionWith = (tagName, style) => {
   return wrapper;
 };
 
-const isWrappedIn = (tagName) => {
+const isWrappedIn = (tagName: string) => {
   const sel = window.getSelection();
   if (!sel || !sel.anchorNode) return false;
-  let node = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
+  let node: Element | null = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as Element;
   while (node) {
     if (node.nodeName === tagName.toUpperCase()) return true;
-    if (node.contentEditable === 'true') break;
+    if ((node as HTMLElement).contentEditable === 'true') break;
     node = node.parentElement;
   }
   return false;
 };
 
-const unwrapTag = (tagName) => {
+const unwrapTag = (tagName: string) => {
   const sel = window.getSelection();
   if (!sel || !sel.anchorNode) return;
-  let node = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
+  let node: Element | null = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as Element;
   while (node) {
     if (node.nodeName === tagName.toUpperCase()) {
       const parent = node.parentNode;
+      if (!parent) return;
       while (node.firstChild) parent.insertBefore(node.firstChild, node);
       parent.removeChild(node);
       return;
     }
-    if (node.contentEditable === 'true') break;
+    if ((node as HTMLElement).contentEditable === 'true') break;
     node = node.parentElement;
   }
 };
 
-const toggleInlineTag = (tagName) => {
-  if (isWrappedIn(tagName)) unwrapTag(tagName);
-  else wrapSelectionWith(tagName);
+const toggleInlineTag = (tagName: string) => {
+  if (isWrappedIn(tagName)) {
+    unwrapTag(tagName);
+  } else {
+    wrapSelectionWith(tagName);
+  }
 };
 
-const setBlockAlignment = (alignment) => {
+const setBlockAlignment = (alignment: string) => {
   const sel = window.getSelection();
   if (!sel || !sel.anchorNode) return;
-  let block = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
+  let block: Element | null = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as Element;
+  // Walk up to find nearest block-level element
   while (block && window.getComputedStyle(block).display === 'inline') block = block.parentElement;
-  if (block) block.style.textAlign = alignment;
+  if (block) (block as HTMLElement).style.textAlign = alignment;
 };
 
-const insertList = (ordered) => {
+const insertList = (ordered: boolean) => {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return;
   const range = sel.getRangeAt(0);
+
   const list = document.createElement(ordered ? 'ol' : 'ul');
   const li = document.createElement('li');
-  if (sel.isCollapsed) li.appendChild(document.createTextNode('\u200B'));
-  else li.appendChild(range.extractContents());
+
+  if (sel.isCollapsed) {
+    li.appendChild(document.createTextNode('\u200B'));
+  } else {
+    li.appendChild(range.extractContents());
+  }
   list.appendChild(li);
   range.insertNode(list);
+
   sel.removeAllRanges();
   const newRange = document.createRange();
   newRange.selectNodeContents(li);
@@ -126,33 +168,38 @@ const removeFormat = () => {
   range.insertNode(document.createTextNode(text));
 };
 
-const CLToolbar = () => {
+const CentralToolbar = () => {
   const { t } = useTranslation();
-  const { clSettings, setClSettings } = useAppState();
-  const { isAuthenticated, documentList, currentDocumentId, refreshDocumentList } = useAuth();
-  const toolbarRef = useRef(null);
-  const savedRangeRef = useRef(null);
+  const { settings, setSettings } = useAppState();
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const savedRangeRef = useRef<Range | null>(null);
 
   const [hasEditableFocus, setHasEditableFocus] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
 
+  // Derive scale slider value from current bodyFontSize
+  const bodyFontSize = settings?.bodyFontSize ?? 13;
+  const scaleValue = bodyFontSize <= 11 ? 0 : bodyFontSize >= 16 ? 1 : (bodyFontSize - 11) / (16 - 11) * 0.5 + 0.25;
+  const activePresetKey = getActivePresetKey(settings as unknown as Record<string, unknown>);
+
+  // Monitor focus on editable elements for inline formatting state
   const detectEditableFocus = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) { setHasEditableFocus(false); return; }
     let node = sel.focusNode || sel.anchorNode;
     if (!node) { setHasEditableFocus(false); return; }
-    if (node.nodeType === 3) node = node.parentElement;
+    if (node.nodeType === 3) node = node.parentElement as Node;
 
-    let editable = node;
-    while (editable && editable.contentEditable !== 'true') editable = editable.parentElement;
+    let editable: Element | null = node as Element;
+    while (editable && (editable as HTMLElement).contentEditable !== 'true') editable = editable.parentElement;
     if (!editable) { setHasEditableFocus(false); return; }
     setHasEditableFocus(true);
 
     if (node && node.nodeType === 1) {
       try {
-        const computed = window.getComputedStyle(node);
+        const computed = window.getComputedStyle(node as Element);
         const fw = computed.fontWeight;
         setIsBold(fw === 'bold' || fw === '700' || parseInt(fw, 10) >= 700);
         setIsItalic(computed.fontStyle === 'italic');
@@ -160,13 +207,13 @@ const CLToolbar = () => {
           computed.textDecorationLine?.includes('underline') ||
           computed.textDecoration?.includes('underline')
         );
-      } catch (_) {}
+      } catch (err) { /* ignore */ }
     }
   }, []);
 
   useEffect(() => {
     const handle = () => {
-      if (toolbarRef.current && toolbarRef.current.contains(document.activeElement)) return;
+      if (toolbarRef.current && toolbarRef.current.contains(document.activeElement as Node)) return;
       detectEditableFocus();
     };
     document.addEventListener('selectionchange', handle);
@@ -177,7 +224,8 @@ const CLToolbar = () => {
     };
   }, [detectEditableFocus]);
 
-  const handleToolbarMouseDown = (e) => {
+  // Save/restore selection for inline formatting buttons
+  const handleToolbarMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       savedRangeRef.current = sel.getRangeAt(0).cloneRange();
@@ -189,36 +237,36 @@ const CLToolbar = () => {
     if (!saved) return false;
     const sel = window.getSelection();
     if (!sel) return false;
-    if (sel.rangeCount > 0 && !sel.isCollapsed && !toolbarRef.current?.contains(sel.anchorNode)) return true;
+    if (sel.rangeCount > 0 && !sel.isCollapsed && !toolbarRef.current?.contains(sel.anchorNode as Node)) return true;
     try {
       if (!document.body.contains(saved.startContainer) || !document.body.contains(saved.endContainer)) return false;
       sel.removeAllRanges();
       sel.addRange(saved);
       return true;
-    } catch (_) {
+    } catch (_e) {
       return false;
     }
   };
 
-  const findEditableEl = (node) => {
+  const findEditableEl = (node: Node | null): HTMLElement | null => {
     if (!node) return null;
-    let el = node.nodeType === 3 ? node.parentElement : node;
-    while (el && el.contentEditable !== 'true') el = el.parentElement;
-    return el || null;
+    let el: Element | null = node.nodeType === 3 ? node.parentElement : node as Element;
+    while (el && (el as HTMLElement).contentEditable !== 'true') el = el.parentElement;
+    return (el as HTMLElement) || null;
   };
 
   const getTargetEl = () => {
     const saved = savedRangeRef.current;
     if (saved && document.body.contains(saved.startContainer))
       return findEditableEl(saved.startContainer);
-    return findEditableEl(window.getSelection()?.anchorNode);
+    return findEditableEl(window.getSelection()?.anchorNode ?? null);
   };
 
-  const fireInputEvent = (el) => {
+  const fireInputEvent = (el: HTMLElement | null) => {
     if (el) el.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
   };
 
-  const applyFormat = (fn) => {
+  const applyFormat = (fn: () => void) => {
     const targetEl = getTargetEl();
     restoreSelection();
     fn();
@@ -226,40 +274,41 @@ const CLToolbar = () => {
     detectEditableFocus();
   };
 
-  const handleColor = (e) => {
+  const handleColor = (e: React.ChangeEvent<HTMLInputElement>) => {
     const targetEl = getTargetEl();
     restoreSelection();
     wrapSelectionWith('span', { color: e.target.value });
     fireInputEvent(targetEl);
   };
 
-  const handleBgColor = (e) => {
+  const handleBgColor = (e: React.ChangeEvent<HTMLInputElement>) => {
     const targetEl = getTargetEl();
     restoreSelection();
     wrapSelectionWith('span', { backgroundColor: e.target.value });
     fireInputEvent(targetEl);
   };
 
-  const set = (key, val) => setClSettings(prev => ({ ...prev, [key]: val }));
+  // Global style handlers
+  const set = (key: string, val: string) => setSettings(prev => ({ ...prev, [key]: val }));
 
-  const nameFont       = clSettings?.nameFont       || 'Open Sans';
-  const senderFont     = clSettings?.senderFont     || 'Open Sans';
-  const subjectFont    = clSettings?.subjectFont    || 'Open Sans';
-  const bodyFont       = clSettings?.bodyFont       || 'Open Sans';
+  const nameFont = settings?.nameFont || settings?.titleFont || 'Rubik';
+  const headingFont = settings?.headingFont || settings?.titleFont || 'Rubik';
+  const bodyFont = settings?.bodyFont || 'Inter';
 
-  const linkedResumeId = (() => {
-    if (!isAuthenticated || !currentDocumentId) return null;
-    const doc = (documentList || []).find(d => d.id === currentDocumentId);
-    return doc?.linked_resume_id ?? null;
-  })();
-  const resumeOptions = isAuthenticated
-    ? (documentList || [])
-        .filter((document) => document.document_type !== 'cover_letter')
-        .map((document) => ({
-          label: document.title,
-          value: String(document.id),
-        }))
-    : [];
+  const handleScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sizes = interpolateScale(parseFloat(e.target.value));
+    setSettings(prev => ({ ...prev, ...sizes }));
+  };
+
+  const applyPreset = (preset: keyof typeof SCALE_PRESETS) => {
+    setSettings(prev => ({ ...prev, ...SCALE_PRESETS[preset] }));
+  };
+
+  const colorInputStyle: React.CSSProperties = {
+    position: 'absolute', left: 0, top: 0,
+    width: '100%', height: '100%',
+    opacity: 0, border: 0, padding: 0, margin: 0, cursor: 'pointer',
+  };
 
   return (
     <div
@@ -267,9 +316,9 @@ const CLToolbar = () => {
       className="central-toolbar"
       onMouseDown={handleToolbarMouseDown}
       role="toolbar"
-      aria-label="Cover letter styles"
+      aria-label={t('centralToolbar.label')}
     >
-      {/* ── Cover Letter Typography ── */}
+      {/* ── Document Typography ── */}
       <div className="ct-section ct-typography">
         <div className="ct-group">
           <span className="ct-label">
@@ -283,20 +332,10 @@ const CLToolbar = () => {
 
         <div className="ct-group">
           <span className="ct-label">
-            <i className="fas fa-address-card ct-label-icon" />
-            {t('centralToolbar.sender') || 'Sender'}
+            <i className="fas fa-layer-group ct-label-icon" />
+            {t('centralToolbar.headings')}
           </span>
-          <FontSelect value={senderFont} onChange={e => set('senderFont', e.target.value)} ariaLabel={t('centralToolbar.sender') || 'Sender'} />
-        </div>
-
-        <div className="ct-divider" />
-
-        <div className="ct-group">
-          <span className="ct-label">
-            <i className="fas fa-heading ct-label-icon" />
-            {t('coverLetter.subject') || 'Subject'}
-          </span>
-          <FontSelect value={subjectFont} onChange={e => set('subjectFont', e.target.value)} ariaLabel={t('coverLetter.subject') || 'Subject'} />
+          <FontSelect value={headingFont} onChange={e => set('headingFont', e.target.value)} ariaLabel={t('centralToolbar.headings')} />
         </div>
 
         <div className="ct-divider" />
@@ -311,46 +350,40 @@ const CLToolbar = () => {
 
         <div className="ct-divider" />
 
-        {/* Resume link dropdown */}
-        <div className="ct-group">
+        {/* Scale slider replaces 4 individual size pickers */}
+        <div className="ct-group ct-scale-group">
           <span className="ct-label">
-            <i className="fas fa-link ct-label-icon" />
-            {t('coverLetterLink.linkedResume')}
+            <i className="fas fa-text-height ct-label-icon" />
+            {t('centralToolbar.scale')}
           </span>
-          <ToolbarDropdown
-            value={linkedResumeId ? String(linkedResumeId) : ''}
-            onChange={async (e) => {
-              const newId = e.target.value ? Number(e.target.value) : null;
-              try {
-                if (newId) {
-                  await documentApi.linkToResume(currentDocumentId, newId);
-                } else {
-                  await documentApi.unlinkFromResume(currentDocumentId);
-                }
-                await refreshDocumentList();
-              } catch (err) {
-                console.error('Failed to update link:', err);
-              }
-            }}
-            groups={[
-              {
-                label: '',
-                options: [{ label: t('coverLetterLink.noLink'), value: '' }],
-              },
-              ...(resumeOptions.length > 0
-                ? [{ label: t('templates.types.resume'), options: resumeOptions }]
-                : []),
-            ]}
-            className="toolbar-dropdown--wide"
-            ariaLabel={t('coverLetterLink.linkedResume')}
-            placeholder={t('coverLetterLink.noLink')}
-          />
+          <div className="ct-scale-controls">
+            <div className="ct-scale-presets">
+              <button className={`ct-preset-btn ${activePresetKey === 'compact' ? 'ct-preset-active' : ''}`} onClick={() => applyPreset('compact')} title={t('centralToolbar.compact')}>
+                {t('centralToolbar.compact')}
+              </button>
+              <button className={`ct-preset-btn ${activePresetKey === 'standard' ? 'ct-preset-active' : ''}`} onClick={() => applyPreset('standard')} title={t('centralToolbar.standard')}>
+                {t('centralToolbar.standard')}
+              </button>
+              <button className={`ct-preset-btn ${activePresetKey === 'spacious' ? 'ct-preset-active' : ''}`} onClick={() => applyPreset('spacious')} title={t('centralToolbar.spacious')}>
+                {t('centralToolbar.spacious')}
+              </button>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={scaleValue}
+              onChange={handleScaleChange}
+              className="ct-scale-slider"
+            />
+          </div>
         </div>
       </div>
 
       <div className="ct-section-divider" />
 
-      {/* ── Inline Formatting ── */}
+      {/* ── Inline Formatting (selection-based) ── */}
       <div className={`ct-section ct-formatting ${hasEditableFocus ? '' : 'ct-disabled'}`}>
         <div className="ct-group">
           <button onClick={() => applyFormat(() => toggleInlineTag('strong'))} className={`ct-btn ${isBold ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.bold')}>
@@ -417,4 +450,4 @@ const CLToolbar = () => {
   );
 };
 
-export default CLToolbar;
+export default CentralToolbar;

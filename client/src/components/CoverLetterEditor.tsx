@@ -19,10 +19,10 @@ const CoverLetterEditor = () => {
   const { coverLetterData, setCoverLetterData, clSettings, settings } = useAppState();
   const { isAuthenticated, documentList, currentDocumentId, refreshDocumentList } = useAuth();
   const { t } = useTranslation();
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
-  const lastPos = useRef(null);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
   const [drawMode, setDrawMode] = useState(false);
 
   const todayFormatted = React.useMemo(() => {
@@ -32,7 +32,7 @@ const CoverLetterEditor = () => {
     }).format(new Date());
   }, []);
 
-  const set = (field, value) =>
+  const set = (field: string, value: unknown) =>
     setCoverLetterData(prev => ({ ...prev, [field]: value }));
 
   // Filter document list to resumes only for the linking dropdown
@@ -47,12 +47,12 @@ const CoverLetterEditor = () => {
     ? (resumeList.find(r => r.id === linkedResumeId)?.title || null)
     : null;
 
-  const handleLinkChange = async (e) => {
-    const newResumeId = e.target.value ? Number(e.target.value) : null;
+  const handleLinkChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newResumeId = e.target.value || null;
     try {
-      if (newResumeId) {
+      if (newResumeId && currentDocumentId) {
         await documentApi.linkToResume(currentDocumentId, newResumeId);
-      } else {
+      } else if (currentDocumentId) {
         await documentApi.unlinkFromResume(currentDocumentId);
       }
       await refreshDocumentList();
@@ -61,19 +61,19 @@ const CoverLetterEditor = () => {
     }
   };
 
-  const getCanvasPos = (e, canvas) => {
+  const getCanvasPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
     };
   };
   
-  const startDraw = (e) => {
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -81,14 +81,15 @@ const CoverLetterEditor = () => {
     lastPos.current = getCanvasPos(e, canvas);
   };
 
-  const draw = (e) => {
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     if (!isDrawing.current) return;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d')!;
     const pos = getCanvasPos(e, canvas);
     ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.moveTo(lastPos.current!.x, lastPos.current!.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.strokeStyle = '#1a1a1a';
     ctx.lineWidth = 2;
@@ -103,7 +104,7 @@ const CoverLetterEditor = () => {
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height);
   };
 
   const saveSignature = () => {
@@ -113,11 +114,11 @@ const CoverLetterEditor = () => {
     setDrawMode(false);
   };
 
-  const handleSigUpload = (e) => {
+  const handleSigUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => set('signatureImage', ev.target.result);
+    reader.onload = (ev) => set('signatureImage', ev.target?.result);
     reader.readAsDataURL(file);
     e.target.value = '';
   };
@@ -126,7 +127,7 @@ const CoverLetterEditor = () => {
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const onWheel = (e) => {
+    const onWheel = (e: WheelEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
       e.stopPropagation();
@@ -136,7 +137,7 @@ const CoverLetterEditor = () => {
       );
     };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
   }, [setZoom]);
 
   const d = coverLetterData;

@@ -1,7 +1,9 @@
 import React from 'react';
 import { useTranslation } from '../i18n';
 
-const hasText = (value) => {
+import type { CVData } from '../types';
+
+const hasText = (value: unknown): boolean => {
   if (typeof value !== 'string') return false;
   const plainText = value
     .replace(/<br\s*\/?>/gi, ' ')
@@ -11,18 +13,22 @@ const hasText = (value) => {
   return plainText.length > 0;
 };
 
-const checks = [
+const checks: Array<{ key: string; test: (d: CVData) => boolean }> = [
   { key: 'name', test: (d) => hasText(d.name) },
   { key: 'email', test: (d) => hasText(d.contact?.email) },
   { key: 'phone', test: (d) => hasText(d.contact?.phone) },
   { key: 'summary', test: (d) => hasText(d.summary) },
-  { key: 'experience', test: (d) => d.experience?.length > 0 },
-  { key: 'education', test: (d) => d.education?.length > 0 },
-  { key: 'skills', test: (d) => d.skills?.length > 0 },
-  { key: 'languages', test: (d) => d.languages?.length > 0 },
+  { key: 'experience', test: (d) => (d.experience?.length ?? 0) > 0 },
+  { key: 'education', test: (d) => (d.education?.length ?? 0) > 0 },
+  { key: 'skills', test: (d) => (d.skills?.length ?? 0) > 0 },
+  { key: 'languages', test: (d) => (d.languages?.length ?? 0) > 0 },
 ];
 
-const ProfileCompleteness = ({ data }) => {
+interface ProfileCompletenessProps {
+  data: CVData;
+}
+
+const ProfileCompleteness = ({ data }: ProfileCompletenessProps) => {
   const { t } = useTranslation();
   if (!data) return null;
 
