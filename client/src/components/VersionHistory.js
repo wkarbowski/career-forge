@@ -8,7 +8,7 @@ const VersionHistory = ({ documentId, onRestore }) => {
   const [loading, setLoading] = useState(false);
   const [versionName, setVersionName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [previewId, setPreviewId] = useState(null);
+  const [previewId, setPreviewId] = useState(null); // eslint-disable-line no-unused-vars
 
   const loadVersions = async () => {
     if (!documentId) return;

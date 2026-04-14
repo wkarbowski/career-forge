@@ -45,6 +45,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
     navigate('/');
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleLogoutAllDevices = async () => {
     if (window.confirm(t('userMenu.confirmLogoutAll') || 'This will log you out from all devices. Continue?')) {
       setLoggingOut(true);
@@ -55,6 +56,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }) => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleDeleteAccount = async () => {
     const confirmMsg = t('userMenu.confirmDeleteAccount') ||
       'This will permanently delete your account and all your document data. This cannot be undone. Type DELETE to confirm.';
