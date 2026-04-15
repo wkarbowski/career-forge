@@ -1,16 +1,22 @@
-"""
-Security middleware and utilities for Career Forge.
-Provides rate limiting, HTTPS enforcement, security headers, and input sanitization.
+"""Security middleware and utilities for Career Forge.
+
+Provides rate limiting, HTTPS enforcement, security headers,
+CSRF protection, request-size limits, content-type validation,
+and input sanitization.
 """
 
-import re
+from __future__ import annotations
+
 import html
-import time
 import logging
-from typing import Callable, Dict
-from collections import defaultdict
+import re
+import time
 from abc import ABC, abstractmethod
-from fastapi import Request, Response, status
+from collections import defaultdict
+from typing import Any, Callable, Optional
+from urllib.parse import urlparse
+
+from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -41,21 +47,20 @@ class RateLimiterBackend(ABC):
 
 
 class InMemoryRateLimiter(RateLimiterBackend):
-    """
-    In-memory rate limiter using sliding window algorithm.
+    """In-memory rate limiter using sliding window algorithm.
+
     Suitable for single-instance deployments or development.
-    
-    Note: This implementation includes automatic memory cleanup to prevent
-    unbounded growth of the requests dictionary.
+
+    Note: Includes automatic memory cleanup to prevent unbounded growth.
     """
-    
-    def __init__(self, max_keys: int = 10000):
-        self.requests: Dict[str, list] = defaultdict(list)
+
+    def __init__(self, max_keys: int = 10000) -> None:
+        self.requests: dict[str, list[float]] = defaultdict(list)
         self.max_keys = max_keys
-        self._last_cleanup = time.time()
-        self._cleanup_interval = 300  # Cleanup every 5 minutes
+        self._last_cleanup: float = time.time()
+        self._cleanup_interval: float = 300.0  # 5 minutes
     
-    def _cleanup_old_entries(self, window_seconds: int = 60):
+    def _cleanup_old_entries(self, window_seconds: int = 60) -> None:
         """Remove expired entries to prevent memory leaks."""
         current_time = time.time()
         
@@ -150,14 +155,14 @@ class RedisRateLimiter(RateLimiterBackend):
     range queries and automatic expiration.
     """
     
-    def __init__(self, redis_url: str, password: str = None):
-        self._redis = None
+    def __init__(self, redis_url: str, password: Optional[str] = None) -> None:
+        self._redis: Any = None
         self._redis_url = redis_url
         self._password = password
         self._connected = False
         self._connect()
-    
-    def _connect(self):
+
+    def _connect(self) -> None:
         """Establish Redis connection."""
         try:
             import redis
@@ -297,12 +302,9 @@ class RedisRateLimiter(RateLimiterBackend):
 
 
 class FallbackRateLimiter(RateLimiterBackend):
-    """
-    Rate limiter with automatic fallback from Redis to in-memory.
-    Provides resilience when Redis becomes unavailable.
-    """
-    
-    def __init__(self, primary: RateLimiterBackend, fallback: RateLimiterBackend):
+    """Rate limiter with automatic fallback from Redis to in-memory."""
+
+    def __init__(self, primary: RateLimiterBackend, fallback: RateLimiterBackend) -> None:
         self._primary = primary
         self._fallback = fallback
         self._using_fallback = False
@@ -387,19 +389,19 @@ class AccountLockoutBackend(ABC):
 
 
 class InMemoryAccountLockout(AccountLockoutBackend):
-    """
-    In-memory account lockout tracker.
+    """In-memory account lockout tracker.
+
     Suitable for single-instance deployments.
     """
-    
-    def __init__(self, max_attempts: int = 10, lockout_duration: int = 15):
-        self._failures: Dict[str, list] = defaultdict(list)  # identifier -> [timestamps]
-        self._lockouts: Dict[str, float] = {}  # identifier -> lockout_until_timestamp
+
+    def __init__(self, max_attempts: int = 10, lockout_duration: int = 15) -> None:
+        self._failures: dict[str, list[float]] = defaultdict(list)
+        self._lockouts: dict[str, float] = {}
         self._max_attempts = max_attempts
-        self._lockout_duration = lockout_duration * 60  # Convert to seconds
-        self._window = 30 * 60
+        self._lockout_duration: int = lockout_duration * 60  # seconds
+        self._window: int = 30 * 60  # 30 minutes
     
-    def _cleanup_old_failures(self, identifier: str):
+    def _cleanup_old_failures(self, identifier: str) -> None:
         cutoff = time.time() - self._window
         self._failures[identifier] = [
             t for t in self._failures[identifier] if t > cutoff
@@ -454,18 +456,18 @@ class RedisAccountLockout(AccountLockoutBackend):
     Suitable for distributed/multi-instance deployments.
     """
     
-    def __init__(self, redis_url: str, password: str = None, 
-                 max_attempts: int = 10, lockout_duration: int = 15):
-        self._redis = None
+    def __init__(self, redis_url: str, password: Optional[str] = None,
+                 max_attempts: int = 10, lockout_duration: int = 15) -> None:
+        self._redis: Any = None
         self._redis_url = redis_url
         self._password = password
         self._connected = False
         self._max_attempts = max_attempts
-        self._lockout_duration = lockout_duration * 60
-        self._window = 30 * 60
+        self._lockout_duration: int = lockout_duration * 60
+        self._window: int = 30 * 60
         self._connect()
-    
-    def _connect(self):
+
+    def _connect(self) -> None:
         try:
             import redis
             
@@ -578,8 +580,8 @@ class RedisAccountLockout(AccountLockoutBackend):
 
 class FallbackAccountLockout(AccountLockoutBackend):
     """Account lockout with automatic fallback."""
-    
-    def __init__(self, primary: AccountLockoutBackend, fallback: AccountLockoutBackend):
+
+    def __init__(self, primary: AccountLockoutBackend, fallback: AccountLockoutBackend) -> None:
         self._primary = primary
         self._fallback = fallback
     
@@ -916,7 +918,7 @@ class InputSanitizer:
         return False
     
     @classmethod
-    def sanitize_dict(cls, data: dict, allow_html_fields: set = None) -> dict:
+    def sanitize_dict(cls, data: dict[str, Any], allow_html_fields: Optional[set[str]] = None) -> dict[str, Any]:
         """
         Recursively sanitize all string values in a dictionary.
         
@@ -998,7 +1000,7 @@ class CSRFProtection:
     """
     
     @staticmethod
-    def validate_origin(request: Request, allowed_origins: list) -> bool:
+    def validate_origin(request: Request, allowed_origins: list[str]) -> bool:
         """
         Validate that the request origin is allowed.
         
@@ -1019,7 +1021,7 @@ class CSRFProtection:
         return origin in allowed_origins
     
     @staticmethod
-    def validate_referer(request: Request, allowed_hosts: list) -> bool:
+    def validate_referer(request: Request, allowed_hosts: list[str]) -> bool:
         """
         Validate the Referer header for additional security.
         
@@ -1037,7 +1039,6 @@ class CSRFProtection:
             return True
         
         # Parse referer to get host
-        from urllib.parse import urlparse
         parsed = urlparse(referer)
         
         # Allow if host matches or in allowed list
@@ -1158,7 +1159,7 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
     }
 
     # Accept all /api/documents/{id}/upload-image
-    def is_form_allowed(self, path):
+    def is_form_allowed(self, path: str) -> bool:
         if path.startswith("/api/documents/") and path.endswith("/upload-image"):
             return True
         return path in self.FORM_ALLOWED_PATHS
@@ -1205,14 +1206,8 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
 # MIDDLEWARE SETUP HELPER
 # =============================================================================
 
-def setup_security_middleware(app):
-    """
-    Configure all security middleware for the FastAPI application.
-    Call this function in main.py to set up security.
-    
-    Args:
-        app: FastAPI application instance
-    """
+def setup_security_middleware(app: FastAPI) -> None:
+    """Configure all security middleware for the FastAPI application."""
     # Add middleware in reverse order (last added = first executed)
     
     # 1. Security headers (runs last, adds headers to response)
