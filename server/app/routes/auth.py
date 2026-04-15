@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import timedelta
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -42,7 +42,7 @@ from app.schemas import (
 )
 from app.security import InputSanitizer, account_lockout
 
-_error_responses = {
+_error_responses: dict[int | str, dict[str, Any]] = {
     401: {"model": ErrorResponse, "description": "Authentication required or invalid credentials"},
     429: {"model": ErrorResponse, "description": "Rate limit exceeded or account locked"},
 }

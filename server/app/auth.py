@@ -64,7 +64,7 @@ def create_access_token(
     now = datetime.now(timezone.utc)
     expire = now + (expires_delta or timedelta(minutes=_settings.access_token_expire_minutes))
     to_encode.update({"exp": expire, "type": "access", "iat": now})
-    return jwt.encode(to_encode, _settings.secret_key, algorithm=_settings.algorithm)
+    return str(jwt.encode(to_encode, _settings.secret_key, algorithm=_settings.algorithm))
 
 
 def create_password_reset_token(
@@ -83,7 +83,7 @@ def create_password_reset_token(
         "type": "password_reset",
         "iat": now,
     }
-    return jwt.encode(to_encode, _settings.secret_key, algorithm=_settings.algorithm)
+    return str(jwt.encode(to_encode, _settings.secret_key, algorithm=_settings.algorithm))
 
 
 def verify_password_reset_token(

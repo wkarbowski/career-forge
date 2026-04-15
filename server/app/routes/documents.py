@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import secrets
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Literal, Optional, cast
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
@@ -29,7 +29,7 @@ from app.schemas import (
 )
 from app.security import InputSanitizer
 
-_error_responses = {
+_error_responses: dict[int | str, dict[str, Any]] = {
     401: {"model": ErrorResponse, "description": "Authentication required"},
     404: {"model": ErrorResponse, "description": "Resource not found"},
     429: {"model": ErrorResponse, "description": "Rate limit exceeded"},
@@ -80,6 +80,8 @@ async def upload_profile_image(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
     ext = os.path.splitext(file.filename)[-1].lower()
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
         raise HTTPException(
@@ -163,7 +165,7 @@ async def create_document(
     db.add(new_document)
     db.commit()
     db.refresh(new_document)
-    return new_document
+    return DocumentResponse.model_validate(new_document)
 
 
 @router.get("/", response_model=list[DocumentListResponse])
@@ -201,7 +203,7 @@ async def get_document(
             detail="Document not found"
         )
 
-    return doc
+    return DocumentResponse.model_validate(doc)
 
 
 @router.put("/{document_id}", response_model=DocumentResponse)
@@ -261,7 +263,7 @@ async def update_document(
 
     db.commit()
     db.refresh(doc)
-    return doc
+    return DocumentResponse.model_validate(doc)
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -302,7 +304,7 @@ async def export_document(
 
     return DocumentExport(
         title=doc.title,
-        document_type=doc.document_type,
+        document_type=cast(Literal["resume", "cover_letter"], doc.document_type),
         data=doc.data,
         exported_at=datetime.now(timezone.utc)
     )
@@ -328,7 +330,7 @@ async def import_document(
     db.add(new_document)
     db.commit()
     db.refresh(new_document)
-    return new_document
+    return DocumentResponse.model_validate(new_document)
 
 
 @router.post("/{document_id}/duplicate", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
@@ -357,7 +359,7 @@ async def duplicate_document(
     db.add(new_document)
     db.commit()
     db.refresh(new_document)
-    return new_document
+    return DocumentResponse.model_validate(new_document)
 
 
 @router.get("/default/current", response_model=DocumentResponse)
@@ -383,7 +385,7 @@ async def get_default_document(
             detail="No documents found"
         )
 
-    return doc
+    return DocumentResponse.model_validate(doc)
 
 
 # ============== Version History ==============
@@ -415,7 +417,7 @@ async def create_version(
     db.add(version)
     db.commit()
     db.refresh(version)
-    return version
+    return DocumentVersionResponse.model_validate(version)
 
 
 @router.get("/{document_id}/versions", response_model=list[DocumentVersionResponse])
@@ -429,12 +431,13 @@ async def list_versions(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    return (
+    versions = (
         db.query(DocumentVersion)
         .filter(DocumentVersion.document_id == document_id)
         .order_by(DocumentVersion.created_at.desc())
         .all()
     )
+    return [DocumentVersionResponse.model_validate(v) for v in versions]
 
 
 @router.get("/{document_id}/versions/{version_id}", response_model=DocumentVersionDetailResponse)
@@ -455,7 +458,7 @@ async def get_version(
     ).first()
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
-    return version
+    return DocumentVersionDetailResponse.model_validate(version)
 
 
 @router.post("/{document_id}/versions/{version_id}/restore", response_model=DocumentResponse)
@@ -480,7 +483,7 @@ async def restore_version(
     doc.data = version.data
     db.commit()
     db.refresh(doc)
-    return doc
+    return DocumentResponse.model_validate(doc)
 
 
 @router.delete("/{document_id}/versions/{version_id}", status_code=status.HTTP_204_NO_CONTENT)
