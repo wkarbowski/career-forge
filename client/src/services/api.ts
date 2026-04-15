@@ -16,6 +16,7 @@ import type {
   DocumentVersion,
   ImageUploadResponse,
 } from '../types';
+import { toApiDocumentType } from '../types';
 
 const API_BASE: string = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
@@ -324,8 +325,7 @@ export const documentApi = {
   },
 
   async create(title: string, data: DocumentData): Promise<Document> {
-    // Derive document_type from the data blob (client uses 'cover-letter', server uses 'cover_letter')
-    const document_type = data?.documentType === 'cover-letter' ? 'cover_letter' : 'resume';
+    const document_type = toApiDocumentType((data?.documentType as 'resume' | 'cover-letter') || 'resume');
     const response = await authenticatedFetch(`${API_BASE}/documents/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -337,7 +337,7 @@ export const documentApi = {
   async update(id: string, updates: DocumentUpdatePayload): Promise<Document> {
     const payload: DocumentUpdatePayload = { ...updates };
     if (updates.data?.documentType) {
-      payload.document_type = updates.data.documentType === 'cover-letter' ? 'cover_letter' : 'resume';
+      payload.document_type = toApiDocumentType(updates.data.documentType as 'resume' | 'cover-letter');
     }
     const response = await authenticatedFetch(`${API_BASE}/documents/${id}`, {
       method: 'PUT',

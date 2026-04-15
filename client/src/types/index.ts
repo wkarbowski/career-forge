@@ -180,6 +180,19 @@ export interface VisibleSections {
 
 export type DocumentType = 'resume' | 'cover-letter';
 
+/** Backend uses underscores for document_type values. */
+export type ApiDocumentType = 'resume' | 'cover_letter';
+
+/** Convert frontend DocumentType to the API wire format. */
+export function toApiDocumentType(dt: DocumentType): ApiDocumentType {
+  return dt === 'cover-letter' ? 'cover_letter' : 'resume';
+}
+
+/** Convert API wire document_type to the frontend DocumentType. */
+export function fromApiDocumentType(dt: ApiDocumentType | string): DocumentType {
+  return dt === 'cover_letter' ? 'cover-letter' : 'resume';
+}
+
 // ── Templates ─────────────────────────────────────────────────
 
 export interface ColorPreset {
@@ -246,7 +259,7 @@ export interface PageConfig {
 // ── Auth / User ───────────────────────────────────────────────
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   username: string;
   theme?: string;
@@ -274,20 +287,21 @@ export interface DocumentData {
 }
 
 export interface Document {
-  id: string;
+  id: number;
   title: string;
   data: DocumentData;
   document_type?: string;
+  owner_id?: number;
   is_default?: boolean;
   created_at?: string;
   updated_at?: string;
   share_token?: string;
-  linked_resume_id?: string | number | null;
+  linked_resume_id?: number | null;
   job_title?: string;
 }
 
 export interface DocumentVersion {
-  id: string;
+  id: number;
   version_name: string;
   data: DocumentData;
   created_at: string;
@@ -303,6 +317,46 @@ export interface LoginResponse {
 
 export interface ImageUploadResponse {
   url: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface LogoutAllResponse extends MessageResponse {
+  sessions_revoked: number;
+}
+
+export interface PasswordResetResponse extends MessageResponse {
+  reset_token?: string | null;
+}
+
+export interface DocumentExportResponse {
+  title: string;
+  document_type: string;
+  data: DocumentData;
+  exported_at: string;
+}
+
+export interface ShareLinkResponse {
+  share_token: string;
+  url: string;
+}
+
+export interface SharedDocument {
+  title: string;
+  document_type: string;
+  data: DocumentData;
+}
+
+export interface ApiErrorResponse {
+  detail: string;
+  code?: string;
+  field_errors?: Array<{
+    loc: string[];
+    msg: string;
+    type?: string;
+  }>;
 }
 
 // ── Feature Flags ─────────────────────────────────────────────

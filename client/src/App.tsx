@@ -30,6 +30,7 @@ import ProfileCompleteness from './components/ProfileCompleteness';
 import { UndoProvider } from './contexts/UndoContext';
 
 import type { CVData, CVSettings, VisibleSections, CVTemplate, Document as AppDocument } from './types';
+import { toApiDocumentType } from './types';
 
 const decodeEntities = (str: string): string => {
   if (typeof str !== 'string') return str;
@@ -147,7 +148,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       } else {
         // Direct upload if small enough
         try {
-          const result = await documentApi.uploadProfileImage(currentDocumentId, file);
+          const result = await documentApi.uploadProfileImage(String(currentDocumentId), file);
           if (result && typeof result.url === 'string') {
             setProfileImage(result.url);
           } else {
@@ -171,7 +172,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       return;
     }
     try {
-      await documentApi.removeProfileImage(currentDocumentId);
+      await documentApi.removeProfileImage(String(currentDocumentId));
       setProfileImage(null);
     } catch (err) {
       if (onSaveStatusChange) {
@@ -199,7 +200,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
     if (!croppedBlob || !isAuthenticated || !currentDocumentId) return;
     try {
       const croppedFile = new File([croppedBlob], 'profile.png', { type: 'image/png' });
-      const result = await documentApi.uploadProfileImage(currentDocumentId, croppedFile);
+      const result = await documentApi.uploadProfileImage(String(currentDocumentId), croppedFile);
       if (result && typeof result.url === 'string') {
         setProfileImage(result.url);
       } else {
@@ -371,9 +372,9 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
             documentLoadedRef.current = true;
 
             // Auto-repair: if the DB document_type doesn't match the data blob, silently patch it.
-            const expectedDbType = documentData.documentType === 'cover-letter' ? 'cover_letter' : 'resume';
+            const expectedDbType = toApiDocumentType((documentData.documentType as 'resume' | 'cover-letter') || 'resume');
             if (doc.document_type && doc.document_type !== expectedDbType) {
-              documentApi.update(doc.id, { document_type: expectedDbType }).catch(() => {});
+              documentApi.update(String(doc.id), { document_type: expectedDbType }).catch(() => {});
             }
 
             const params = new URLSearchParams(location.search);
@@ -497,7 +498,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       setDocumentTitle(newTitle);
       if (isAuthenticated && currentDocumentId) {
         try {
-          await documentApi.update(currentDocumentId, { title: newTitle });
+          await documentApi.update(String(currentDocumentId), { title: newTitle });
         } catch (err) {
           console.error('Failed to update title:', err);
         }
@@ -912,15 +913,15 @@ function TemplatesGalleryWrapper() {
 function DashboardWrapper() {
   const navigate = useNavigate();
 
-  const handleEditDocument = (documentId: string) => {
+  const handleEditDocument = (documentId: number) => {
     navigate(`/editor/${documentId}`);
   };
 
-  const handlePrintDocument = (documentId: string) => {
+  const handlePrintDocument = (documentId: number) => {
     navigate(`/editor/${documentId}?print=1`);
   };
 
-  const handleSavePdfDocument = (documentId: string) => {
+  const handleSavePdfDocument = (documentId: number) => {
     navigate(`/editor/${documentId}?pdf=1`);
   };
 
@@ -944,7 +945,7 @@ function AppContentInner() {
   const { setCurrentDocumentId } = useAuth();
   const navigate = useNavigate();
 
-  const handleLoadDocument = useCallback((docId: string | null) => {
+  const handleLoadDocument = useCallback((docId: number | string | null) => {
     if (!docId) {
       resetToInitial();
       resetPages();

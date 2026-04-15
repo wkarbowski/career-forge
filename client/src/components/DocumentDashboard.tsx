@@ -5,17 +5,18 @@ import { useTranslation } from '../i18n';
 import { documentApi } from '../services/api';
 import './DocumentDashboard.css';
 import type { Document as AppDocument } from '../types';
+import { fromApiDocumentType } from '../types';
 
 interface ShareModalState {
-  docId: string;
+  docId: number;
   url: string;
   token: string;
 }
 
 interface DocumentDashboardProps {
-  onEditDocument: (documentId: string) => void;
-  onPrintDocument?: (documentId: string) => void;
-  onSavePdfDocument?: (documentId: string) => void;
+  onEditDocument: (documentId: number) => void;
+  onPrintDocument?: (documentId: number) => void;
+  onSavePdfDocument?: (documentId: number) => void;
 }
 
 const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument }: DocumentDashboardProps) => {
@@ -27,14 +28,14 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
   const [viewMode, setViewMode] = useState(() => sessionStorage.getItem('dash_viewMode') || 'grid');
   const [sortConfig, setSortConfig] = useState({ key: 'updated_at', direction: 'desc' });
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCvs, setSelectedCvs] = useState<Set<string>>(new Set());
+  const [selectedCvs, setSelectedCvs] = useState<Set<number>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const editInputRef = useRef<HTMLInputElement>(null);
   const [shareModal, setShareModal] = useState<ShareModalState | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
-  const [linkPickerFor, setLinkPickerFor] = useState<string | null>(null);
+  const [linkPickerFor, setLinkPickerFor] = useState<number | null>(null);
   const [linkPickerValue, setLinkPickerValue] = useState('');
 
   useEffect(() => { sessionStorage.setItem('dash_filterType', filterType); }, [filterType]);
@@ -48,8 +49,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
 
   const detectDocumentType = (cv: AppDocument): string => {
     try {
-      if (cv.document_type === 'cover_letter') return 'cover-letter';
-      return 'resume';
+      return fromApiDocumentType(cv.document_type || 'resume');
     } catch (err) {
       return 'resume';
     }
@@ -130,18 +130,18 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
   }, [applicationGroups, searchTerm, filterType]);
 
   /* ===== Handlers ===== */
-  const handleLinkDocument = async (coverLetterId: string, resumeId: string) => {
+  const handleLinkDocument = async (coverLetterId: number | string, resumeId: string) => {
     try {
-      await documentApi.linkToResume(coverLetterId, resumeId);
+      await documentApi.linkToResume(String(coverLetterId), resumeId);
       await refreshDocumentList();
       setLinkPickerFor(null);
       setLinkPickerValue('');
     } catch (err) { console.error('Failed to link documents:', err); }
   };
 
-  const handleUnlinkDocument = async (coverLetterId: string) => {
+  const handleUnlinkDocument = async (coverLetterId: number | string) => {
     try {
-      await documentApi.unlinkFromResume(coverLetterId);
+      await documentApi.unlinkFromResume(String(coverLetterId));
       await refreshDocumentList();
     } catch (err) { console.error('Failed to unlink documents:', err); }
   };
@@ -154,7 +154,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     setSelectedCvs(e.target.checked ? new Set(processedCvs.map((cv) => cv.id)) : new Set());
   };
 
-  const handleSelectOne = (cvId: string) => {
+  const handleSelectOne = (cvId: number) => {
     setSelectedCvs((prev) => {
       const s = new Set(prev);
       s.has(cvId) ? s.delete(cvId) : s.add(cvId);
@@ -173,27 +173,27 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
     setIsDeleting(false);
   };
 
-  const handleDeleteOne = async (cvId: string) => {
+  const handleDeleteOne = async (cvId: number | string) => {
     if (!window.confirm(t('userMenu.confirmDelete'))) return;
     await deleteDocument(cvId);
   };
 
   const handleDuplicate = async (cv: AppDocument) => {
     try {
-      const fullDoc = await documentApi.get(cv.id);
+      const fullDoc = await documentApi.get(String(cv.id));
       const result = await documentApi.create(`${cv.title} (${t('dashboard.copy')})`, fullDoc.data);
       if (result) await refreshDocumentList();
     } catch (err) { console.error('Failed to duplicate:', err); }
   };
 
-  const handleShareDocument = async (docId: string) => {
+  const handleShareDocument = async (docId: number) => {
     try {
       const doc = documentList.find((d: AppDocument) => d.id === docId);
       if (doc?.share_token) {
         setShareModal({ docId, url: `${window.location.origin}/shared/${doc.share_token}`, token: doc.share_token });
         return;
       }
-      const result = await documentApi.createShareLink(docId) as { url?: string; share_token?: string } | null;
+      const result = await documentApi.createShareLink(String(docId)) as { url?: string; share_token?: string } | null;
       if (result?.url) {
         setShareModal({ docId, url: `${window.location.origin}${result.url}`, token: result.share_token || '' });
         await refreshDocumentList();
@@ -213,7 +213,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
   const handleRevokeShareLink = async () => {
     if (!shareModal?.docId) return;
     try {
-      await documentApi.revokeShareLink(shareModal.docId);
+      await documentApi.revokeShareLink(String(shareModal.docId));
       setShareModal(null);
       await refreshDocumentList();
     } catch (err) { console.error('Failed to revoke:', err); }
@@ -221,7 +221,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
 
   const handleRename = (cv: AppDocument) => { setEditingId(cv.id); setEditingTitle(cv.title); };
 
-  const handleRenameSubmit = async (cvId: string) => {
+  const handleRenameSubmit = async (cvId: number) => {
     if (editingTitle.trim() && editingTitle.trim() !== documentList.find((c: AppDocument) => c.id === cvId)?.title) {
       try {
         await renameDocument(cvId, editingTitle.trim());
@@ -234,7 +234,7 @@ const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument 
 
   const handleRenameCancel = () => { setEditingId(null); setEditingTitle(''); };
 
-  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, cvId: string) => {
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, cvId: number) => {
     if (e.key === 'Enter') { e.preventDefault(); handleRenameSubmit(cvId); }
     else if (e.key === 'Escape') handleRenameCancel();
   };

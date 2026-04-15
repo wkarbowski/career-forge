@@ -4,7 +4,7 @@ import { documentApi } from '../services/api';
 import type { DocumentVersion, Document as AppDocument } from '../types';
 
 interface VersionHistoryProps {
-  documentId: string | null;
+  documentId: number | string | null;
   onRestore?: (doc: AppDocument) => void;
 }
 
@@ -14,13 +14,13 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
   const [loading, setLoading] = useState(false);
   const [versionName, setVersionName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [previewId, setPreviewId] = useState<string | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [previewId, setPreviewId] = useState<number | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const loadVersions = async () => {
     if (!documentId) return;
     setLoading(true);
     try {
-      const list = await documentApi.listVersions(documentId);
+      const list = await documentApi.listVersions(String(documentId));
       setVersions(list);
     } catch (err) {
       console.error('Failed to load versions:', err);
@@ -37,7 +37,7 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
     if (!versionName.trim() || !documentId) return;
     setCreating(true);
     try {
-      await documentApi.createVersion(documentId, versionName.trim());
+      await documentApi.createVersion(String(documentId), versionName.trim());
       setVersionName('');
       await loadVersions();
     } catch (err) {
@@ -47,20 +47,20 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
     }
   };
 
-  const handleRestore = async (versionId: string) => {
+  const handleRestore = async (versionId: number | string) => {
     if (!documentId) return;
     try {
-      const doc = await documentApi.restoreVersion(documentId, versionId);
+      const doc = await documentApi.restoreVersion(String(documentId), String(versionId));
       if (onRestore) onRestore(doc);
     } catch (err) {
       console.error('Failed to restore version:', err);
     }
   };
 
-  const handleDelete = async (versionId: string) => {
+  const handleDelete = async (versionId: number | string) => {
     if (!documentId) return;
     try {
-      await documentApi.deleteVersion(documentId, versionId);
+      await documentApi.deleteVersion(String(documentId), String(versionId));
       await loadVersions();
     } catch (err) {
       console.error('Failed to delete version:', err);

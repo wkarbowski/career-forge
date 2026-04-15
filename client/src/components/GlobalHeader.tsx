@@ -9,7 +9,7 @@ import AuthModal from './AuthModal';
 import './GlobalHeader.css';
 
 interface GlobalHeaderProps {
-  onLoadDocument?: (id: string) => void;
+  onLoadDocument?: (id: number | string) => void;
   saveStatus?: 'saving' | 'saved' | 'error' | null;
 }
 

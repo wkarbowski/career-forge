@@ -51,9 +51,9 @@ const CoverLetterEditor = () => {
     const newResumeId = e.target.value || null;
     try {
       if (newResumeId && currentDocumentId) {
-        await documentApi.linkToResume(currentDocumentId, newResumeId);
+        await documentApi.linkToResume(String(currentDocumentId), newResumeId);
       } else if (currentDocumentId) {
-        await documentApi.unlinkFromResume(currentDocumentId);
+        await documentApi.unlinkFromResume(String(currentDocumentId));
       }
       await refreshDocumentList();
     } catch (err) {
