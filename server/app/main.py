@@ -4,6 +4,7 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Literal, cast
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -96,7 +97,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 
     try:
-        from app.cloud import setup_cloud_routes  # type: ignore[import]
+        from app.cloud import setup_cloud_routes  # type: ignore[import-not-found]
 
         setup_cloud_routes(app)
     except ImportError as exc:
@@ -140,6 +141,6 @@ async def get_shared_document(
         raise HTTPException(status_code=404, detail="Shared document not found")
     return SharedDocumentResponse(
         title=doc.title,
-        document_type=doc.document_type,
+        document_type=cast(Literal["resume", "cover_letter"], doc.document_type),
         data=doc.data,
     )

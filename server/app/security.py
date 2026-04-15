@@ -13,7 +13,7 @@ import re
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Any, Callable, Optional
+from typing import Any, Awaitable, Callable, Optional
 from urllib.parse import urlparse
 
 from fastapi import FastAPI, Request, Response, status
@@ -271,7 +271,7 @@ class RedisRateLimiter(RateLimiterBackend):
             pipe.zcard(redis_key)
             results = pipe.execute()
             
-            current_count = results[1]
+            current_count = int(results[1])
             return max(0, max_requests - current_count)
             
         except Exception as e:
@@ -522,7 +522,7 @@ class RedisAccountLockout(AccountLockoutBackend):
             pipe.zcard(failure_key)
             results = pipe.execute()
             
-            count = results[3]
+            count = int(results[3])
             
             # Lock if threshold reached
             if count >= self._max_attempts:
@@ -545,7 +545,7 @@ class RedisAccountLockout(AccountLockoutBackend):
             current_time = time.time()
             failure_key = self._failure_key(identifier)
             self._redis.zremrangebyscore(failure_key, 0, current_time - self._window)
-            return self._redis.zcard(failure_key)
+            return int(self._redis.zcard(failure_key))
         except Exception:
             return 0
     
@@ -553,7 +553,7 @@ class RedisAccountLockout(AccountLockoutBackend):
         if not self.is_connected:
             return False
         try:
-            return self._redis.exists(self._lock_key(identifier)) > 0
+            return bool(self._redis.exists(self._lock_key(identifier)))
         except Exception:
             return False
     
@@ -641,7 +641,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     # Auth endpoints that need stricter rate limiting
     AUTH_PATHS = {"/api/auth/login", "/api/auth/register", "/api/auth/login/json"}
     
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         # Get client identifier (IP address)
         client_ip = self._get_client_ip(request)
         path = request.url.path
@@ -736,7 +736,7 @@ class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
     Only active when ENFORCE_HTTPS is set to true.
     """
     
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         if not settings.enforce_https:
             return await call_next(request)
         
@@ -758,7 +758,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     Implements OWASP recommended security headers.
     """
     
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         response = await call_next(request)
         
         # Prevent MIME type sniffing
@@ -864,7 +864,7 @@ class InputSanitizer:
                 strip_comments=True
             )
             
-            return cleaned
+            return str(cleaned)
         except ImportError:
             # Fallback to basic HTML escaping if bleach not available
             logger.warning("bleach not installed, falling back to HTML escaping")
@@ -932,7 +932,7 @@ class InputSanitizer:
         if allow_html_fields is None:
             allow_html_fields = set()
         
-        sanitized = {}
+        sanitized: dict[str, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 if key in allow_html_fields:
@@ -1073,7 +1073,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         "/api/openapi.json",
     }
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         # Skip entirely in development — local reverse proxies (CRA webpack-dev-
         # server, Vite, etc.) often rewrite or strip the Origin header, causing
         # false positives. CORS + Content-Type validation cover the same risk.
@@ -1119,7 +1119,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
     
     MAX_SIZE = 10 * 1024 * 1024  # 10MB default
     
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         # Check Content-Length header if present
         content_length = request.headers.get("content-length")
         
@@ -1173,7 +1173,7 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
         "/",
     }
     
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         path = request.url.path
         
         # Skip non-API paths and exempted paths
