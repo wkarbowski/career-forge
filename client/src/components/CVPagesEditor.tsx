@@ -51,7 +51,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     if (!linkingCoverId || linkBusy) return;
     setLinkBusy(true);
     try {
-      await documentApi.linkToResume(linkingCoverId, currentDocumentId!);
+      await documentApi.linkToResume(linkingCoverId, String(currentDocumentId!));
       await refreshDocumentList();
       setLinkingCoverId('');
     } catch (err) {
@@ -62,11 +62,11 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
   };
 
   // Detach a cover letter from this resume
-  const handleUnlink = async (coverLetterId: string) => {
+  const handleUnlink = async (coverLetterId: number | string) => {
     if (linkBusy) return;
     setLinkBusy(true);
     try {
-      await documentApi.unlinkFromResume(coverLetterId);
+      await documentApi.unlinkFromResume(String(coverLetterId));
       await refreshDocumentList();
     } catch (err) {
       console.error('Failed to unlink cover letter:', err);

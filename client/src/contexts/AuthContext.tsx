@@ -17,14 +17,14 @@ interface AuthContextValue {
   exitGuestMode: () => void;
   clearError: () => void;
   documentList: AppDocument[];
-  currentDocumentId: string | null;
+  currentDocumentId: number | 'template' | null;
   saveDocument: (title: string, data: Record<string, unknown>, extraFields?: Record<string, unknown>) => Promise<AppDocument | null>;
-  loadDocument: (id: string) => Promise<AppDocument | null>;
+  loadDocument: (id: number | string) => Promise<AppDocument | null>;
   createNewDocument: () => void;
-  deleteDocument: (id: string) => Promise<boolean>;
+  deleteDocument: (id: number | string) => Promise<boolean>;
   refreshDocumentList: () => Promise<void>;
-  renameDocument: (id: string, newTitle: string) => Promise<AppDocument | null>;
-  setCurrentDocumentId: React.Dispatch<React.SetStateAction<string | null>>;
+  renameDocument: (id: number | string, newTitle: string) => Promise<AppDocument | null>;
+  setCurrentDocumentId: React.Dispatch<React.SetStateAction<number | 'template' | null>>;
   updatePreferences: (preferences: Record<string, unknown>) => Promise<User | null>;
   deleteAccount: () => Promise<AuthResult>;
 }
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [documentList, setDocumentList] = useState<AppDocument[]>([]);
-  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
+  const [currentDocumentId, setCurrentDocumentId] = useState<number | 'template' | null>(null);
   const [isGuest, setIsGuest] = useState(false);
   
   const { resetToInitial } = useAppState();
@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return null;
     const payload = { title, data, ...extraFields };
     if (currentDocumentId && currentDocumentId !== 'template') {
-      const updated = await documentApi.update(currentDocumentId, payload);
+      const updated = await documentApi.update(String(currentDocumentId), payload);
       await refreshDocumentList();
       return updated;
     } else {
@@ -214,10 +214,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, currentDocumentId, refreshDocumentList]);
 
-  const loadDocument = useCallback(async (id: string): Promise<AppDocument | null> => {
+  const loadDocument = useCallback(async (id: number | string): Promise<AppDocument | null> => {
     if (!user) return null;
     try {
-      const doc = await documentApi.get(id);
+      const doc = await documentApi.get(String(id));
       setCurrentDocumentId(doc.id);
       return doc;
     } catch (err) {
@@ -232,10 +232,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.sessionStorage.removeItem('selectedTemplateId');
   }, []);
 
-  const deleteDocument = useCallback(async (id: string): Promise<boolean> => {
+  const deleteDocument = useCallback(async (id: number | string): Promise<boolean> => {
     if (!user) return false;
     try {
-      await documentApi.delete(id);
+      await documentApi.delete(String(id));
       if (currentDocumentId === id) {
         setCurrentDocumentId(null);
       }
@@ -247,10 +247,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, currentDocumentId, refreshDocumentList]);
 
-  const renameDocument = useCallback(async (id: string, newTitle: string): Promise<AppDocument | null> => {
+  const renameDocument = useCallback(async (id: number | string, newTitle: string): Promise<AppDocument | null> => {
     if (!user) return null;
     try {
-      const updated = await documentApi.update(id, { title: newTitle });
+      const updated = await documentApi.update(String(id), { title: newTitle });
       setDocumentList(prev => prev.map(doc => (doc.id === id ? { ...doc, title: newTitle } : doc)));
       return updated;
     } catch (err) {

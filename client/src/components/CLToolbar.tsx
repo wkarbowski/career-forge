@@ -324,9 +324,9 @@ const CLToolbar = () => {
               const newId = e.target.value || null;
               try {
                 if (newId && currentDocumentId) {
-                  await documentApi.linkToResume(currentDocumentId, newId);
+                  await documentApi.linkToResume(String(currentDocumentId), newId);
                 } else if (currentDocumentId) {
-                  await documentApi.unlinkFromResume(currentDocumentId);
+                  await documentApi.unlinkFromResume(String(currentDocumentId));
                 }
                 await refreshDocumentList();
               } catch (err) {

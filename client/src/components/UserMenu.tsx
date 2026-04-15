@@ -6,7 +6,7 @@ import { documentApi } from '../services/api';
 
 interface UserMenuProps {
   onLogin: () => void;
-  onLoadDocument: (id: string) => void;
+  onLoadDocument: (id: number | string) => void;
   onExitGuest: () => void;
 }
 
@@ -83,7 +83,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
     // Export all documents as a single JSON file for GDPR data portability
     try {
       const exports = await Promise.all(
-        documentList.map(doc => documentApi.get(doc.id))
+        documentList.map(doc => documentApi.get(String(doc.id)))
       );
       const blob = new Blob(
         [JSON.stringify({ exported_at: new Date().toISOString(), documents: exports }, null, 2)],
@@ -100,7 +100,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
     }
   };
 
-  const handleLoadDocument = (docId: string) => {
+  const handleLoadDocument = (docId: number | string) => {
     onLoadDocument(docId);
     setIsOpen(false);
     setShowCvList(false);
@@ -111,7 +111,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
     setIsOpen(false);
   };
 
-  const handleDeleteDocument = async (e: React.MouseEvent, cvId: string) => {
+  const handleDeleteDocument = async (e: React.MouseEvent, cvId: number | string) => {
     e.stopPropagation();
     if (window.confirm(t('userMenu.confirmDelete'))) {
       await deleteDocument(cvId);
