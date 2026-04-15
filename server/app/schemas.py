@@ -1,55 +1,66 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional, Any, List
-from datetime import datetime
+from __future__ import annotations
+
 import re
+from datetime import datetime
+from typing import Any, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+
+# ---------------------------------------------------------------------------
+# Shared password-strength validator (DRY — used by three schemas)
+# ---------------------------------------------------------------------------
+
+def _validate_password_strength(v: str) -> str:
+    """Validate that a password meets security requirements.
+
+    Requirements:
+    - Minimum 8 characters (also enforced by Field(min_length=8))
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one digit
+    - At least one special character
+    """
+    errors: list[str] = []
+    if len(v) < 8:
+        errors.append("at least 8 characters")
+    if not re.search(r"[A-Z]", v):
+        errors.append("one uppercase letter")
+    if not re.search(r"[a-z]", v):
+        errors.append("one lowercase letter")
+    if not re.search(r"[0-9]", v):
+        errors.append("one number")
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\/~`]', v):
+        errors.append("one special character (!@#$%^&*...)")
+    if errors:
+        raise ValueError(f"Password must contain {', '.join(errors)}")
+    return v
+
+
+# ============== User schemas ==============
 
 
 class UserBase(BaseModel):
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=100)
-    
-    @field_validator('username')
+
+    @field_validator("username")
     @classmethod
     def validate_username(cls, v: str) -> str:
-        """Validate username contains only safe characters."""
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
-            raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        if not re.match(r"^[a-zA-Z0-9_-]+$", v):
+            raise ValueError(
+                "Username can only contain letters, numbers, underscores, and hyphens"
+            )
         return v
 
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
-    
-    @field_validator('password')
+
+    @field_validator("password")
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
-        """
-        Validate password meets security requirements.
-        
-        Requirements:
-        - Minimum 8 characters
-        - At least one uppercase letter
-        - At least one lowercase letter
-        - At least one number
-        - At least one special character
-        """
-        errors = []
-        
-        if len(v) < 8:
-            errors.append('at least 8 characters')
-        if not re.search(r'[A-Z]', v):
-            errors.append('one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            errors.append('one lowercase letter')
-        if not re.search(r'[0-9]', v):
-            errors.append('one number')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]', v):
-            errors.append('one special character (!@#$%^&*...)')
-        
-        if errors:
-            raise ValueError(f'Password must contain {", ".join(errors)}')
-        
-        return v
+        return _validate_password_strength(v)
 
 
 class UserLogin(BaseModel):
@@ -58,14 +69,13 @@ class UserLogin(BaseModel):
 
 
 class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     is_active: bool
     theme: str = "dark"
     language: str = "en"
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class UserUpdate(BaseModel):
@@ -74,119 +84,111 @@ class UserUpdate(BaseModel):
 
 
 class UserPreferences(BaseModel):
-    theme: Optional[str] = Field(None, pattern="^(dark|light)$")
+    theme: Optional[Literal["dark", "light"]] = None
     language: Optional[str] = Field(None, min_length=2, max_length=10)
+
+
+# ============== Token schemas ==============
 
 
 class Token(BaseModel):
     """Legacy token response (access token only)."""
+
     access_token: str
     token_type: str = "bearer"
 
 
 class TokenPair(BaseModel):
-    """Token response with both access and refresh tokens (for clients that handle cookies)."""
+    """Token response with both access and refresh tokens."""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    expires_in: int  # Access token expiration in seconds
+    expires_in: int
 
 
 class AccessTokenResponse(BaseModel):
-    """
-    Token response for HttpOnly cookie-based auth.
+    """Token response for HttpOnly cookie-based auth.
+
     Refresh token is sent as HttpOnly cookie, not in response body.
     """
+
     access_token: str
     token_type: str = "bearer"
-    expires_in: int  # Access token expiration in seconds
+    expires_in: int
+
+
+# ============== Password schemas ==============
 
 
 class PasswordChange(BaseModel):
     """Schema for changing user password."""
+
     current_password: str
     new_password: str = Field(..., min_length=8, max_length=128)
 
-    @field_validator('new_password')
+    @field_validator("new_password")
     @classmethod
     def validate_new_password_strength(cls, v: str) -> str:
-        """Validate new password meets security requirements."""
-        errors = []
-        if len(v) < 8:
-            errors.append('at least 8 characters')
-        if not re.search(r'[A-Z]', v):
-            errors.append('one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            errors.append('one lowercase letter')
-        if not re.search(r'[0-9]', v):
-            errors.append('one number')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]', v):
-            errors.append('one special character (!@#$%^&*...)')
-        if errors:
-            raise ValueError(f'Password must contain {", ".join(errors)}')
-        return v
+        return _validate_password_strength(v)
 
 
 class RefreshTokenRequest(BaseModel):
     """Request body for token refresh (fallback for clients not using cookies)."""
-    refresh_token: Optional[str] = None  # Optional - can use cookie instead
+
+    refresh_token: Optional[str] = None
 
 
 class PasswordResetRequest(BaseModel):
     """Schema for requesting a password reset."""
+
     email: EmailStr
 
 
 class PasswordResetConfirm(BaseModel):
     """Schema for completing a password reset with a token."""
+
     token: str
     new_password: str = Field(..., min_length=8, max_length=128)
 
-    @field_validator('new_password')
+    @field_validator("new_password")
     @classmethod
     def validate_reset_password_strength(cls, v: str) -> str:
-        """Validate new password meets security requirements."""
-        errors = []
-        if len(v) < 8:
-            errors.append('at least 8 characters')
-        if not re.search(r'[A-Z]', v):
-            errors.append('one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            errors.append('one lowercase letter')
-        if not re.search(r'[0-9]', v):
-            errors.append('one number')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\\-+=\\[\\]\\\\/~`]', v):
-            errors.append('one special character (!@#$%^&*...)')
-        if errors:
-            raise ValueError(f'Password must contain {", ".join(errors)}')
-        return v
+        return _validate_password_strength(v)
 
 
 class TokenData(BaseModel):
     user_id: Optional[int] = None
 
 
+# ============== Document schemas ==============
+
+DocumentType = Literal["resume", "cover_letter"]
+
+
 class DocumentBase(BaseModel):
     title: str = Field(default="My CV", max_length=255)
-    document_type: str = Field(default="resume", pattern="^(resume|cover_letter)$")
+    document_type: DocumentType = "resume"
 
 
 class DocumentCreate(DocumentBase):
-    data: Any  # JSON content for the document
+    data: dict[str, Any]
     linked_resume_id: Optional[int] = None
 
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=255)
-    document_type: Optional[str] = Field(None, pattern="^(resume|cover_letter)$")
-    data: Optional[Any] = None
+    document_type: Optional[DocumentType] = None
+    data: Optional[dict[str, Any]] = None
     is_default: Optional[bool] = None
     linked_resume_id: Optional[int] = None
 
 
 class DocumentResponse(DocumentBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    data: Any
+    data: dict[str, Any]
     owner_id: int
     is_default: bool
     share_token: Optional[str] = None
@@ -194,11 +196,10 @@ class DocumentResponse(DocumentBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class DocumentListResponse(DocumentBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     owner_id: int
     is_default: bool
@@ -208,59 +209,76 @@ class DocumentListResponse(DocumentBase):
     updated_at: datetime
     job_title: Optional[str] = None
 
-    class Config:
-        from_attributes = True
 
+# ============== Export / Import schemas ==============
 
-# ============== Export/Import Schemas ==============
 
 class DocumentExport(BaseModel):
-    """Schema for exporting document data."""
     title: str
-    document_type: str = "resume"
-    data: Any
+    document_type: DocumentType = "resume"
+    data: dict[str, Any]
     exported_at: datetime
 
 
 class DocumentImport(BaseModel):
-    """Schema for importing document data."""
     title: Optional[str] = "Imported CV"
-    document_type: str = Field(default="resume", pattern="^(resume|cover_letter)$")
-    data: Any
+    document_type: DocumentType = "resume"
+    data: dict[str, Any]
 
 
-# ============== Version Schemas ==============
+# ============== Version schemas ==============
+
 
 class DocumentVersionCreate(BaseModel):
-    """Schema for creating a document version snapshot."""
     version_name: str = Field(..., min_length=1, max_length=255)
 
 
 class DocumentVersionResponse(BaseModel):
-    """Schema for version list items."""
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     version_name: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class DocumentVersionDetailResponse(DocumentVersionResponse):
-    """Schema for version detail including data."""
-    data: Any
+    data: dict[str, Any]
 
 
-# ============== Share Schemas ==============
+# ============== Share schemas ==============
+
 
 class ShareLinkResponse(BaseModel):
-    """Schema for a share link token."""
     share_token: str
     url: str
 
 
 class SharedDocumentResponse(BaseModel):
     """Public response for a shared document (no owner info)."""
+
     title: str
-    document_type: str
-    data: Any
+    document_type: DocumentType
+    data: dict[str, Any]
+
+
+# ============== Generic message schemas ==============
+
+
+class MessageResponse(BaseModel):
+    """Generic JSON message returned by mutating endpoints."""
+
+    message: str
+
+
+class LogoutAllResponse(MessageResponse):
+    sessions_revoked: int
+
+
+class PasswordResetTokenResponse(MessageResponse):
+    """Returned by the forgot-password endpoint (token in body)."""
+
+    reset_token: Optional[str] = None
+
+
+class ImageUploadResponse(BaseModel):
+    url: str
