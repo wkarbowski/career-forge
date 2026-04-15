@@ -684,7 +684,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 logger.error(f"Failed to log rate limit audit: {e}")
             
             return Response(
-                content='{"detail": "Too many requests. Please try again later."}',
+                content='{"detail": "Too many requests. Please try again later.", "code": "rate_limit_exceeded"}',
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 media_type="application/json",
                 headers={
@@ -1099,7 +1099,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Validate origin
         if not CSRFProtection.validate_origin(request, allowed):
             return Response(
-                content='{"detail": "CSRF validation failed: Invalid origin"}',
+                content='{"detail": "CSRF validation failed: Invalid origin", "code": "csrf_failed"}',
                 status_code=status.HTTP_403_FORBIDDEN,
                 media_type="application/json"
             )
@@ -1129,7 +1129,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
                 if size > self.MAX_SIZE:
                     logger.warning(f"Request too large: {size} bytes from {request.client.host if request.client else 'unknown'}")
                     return Response(
-                        content='{"detail": "Request body too large. Maximum size is 10MB."}',
+                        content='{"detail": "Request body too large. Maximum size is 10MB.", "code": "request_too_large"}',
                         status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                         media_type="application/json"
                     )
@@ -1194,7 +1194,7 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
         # Must be JSON for API endpoints
         if "application/json" not in content_type.lower():
             return Response(
-                content='{"detail": "Content-Type must be application/json"}',
+                content='{"detail": "Content-Type must be application/json", "code": "invalid_content_type"}',
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                 media_type="application/json"
             )

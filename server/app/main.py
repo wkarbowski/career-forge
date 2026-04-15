@@ -16,7 +16,7 @@ from app.config import get_settings
 from app.database import Base, SessionLocal, engine, get_db
 from app.models import Document, DocumentVersion, RefreshToken, User  # noqa: F401
 from app.routes import auth, documents
-from app.schemas import SharedDocumentResponse
+from app.schemas import ErrorResponse, HealthResponse, RootInfoResponse, SharedDocumentResponse
 from app.security import setup_security_middleware
 
 logging.basicConfig(
@@ -106,26 +106,30 @@ app.include_router(documents.router, prefix="/api")
         )
 
 
-@app.get("/")
-async def root() -> dict[str, str]:
+@app.get("/", response_model=RootInfoResponse)
+async def root() -> RootInfoResponse:
     """Root endpoint — basic service info."""
-    return {
-        "message": "Career Forge API",
-        "version": "1.0.0",
-        "docs": "/api/docs" if settings.debug else "Disabled in production",
-    }
+    return RootInfoResponse(
+        message="Career Forge API",
+        version="1.0.0",
+        docs="/api/docs" if settings.debug else "Disabled in production",
+    )
 
 
-@app.get("/api/health")
-async def health_check() -> dict[str, str]:
+@app.get("/api/health", response_model=HealthResponse)
+async def health_check() -> HealthResponse:
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "environment": settings.environment,
-    }
+    return HealthResponse(
+        status="healthy",
+        environment=settings.environment,
+    )
 
 
-@app.get("/api/shared/{share_token}", response_model=SharedDocumentResponse)
+@app.get(
+    "/api/shared/{share_token}",
+    response_model=SharedDocumentResponse,
+    responses={404: {"model": ErrorResponse, "description": "Shared document not found"}},
+)
 async def get_shared_document(
     share_token: str,
     db: Session = Depends(get_db),
