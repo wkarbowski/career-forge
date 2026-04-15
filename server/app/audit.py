@@ -1,5 +1,4 @@
-"""
-Audit logging for security events.
+"""Audit logging for security events.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Audit logging
@@ -22,46 +21,56 @@ Query endpoints are available via optional extended modules.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Optional, Dict, Any
+from __future__ import annotations
+
 import json
 import logging
-from sqlalchemy.orm import Session
-from sqlalchemy import Column, Integer, String, Text, DateTime, Index
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Optional
+
+from sqlalchemy import Index, Integer, String, Text, DateTime
+from sqlalchemy.orm import Mapped, Session, mapped_column
+
 from app.database import Base
 
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
+
+
 class AuditEventType(str, Enum):
     """Types of security events to audit."""
+
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     LOGOUT = "logout"
     LOGOUT_ALL_DEVICES = "logout_all_devices"
-    
+
     TOKEN_REFRESH = "token_refresh"
     TOKEN_REFRESH_FAILURE = "token_refresh_failure"
     TOKEN_REUSE_DETECTED = "token_reuse_detected"
     TOKEN_REVOKED = "token_revoked"
-    
+
     ACCOUNT_CREATED = "account_created"
     ACCOUNT_LOCKED = "account_locked"
     ACCOUNT_UNLOCKED = "account_unlocked"
     PASSWORD_CHANGED = "password_changed"
     PASSWORD_RESET_REQUESTED = "password_reset_requested"
     PASSWORD_RESET_COMPLETED = "password_reset_completed"
-    
+
     UNAUTHORIZED_ACCESS = "unauthorized_access"
     RATE_LIMIT_EXCEEDED = "rate_limit_exceeded"
     SUSPICIOUS_ACTIVITY = "suspicious_activity"
-    
+
     DOCUMENT_CREATED = "document_created"
     DOCUMENT_DELETED = "document_deleted"
     DOCUMENT_EXPORTED = "document_exported"
     DATA_EXPORTED = "data_exported"
-    
+
     USER_DEACTIVATED = "user_deactivated"
     USER_REACTIVATED = "user_reactivated"
     SETTINGS_CHANGED = "settings_changed"
@@ -69,53 +78,64 @@ class AuditEventType(str, Enum):
 
 class AuditSeverity(str, Enum):
     """Severity levels for audit events."""
+
     INFO = "info"
     WARNING = "warning"
     ALERT = "alert"
     CRITICAL = "critical"
 
 
+# ---------------------------------------------------------------------------
+# ORM model
+# ---------------------------------------------------------------------------
+
+
 class AuditLog(Base):
     """Database model for audit logs."""
+
     __tablename__ = "audit_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
-    event_type = Column(String(50), nullable=False, index=True)
-    severity = Column(String(20), nullable=False, default="info")
-    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc), index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    severity: Mapped[str] = mapped_column(String(20), nullable=False, default="info")
+
     # Who
-    user_id = Column(Integer, nullable=True, index=True)
-    user_email = Column(String(255), nullable=True)
-    
-    description = Column(String(500), nullable=False)
-    details = Column(Text, nullable=True)
-    
-    ip_address = Column(String(45), nullable=True)
-    user_agent = Column(String(500), nullable=True)
-    endpoint = Column(String(255), nullable=True)
-    
-    success = Column(String(10), nullable=True)
-    
-    # Indexes for common queries
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    user_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+    details: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
+    user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    endpoint: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    success: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+
     __table_args__ = (
-        Index('idx_audit_user_time', 'user_id', 'timestamp'),
-        Index('idx_audit_type_time', 'event_type', 'timestamp'),
-        Index('idx_audit_severity_time', 'severity', 'timestamp'),
-        Index('idx_audit_ip_time', 'ip_address', 'timestamp'),
+        Index("idx_audit_user_time", "user_id", "timestamp"),
+        Index("idx_audit_type_time", "event_type", "timestamp"),
+        Index("idx_audit_severity_time", "severity", "timestamp"),
+        Index("idx_audit_ip_time", "ip_address", "timestamp"),
     )
 
 
+# ---------------------------------------------------------------------------
+# Service
+# ---------------------------------------------------------------------------
+
+
 class AuditLogger:
+    """Service for logging security audit events.
+
+    Logs to both database (for querying/compliance) and
+    stdout (for real-time monitoring / SIEM integration).
     """
-    Service for logging security audit events.
-    
-    Logs to both database (for querying/compliance) and 
-    file/stdout (for real-time monitoring/SIEM integration).
-    """
-    
-    # Map event types to default severities
-    SEVERITY_MAP = {
+
+    SEVERITY_MAP: dict[AuditEventType, AuditSeverity] = {
         AuditEventType.LOGIN_SUCCESS: AuditSeverity.INFO,
         AuditEventType.LOGIN_FAILURE: AuditSeverity.WARNING,
         AuditEventType.LOGOUT: AuditSeverity.INFO,
@@ -141,59 +161,40 @@ class AuditLogger:
         AuditEventType.USER_REACTIVATED: AuditSeverity.INFO,
         AuditEventType.SETTINGS_CHANGED: AuditSeverity.INFO,
     }
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.logger = logging.getLogger("audit")
-        # Ensure audit logger outputs even in production
         if not self.logger.handlers:
             handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter(
-                '%(asctime)s - AUDIT - %(levelname)s - %(message)s'
-            ))
+            handler.setFormatter(
+                logging.Formatter("%(asctime)s - AUDIT - %(levelname)s - %(message)s")
+            )
             self.logger.addHandler(handler)
             self.logger.setLevel(logging.INFO)
-    
+
+    # ── Core log method ──────────────────────────────────────────────────
+
     def log(
         self,
         db: Session,
         event_type: AuditEventType,
         description: str,
+        *,
         user_id: Optional[int] = None,
         user_email: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
         endpoint: Optional[str] = None,
         success: Optional[bool] = None,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
         severity: Optional[AuditSeverity] = None,
     ) -> AuditLog:
-        """
-        Log a security audit event.
-        
-        Args:
-            db: Database session
-            event_type: Type of security event
-            description: Human-readable description
-            user_id: ID of the user involved (if known)
-            user_email: Email of the user (for failed logins where ID unknown)
-            ip_address: Client IP address
-            user_agent: Client user agent string
-            endpoint: API endpoint accessed
-            success: Whether the action succeeded
-            details: Additional JSON-serializable details
-            severity: Override default severity
-        
-        Returns:
-            The created AuditLog record
-        """
-        # Determine severity
-        if severity is None:
-            severity = self.SEVERITY_MAP.get(event_type, AuditSeverity.INFO)
-        
-        # Create database record
+        """Log a security audit event to DB and stdout."""
+        resolved_severity = severity or self.SEVERITY_MAP.get(event_type, AuditSeverity.INFO)
+
         audit_log = AuditLog(
             event_type=event_type.value,
-            severity=severity.value,
+            severity=resolved_severity.value,
             description=description,
             user_id=user_id,
             user_email=user_email,
@@ -203,57 +204,55 @@ class AuditLogger:
             success=str(success).lower() if success is not None else None,
             details=json.dumps(details) if details else None,
         )
-        
         db.add(audit_log)
         db.commit()
-        
-        # Also log to stdout/file for real-time monitoring
+
         log_message = self._format_log_message(audit_log, details)
-        self._write_to_logger(severity, log_message)
-        
+        self._write_to_logger(resolved_severity, log_message)
+
         return audit_log
-    
+
+    # ── Formatting ───────────────────────────────────────────────────────
+
     def _format_log_message(
-        self, 
-        audit_log: AuditLog, 
-        details: Optional[Dict[str, Any]]
+        self,
+        audit_log: AuditLog,
+        details: Optional[dict[str, Any]],
     ) -> str:
-        parts = [
+        parts: list[str] = [
             f"[{audit_log.event_type.upper()}]",
             f"user_id={audit_log.user_id or 'anonymous'}",
             f"ip={audit_log.ip_address or 'unknown'}",
-            f"- {audit_log.description}",
         ]
-        
         if audit_log.success is not None:
-            parts.insert(3, f"success={audit_log.success}")
-        
+            parts.append(f"success={audit_log.success}")
+        parts.append(f"- {audit_log.description}")
+
         if details:
-            safe_details = {k: v for k, v in details.items() 
-                          if k not in ('password', 'token', 'secret')}
+            safe_details = {k: v for k, v in details.items() if k not in ("password", "token", "secret")}
             if safe_details:
                 parts.append(f"details={json.dumps(safe_details)}")
-        
+
         return " ".join(parts)
-    
-    def _write_to_logger(self, severity: AuditSeverity, message: str):
-        """Write to Python logger with appropriate level."""
+
+    def _write_to_logger(self, severity: AuditSeverity, message: str) -> None:
         if severity == AuditSeverity.CRITICAL:
             self.logger.critical(message)
-        elif severity == AuditSeverity.ALERT:
-            self.logger.warning(message)  # Use warning for visibility
-        elif severity == AuditSeverity.WARNING:
+        elif severity in (AuditSeverity.ALERT, AuditSeverity.WARNING):
             self.logger.warning(message)
         else:
             self.logger.info(message)
-    
-    # Convenience methods for common events
-    
+
+    # ── Convenience methods ──────────────────────────────────────────────
+
     def log_login_success(
-        self, db: Session, user_id: int, user_email: str,
-        ip_address: str, user_agent: str
-    ):
-        """Log successful login."""
+        self,
+        db: Session,
+        user_id: int,
+        user_email: str,
+        ip_address: str,
+        user_agent: str,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.LOGIN_SUCCESS,
@@ -265,16 +264,19 @@ class AuditLogger:
             endpoint="/api/auth/login",
             success=True,
         )
-    
+
     def log_login_failure(
-        self, db: Session, email: str, ip_address: str, 
-        user_agent: str, reason: str, attempts_remaining: Optional[int] = None
-    ):
-        """Log failed login attempt."""
-        details: Dict[str, Any] = {"reason": reason}
+        self,
+        db: Session,
+        email: str,
+        ip_address: str,
+        user_agent: str,
+        reason: str,
+        attempts_remaining: Optional[int] = None,
+    ) -> AuditLog:
+        details: dict[str, Any] = {"reason": reason}
         if attempts_remaining is not None:
             details["attempts_remaining"] = attempts_remaining
-        
         return self.log(
             db=db,
             event_type=AuditEventType.LOGIN_FAILURE,
@@ -286,12 +288,15 @@ class AuditLogger:
             success=False,
             details=details,
         )
-    
+
     def log_account_locked(
-        self, db: Session, email: str, ip_address: str,
-        user_agent: str, failed_attempts: int
-    ):
-        """Log account lockout."""
+        self,
+        db: Session,
+        email: str,
+        ip_address: str,
+        user_agent: str,
+        failed_attempts: int,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.ACCOUNT_LOCKED,
@@ -303,16 +308,18 @@ class AuditLogger:
             details={"failed_attempts": failed_attempts},
             severity=AuditSeverity.ALERT,
         )
-    
+
     def log_token_reuse(
-        self, db: Session, user_id: int, ip_address: str,
-        user_agent: str
-    ):
-        """Log refresh token reuse - CRITICAL security event."""
+        self,
+        db: Session,
+        user_id: int,
+        ip_address: str,
+        user_agent: str,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.TOKEN_REUSE_DETECTED,
-            description="SECURITY ALERT: Refresh token reuse detected - potential token theft",
+            description="SECURITY ALERT: Refresh token reuse detected — potential token theft",
             user_id=user_id,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -320,12 +327,14 @@ class AuditLogger:
             success=False,
             severity=AuditSeverity.CRITICAL,
         )
-    
+
     def log_token_refresh(
-        self, db: Session, user_id: int, ip_address: str,
-        user_agent: str
-    ):
-        """Log successful token refresh."""
+        self,
+        db: Session,
+        user_id: int,
+        ip_address: str,
+        user_agent: str,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.TOKEN_REFRESH,
@@ -336,15 +345,17 @@ class AuditLogger:
             endpoint="/api/auth/refresh",
             success=True,
         )
-    
+
     def log_logout(
-        self, db: Session, user_id: Optional[int], ip_address: str,
-        user_agent: str, all_devices: bool = False
-    ):
-        """Log user logout."""
+        self,
+        db: Session,
+        user_id: Optional[int],
+        ip_address: str,
+        user_agent: str,
+        all_devices: bool = False,
+    ) -> AuditLog:
         event_type = AuditEventType.LOGOUT_ALL_DEVICES if all_devices else AuditEventType.LOGOUT
         description = "User logged out from all devices" if all_devices else "User logged out"
-        
         return self.log(
             db=db,
             event_type=event_type,
@@ -355,12 +366,15 @@ class AuditLogger:
             endpoint="/api/auth/logout",
             success=True,
         )
-    
+
     def log_registration(
-        self, db: Session, user_id: int, user_email: str,
-        ip_address: str, user_agent: str
-    ):
-        """Log new account registration."""
+        self,
+        db: Session,
+        user_id: int,
+        user_email: str,
+        ip_address: str,
+        user_agent: str,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.ACCOUNT_CREATED,
@@ -372,12 +386,14 @@ class AuditLogger:
             endpoint="/api/auth/register",
             success=True,
         )
-    
+
     def log_rate_limit(
-        self, db: Session, ip_address: str, endpoint: str,
-        user_id: Optional[int] = None
-    ):
-        """Log rate limit exceeded."""
+        self,
+        db: Session,
+        ip_address: str,
+        endpoint: str,
+        user_id: Optional[int] = None,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.RATE_LIMIT_EXCEEDED,
@@ -387,12 +403,15 @@ class AuditLogger:
             endpoint=endpoint,
             success=False,
         )
-    
+
     def log_unauthorized_access(
-        self, db: Session, ip_address: str, endpoint: str,
-        user_agent: str, reason: str
-    ):
-        """Log unauthorized access attempt."""
+        self,
+        db: Session,
+        ip_address: str,
+        endpoint: str,
+        user_agent: str,
+        reason: str,
+    ) -> AuditLog:
         return self.log(
             db=db,
             event_type=AuditEventType.UNAUTHORIZED_ACCESS,
@@ -409,30 +428,27 @@ class AuditLogger:
 audit_logger = AuditLogger()
 
 
-def get_client_ip(request) -> str:
-    """
-    Extract real client IP from request, handling proxies.
-    
-    Checks X-Forwarded-For header for proxied requests,
-    falls back to direct client IP.
-    """
-    # Check for proxy headers (in order of trust)
-    forwarded_for = request.headers.get("X-Forwarded-For")
+# ---------------------------------------------------------------------------
+# Request helpers
+# ---------------------------------------------------------------------------
+
+
+def get_client_ip(request: Any) -> str:
+    """Extract real client IP from *request*, respecting proxy headers."""
+    forwarded_for: Optional[str] = request.headers.get("X-Forwarded-For")
     if forwarded_for:
-        # X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2
-        # The first one is the original client
         return forwarded_for.split(",")[0].strip()
-    
-    real_ip = request.headers.get("X-Real-IP")
+
+    real_ip: Optional[str] = request.headers.get("X-Real-IP")
     if real_ip:
         return real_ip.strip()
-    
-    # Direct connection
+
     if request.client:
-        return request.client.host
-    
+        return str(request.client.host)
+
     return "unknown"
 
 
-def get_user_agent(request) -> str:
-    return request.headers.get("User-Agent", "unknown")[:500]
+def get_user_agent(request: Any) -> str:
+    """Return the User-Agent header, truncated to 500 chars."""
+    return str(request.headers.get("User-Agent", "unknown"))[:500]
