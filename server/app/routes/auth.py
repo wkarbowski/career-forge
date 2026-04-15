@@ -27,6 +27,7 @@ from app.database import get_db
 from app.models import User
 from app.schemas import (
     AccessTokenResponse,
+    ErrorResponse,
     LogoutAllResponse,
     MessageResponse,
     PasswordChange,
@@ -41,7 +42,12 @@ from app.schemas import (
 )
 from app.security import InputSanitizer, account_lockout
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+_error_responses = {
+    401: {"model": ErrorResponse, "description": "Authentication required or invalid credentials"},
+    429: {"model": ErrorResponse, "description": "Rate limit exceeded or account locked"},
+}
+
+router = APIRouter(prefix="/auth", tags=["Authentication"], responses=_error_responses)
 settings = get_settings()
 
 

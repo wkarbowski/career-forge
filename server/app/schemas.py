@@ -282,3 +282,38 @@ class PasswordResetTokenResponse(MessageResponse):
 
 class ImageUploadResponse(BaseModel):
     url: str
+
+
+# ============== Infrastructure schemas ==============
+
+
+class HealthResponse(BaseModel):
+    status: str
+    environment: str
+
+
+class RootInfoResponse(BaseModel):
+    message: str
+    version: str
+    docs: str
+
+
+# ============== Error schemas ==============
+
+
+class ValidationErrorDetail(BaseModel):
+    """Individual field validation error."""
+
+    loc: list[str] = Field(default_factory=list, description="Path to the invalid field")
+    msg: str = Field(..., description="Human-readable error message")
+    type: Optional[str] = Field(None, description="Error type identifier")
+
+
+class ErrorResponse(BaseModel):
+    """Standardized error payload returned by all non-2xx responses."""
+
+    detail: str = Field(..., description="Human-readable error summary")
+    code: Optional[str] = Field(None, description="Machine-readable error code")
+    field_errors: Optional[list[ValidationErrorDetail]] = Field(
+        None, description="Per-field validation errors, when applicable"
+    )

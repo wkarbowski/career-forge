@@ -23,12 +23,19 @@ from app.schemas import (
     DocumentVersionCreate,
     DocumentVersionDetailResponse,
     DocumentVersionResponse,
+    ErrorResponse,
     ImageUploadResponse,
     ShareLinkResponse,
 )
 from app.security import InputSanitizer
 
-router = APIRouter(prefix="/documents", tags=["Documents"])
+_error_responses = {
+    401: {"model": ErrorResponse, "description": "Authentication required"},
+    404: {"model": ErrorResponse, "description": "Resource not found"},
+    429: {"model": ErrorResponse, "description": "Rate limit exceeded"},
+}
+
+router = APIRouter(prefix="/documents", tags=["Documents"], responses=_error_responses)
 
 settings = get_settings()
 UPLOAD_DIR: str = settings.upload_dir
