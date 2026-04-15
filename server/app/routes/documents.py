@@ -1,34 +1,45 @@
 
+from __future__ import annotations
+
 import os
 import secrets
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Any, Optional
 
-from fastapi import UploadFile, File, Depends, HTTPException, status, APIRouter, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import User, Document, DocumentVersion
-from app.schemas import (
-    DocumentCreate, DocumentUpdate, DocumentResponse, DocumentListResponse,
-    DocumentExport, DocumentImport,
-    DocumentVersionCreate, DocumentVersionResponse, DocumentVersionDetailResponse,
-    ShareLinkResponse, SharedDocumentResponse,
-)
 from app.auth import get_current_active_user
+from app.config import get_settings
+from app.database import get_db
+from app.models import Document, DocumentVersion, User
+from app.schemas import (
+    DocumentCreate,
+    DocumentExport,
+    DocumentImport,
+    DocumentListResponse,
+    DocumentResponse,
+    DocumentUpdate,
+    DocumentVersionCreate,
+    DocumentVersionDetailResponse,
+    DocumentVersionResponse,
+    ImageUploadResponse,
+    ShareLinkResponse,
+)
 from app.security import InputSanitizer
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'uploads', 'profile_images')
+settings = get_settings()
+UPLOAD_DIR: str = settings.upload_dir
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.delete("/{document_id}/profile-image", status_code=204)
 async def remove_profile_image(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> None:
     """Remove the profile image for a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -50,13 +61,13 @@ async def remove_profile_image(
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 
-@router.post("/{document_id}/upload-image", status_code=200)
+@router.post("/{document_id}/upload-image", response_model=ImageUploadResponse, status_code=200)
 async def upload_profile_image(
     document_id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> ImageUploadResponse:
     """Upload a profile image for a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -90,14 +101,14 @@ async def upload_profile_image(
     doc.profile_image = filename
     db.commit()
     db.refresh(doc)
-    return {"url": f"/uploads/profile_images/{filename}"}
+    return ImageUploadResponse(url=f"/uploads/profile_images/{filename}")
 
 
-def sanitize_document_data(data):
-    """
-    Recursively sanitize document data.
-    Every string is passed through bleach so inline styles (font-size, color, etc.)
-    are preserved while dangerous tags/attributes are still stripped.
+def sanitize_document_data(data: Any) -> Any:
+    """Recursively sanitize document data.
+
+    Every string is passed through bleach so inline styles (font-size, color,
+    etc.) are preserved while dangerous tags/attributes are still stripped.
     """
     if isinstance(data, dict):
         return {k: sanitize_document_data(v) for k, v in data.items()}
@@ -112,8 +123,8 @@ def sanitize_document_data(data):
 async def create_document(
     document_data: DocumentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Create a new document for the current user."""
     sanitized_title = InputSanitizer.sanitize_string(document_data.title)
     sanitized_data = sanitize_document_data(document_data.data) if isinstance(document_data.data, dict) else document_data.data
@@ -148,12 +159,12 @@ async def create_document(
     return new_document
 
 
-@router.get("/", response_model=List[DocumentListResponse])
+@router.get("/", response_model=list[DocumentListResponse])
 async def list_documents(
     document_type: Optional[str] = Query(None, pattern="^(resume|cover_letter)$"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> list[DocumentListResponse]:
     """List all documents for the current user. Optionally filter by document_type."""
     query = db.query(Document).filter(Document.owner_id == current_user.id)
     if document_type:
@@ -172,8 +183,8 @@ async def list_documents(
 async def get_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Get a specific document by ID."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
@@ -191,8 +202,8 @@ async def update_document(
     document_id: int,
     document_update: DocumentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Update a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
@@ -250,8 +261,8 @@ async def update_document(
 async def delete_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> None:
     """Delete a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
@@ -271,8 +282,8 @@ async def delete_document(
 async def export_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentExport:
     """Export a document as JSON."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
@@ -294,8 +305,8 @@ async def export_document(
 async def import_document(
     document_import: DocumentImport,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Import a document from JSON data."""
     sanitized_title = InputSanitizer.sanitize_string(document_import.title or "Imported Document")
     sanitized_data = sanitize_document_data(document_import.data) if isinstance(document_import.data, dict) else document_import.data
@@ -317,8 +328,8 @@ async def import_document(
 async def duplicate_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Duplicate an existing document."""
     original = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
@@ -345,8 +356,8 @@ async def duplicate_document(
 @router.get("/default/current", response_model=DocumentResponse)
 async def get_default_document(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Get the user's default document, or the most recent one if no default is set."""
     doc = db.query(Document).filter(
         Document.owner_id == current_user.id,
@@ -378,8 +389,8 @@ async def create_version(
     document_id: int,
     body: DocumentVersionCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentVersionResponse:
     """Create a named snapshot of the current document state."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -400,12 +411,12 @@ async def create_version(
     return version
 
 
-@router.get("/{document_id}/versions", response_model=List[DocumentVersionResponse])
+@router.get("/{document_id}/versions", response_model=list[DocumentVersionResponse])
 async def list_versions(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> list[DocumentVersionResponse]:
     """List all saved versions of a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -424,8 +435,8 @@ async def get_version(
     document_id: int,
     version_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentVersionDetailResponse:
     """Get full data of a specific version."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -445,8 +456,8 @@ async def restore_version(
     document_id: int,
     version_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
     """Restore a document to a previous version's data."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -470,8 +481,8 @@ async def delete_version(
     document_id: int,
     version_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> None:
     """Delete a saved version."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -495,8 +506,8 @@ async def delete_version(
 async def create_share_link(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> ShareLinkResponse:
     """Generate a unique share token for a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
@@ -517,8 +528,8 @@ async def create_share_link(
 async def revoke_share_link(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
+    current_user: User = Depends(get_current_active_user),
+) -> None:
     """Revoke the share link for a document."""
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
     if not doc:
