@@ -391,7 +391,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       }
     };
     loadDocumentById();
-  }, [cvId, isAuthenticated, setData, setSettings, setClSettings, setVisibleSections, setSidebarOrder, setProfileImage, setDocumentType, setCoverLetterData, setCurrentDocumentId, setPages, setUserForcedMax, setDocumentTitle, navigate, location.search]);
+  }, [cvId, isAuthenticated, setData, setSettings, setClSettings, setVisibleSections, setSidebarOrder, setProfileImage, setDocumentType, setCoverLetterData, setCurrentDocumentId, setPages, setUserForcedMax, setDocumentTitle, navigate, location.search, migrateData]);
 
   useEffect(() => {
     const loadDefaultDocument = async () => {
@@ -446,7 +446,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       }
     };
     loadDefaultDocument();
-  }, [isAuthenticated, cvId, setData, setSettings, setClSettings, setVisibleSections, setSidebarOrder, setProfileImage, setDocumentType, setCoverLetterData, setCurrentDocumentId, setPages, setUserForcedMax, setDocumentTitle, navigate]);
+  }, [isAuthenticated, cvId, setData, setSettings, setClSettings, setVisibleSections, setSidebarOrder, setProfileImage, setDocumentType, setCoverLetterData, setCurrentDocumentId, setPages, setUserForcedMax, setDocumentTitle, navigate, migrateData]);
 
   // Re-apply template styling from sessionStorage on mount.
   useEffect(() => {
@@ -923,10 +923,6 @@ function DashboardWrapper() {
 
   const handleSavePdfDocument = (documentId: number) => {
     navigate(`/editor/${documentId}?pdf=1`);
-  };
-
-  const handleNewDocument = (type: string) => {
-    navigate('/templates', { state: { docType: type } });
   };
 
   return (
