@@ -293,6 +293,7 @@ const CentralToolbar = () => {
 
   const nameFont = settings?.nameFont || settings?.titleFont || 'Rubik';
   const headingFont = settings?.headingFont || settings?.titleFont || 'Rubik';
+  const subtitleFont = settings?.subtitleFont || 'Rubik';
   const bodyFont = settings?.bodyFont || 'Inter';
 
   const handleScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -336,6 +337,16 @@ const CentralToolbar = () => {
             {t('centralToolbar.headings')}
           </span>
           <FontSelect value={headingFont} onChange={e => set('headingFont', e.target.value)} ariaLabel={t('centralToolbar.headings')} />
+        </div>
+
+        <div className="ct-divider" />
+
+        <div className="ct-group">
+          <span className="ct-label">
+            <i className="fas fa-heading ct-label-icon" />
+            {t('centralToolbar.subtitles')}
+          </span>
+          <FontSelect value={subtitleFont} onChange={e => set('subtitleFont', e.target.value)} ariaLabel={t('centralToolbar.subtitles')} />
         </div>
 
         <div className="ct-divider" />
