@@ -29,6 +29,7 @@
 .ct-section {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 6px 8px;
   background: rgba(255, 255, 255, 0.02);
@@ -208,15 +209,8 @@
   .central-toolbar {
     padding: 6px 8px;
     margin: 6px 8px 10px;
-    gap: 0;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .central-toolbar::-webkit-scrollbar {
-    display: none;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
   .ct-section {
