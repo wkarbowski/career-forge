@@ -97,7 +97,7 @@ interface CVEditorProps {
 
 function CVEditor({ onSaveStatusChange }: CVEditorProps) {
     // ...existing code...
-    const { data, setData, settings, setSettings, clSettings, setClSettings, profileImage, setProfileImage, visibleSections, setVisibleSections, sidebarOrder, setSidebarOrder, documentType, setDocumentType, coverLetterData, setCoverLetterData, documentTitle, setDocumentTitle } = useAppState();
+    const { data, setData, settings, setSettings, clSettings, setClSettings, profileImage, setProfileImage, visibleSections, setVisibleSections, sidebarOrder, setSidebarOrder, documentType, setDocumentType, coverLetterData, setCoverLetterData, documentTitle, setDocumentTitle, migrateData } = useAppState();
     // Defensive: ensure profileImage is always string or null
     React.useEffect(() => {
       if (profileImage && typeof profileImage !== 'string') {
@@ -319,7 +319,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
           headers: { 'Content-Type': 'application/json' },
           body: payload,
           keepalive: true,
-        });
+        }).catch(() => { /* best-effort */ });
       } catch (_e) { /* best-effort */ }
     };
     window.addEventListener('beforeunload', flushSave);
@@ -339,7 +339,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
             const documentData = doc.data;
             const mergedSettings = { ...defaultSettings, ...(documentData.settings || {}) };
             const loadedImage = documentData.profileImage || null;
-            if (documentData.data) setData(decodeData(documentData.data) as CVData);
+            if (documentData.data) setData(migrateData(decodeData(documentData.data) as CVData));
             setSettings(mergedSettings);
             if (documentData.visibleSections) setVisibleSections(documentData.visibleSections);
             if (documentData.sidebarOrder) setSidebarOrder(documentData.sidebarOrder);
@@ -402,7 +402,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
             const documentData = doc.data;
             const mergedSettings = { ...defaultSettings, ...(documentData.settings || {}) };
             const loadedImage = documentData.profileImage || null;
-            if (documentData.data) setData(decodeData(documentData.data) as CVData);
+            if (documentData.data) setData(migrateData(decodeData(documentData.data) as CVData));
             setSettings(mergedSettings);
             if (documentData.visibleSections) setVisibleSections(documentData.visibleSections);
             if (documentData.sidebarOrder) setSidebarOrder(documentData.sidebarOrder);
@@ -569,7 +569,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       try {
         const importedData = JSON.parse(event.target!.result as string);
         
-        if (importedData.data) setData(importedData.data);
+        if (importedData.data) setData(migrateData(importedData.data as CVData));
         if (importedData.settings) setSettings({ ...defaultSettings, ...importedData.settings });
         if (importedData.visibleSections) setVisibleSections(importedData.visibleSections);
         if (importedData.sidebarOrder) setSidebarOrder(importedData.sidebarOrder);
@@ -604,7 +604,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       const docData = doc.data;
       if (docData) {
         const decoded = decodeData(docData) as Record<string, unknown>;
-        if (decoded.data) setData(decoded.data as CVData);
+        if (decoded.data) setData(migrateData(decoded.data as CVData));
         if (decoded.settings) setSettings(decoded.settings as CVSettings);
         if (decoded.visibleSections) setVisibleSections(decoded.visibleSections as VisibleSections);
         if (decoded.sidebarOrder) setSidebarOrder(decoded.sidebarOrder as string[]);
@@ -755,7 +755,7 @@ function CVEditor({ onSaveStatusChange }: CVEditorProps) {
         )}
       </div>
       {documentType !== 'cover-letter' && (
-        <div className="editor-completeness-bar">
+        <div className="editor-completeness-bar hide-on-print">
           <ProfileCompleteness data={data} />
         </div>
       )}
