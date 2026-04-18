@@ -140,9 +140,29 @@ function migrateData(data: CVData): CVData {
     migrated.customSections = [];
   }
 
-  // Ensure contact has linkedin/github fields
-  if (migrated.contact && typeof migrated.contact === 'object' && !('linkedin' in (migrated.contact as Record<string, unknown>))) {
-    migrated.contact = { ...(migrated.contact as Record<string, unknown>), linkedin: '', github: '' };
+  // Ensure contact has links array (migrate from old website/websiteIcon/linkedin/github fields)
+  if (migrated.contact && typeof migrated.contact === 'object') {
+    const c = migrated.contact as Record<string, unknown>;
+    if (!('links' in c)) {
+      const links: Array<{ id: number; icon: string; url: string }> = [];
+      if (c.website || c.websiteIcon) {
+        links.push({ id: 1, icon: (c.websiteIcon as string) || 'fas fa-globe', url: (c.website as string) || '' });
+      } else {
+        links.push({ id: 1, icon: 'fas fa-globe', url: '' });
+      }
+      if (c.linkedin) {
+        links.push({ id: 2, icon: 'fab fa-linkedin', url: c.linkedin as string });
+      }
+      if (c.github) {
+        links.push({ id: 3, icon: 'fab fa-github', url: c.github as string });
+      }
+      migrated.contact = { ...c, links };
+    }
+    const contact = migrated.contact as Record<string, unknown>;
+    delete contact.website;
+    delete contact.websiteIcon;
+    delete contact.linkedin;
+    delete contact.github;
   }
 
   return migrated as unknown as CVData;

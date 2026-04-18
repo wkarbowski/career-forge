@@ -19,10 +19,11 @@ interface SocialLinkEditorProps {
   url: string;
   onIconChange: (iconClass: string) => void;
   onUrlChange: (url: string) => void;
+  onDelete?: () => void;
   t: (key: string) => string;
 }
 
-const SocialLinkEditor = ({ icon, url, onIconChange, onUrlChange, t }: SocialLinkEditorProps) => {
+const SocialLinkEditor = ({ icon, url, onIconChange, onUrlChange, onDelete, t }: SocialLinkEditorProps) => {
   const [editing, setEditing] = useState(false);
   const [originalUrl, setOriginalUrl] = useState('');
 
@@ -67,6 +68,18 @@ const SocialLinkEditor = ({ icon, url, onIconChange, onUrlChange, t }: SocialLin
           >
             <i className="fas fa-pen" style={{ fontSize: '11px' }} />
           </button>
+          {onDelete && (
+            <button
+              type="button"
+              aria-label="Remove link"
+              className="hide-on-print social-pen-end"
+              onClick={onDelete}
+              tabIndex={-1}
+              style={{ ...btnBase, marginLeft: 2, opacity: 0, pointerEvents: 'none', transition: 'opacity 0.18s', color: '#999' }}
+            >
+              <i className="fas fa-times" style={{ fontSize: '11px' }} />
+            </button>
+          )}
         </>
       )}
 

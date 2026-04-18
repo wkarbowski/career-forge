@@ -113,7 +113,8 @@
     "proficiency": "Kenntnisstufe (optional)",
     "linkedin": "LinkedIn-URL",
     "github": "GitHub-URL",
-    "competency": "Kernkompetenz"
+    "competency": "Kernkompetenz",
+    "addLink": "Weiteren Link hinzufügen"
   },
   "auth": {
     "login": "Anmelden",

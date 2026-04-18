@@ -4,13 +4,16 @@
 
 // ── CV / Resume Data ──────────────────────────────────────────
 
+export interface ContactLink {
+  id: number | string;
+  icon: string;
+  url: string;
+}
+
 export interface Contact {
   phone: string;
   email: string;
-  website: string;
-  websiteIcon: string;
-  linkedin: string;
-  github: string;
+  links: ContactLink[];
   location: string;
 }
 
