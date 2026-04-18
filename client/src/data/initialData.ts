@@ -6,10 +6,7 @@ export const initialData: CVData = {
   contact: {
     phone: '',
     email: '',
-    website: '',
-    websiteIcon: 'fas fa-globe',
-    linkedin: '',
-    github: '',
+    links: [{ id: 1, icon: 'fas fa-globe', url: '' }],
     location: ''
   },
   summary: '',

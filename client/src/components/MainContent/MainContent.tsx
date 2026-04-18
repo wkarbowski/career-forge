@@ -97,13 +97,40 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
               placeholder={t('placeholders.email')}
             />
           </span>
-          <SocialLinkEditor
-            icon={_data.contact.websiteIcon || 'fas fa-globe'}
-            url={_data.contact.website}
-            onIconChange={(cls) => _updateField('contact.websiteIcon', cls)}
-            onUrlChange={(val) => _updateField('contact.website', val)}
-            t={t}
-          />
+          {(_data.contact.links || []).map((link) => {
+            const canDelete = (_data.contact.links || []).length > 1;
+            return (
+              <SocialLinkEditor
+                key={link.id}
+                icon={link.icon || 'fas fa-globe'}
+                url={link.url}
+                onIconChange={(cls) => appState.setData(prev => ({
+                  ...prev,
+                  contact: { ...prev.contact, links: (prev.contact.links || []).map(l => l.id === link.id ? { ...l, icon: cls } : l) }
+                }))}
+                onUrlChange={(val) => appState.setData(prev => ({
+                  ...prev,
+                  contact: { ...prev.contact, links: (prev.contact.links || []).map(l => l.id === link.id ? { ...l, url: val } : l) }
+                }))}
+                onDelete={canDelete ? () => appState.setData(prev => ({
+                  ...prev,
+                  contact: { ...prev.contact, links: (prev.contact.links || []).filter(l => l.id !== link.id) }
+                })) : undefined}
+                t={t}
+              />
+            );
+          })}
+          <button
+            type="button"
+            className="add-link-btn hide-on-print"
+            title={t('placeholders.addLink') || 'Add link'}
+            onClick={() => appState.setData(prev => ({
+              ...prev,
+              contact: { ...prev.contact, links: [...(prev.contact.links || []), { id: Date.now(), icon: 'fas fa-globe', url: '' }] }
+            }))}
+          >
+            <i className="fas fa-plus" />
+          </button>
           <span className="contact-item" onClick={handleContactClick}>
             <i className="fas fa-map-marker-alt"></i>
             <EditableText
@@ -112,26 +139,6 @@ const MainContent = ({ data, updateField, updateArrayItem, deleteArrayItem, addA
               placeholder={t('placeholders.location')}
             />
           </span>
-          {_data.contact.linkedin && (
-          <span className="contact-item" onClick={handleContactClick}>
-            <i className="fab fa-linkedin"></i>
-            <EditableText
-              value={_data.contact.linkedin}
-              onChange={(val) => _updateField('contact.linkedin', val)}
-              placeholder={t('placeholders.linkedin')}
-            />
-          </span>
-          )}
-          {_data.contact.github && (
-          <span className="contact-item" onClick={handleContactClick}>
-            <i className="fab fa-github"></i>
-            <EditableText
-              value={_data.contact.github}
-              onChange={(val) => _updateField('contact.github', val)}
-              placeholder={t('placeholders.github')}
-            />
-          </span>
-          )}
         </div>
       </div>
       )}

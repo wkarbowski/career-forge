@@ -113,7 +113,8 @@
     "proficiency": "Proficiency level (optional)",
     "linkedin": "LinkedIn URL",
     "github": "GitHub URL",
-    "competency": "Core competency"
+    "competency": "Core competency",
+    "addLink": "Add another link"
   },
   "auth": {
     "login": "Login",
