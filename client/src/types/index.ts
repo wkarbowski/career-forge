@@ -301,6 +301,7 @@ export interface Document {
   share_token?: string;
   linked_resume_id?: number | null;
   job_title?: string;
+  document_name?: string;
 }
 
 export interface DocumentVersion {

@@ -184,6 +184,8 @@ async def list_documents(
         item = DocumentListResponse.model_validate(doc)
         if doc.document_type == 'resume' and isinstance(doc.data, dict):
             item.job_title = doc.data.get('data', {}).get('position') or doc.data.get('position') or None
+            raw_name = doc.data.get('data', {}).get('name') or doc.data.get('name') or None
+            item.document_name = raw_name or None
         results.append(item)
     return results
 

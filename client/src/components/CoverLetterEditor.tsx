@@ -43,9 +43,7 @@ const CoverLetterEditor = () => {
   // Get current linked_resume_id from document metadata (not JSONB)
   const currentDoc = (documentList || []).find(d => d.id === currentDocumentId);
   const linkedResumeId = currentDoc?.linked_resume_id ?? null;
-  const linkedResumeTitle = linkedResumeId
-    ? (resumeList.find(r => r.id === linkedResumeId)?.title || null)
-    : null;
+  const linkedResume = linkedResumeId ? resumeList.find(r => r.id === linkedResumeId) : null;
 
   const handleLinkChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newResumeId = e.target.value || null;
@@ -179,11 +177,6 @@ const CoverLetterEditor = () => {
               <option key={r.id} value={r.id}>{r.title}</option>
             ))}
           </select>
-          {linkedResumeTitle && (
-            <span className="cl-linked-info">
-              ↳ {linkedResumeTitle}
-            </span>
-          )}
         </div>
       )}
       <div
