@@ -208,6 +208,7 @@ class DocumentListResponse(DocumentBase):
     created_at: datetime
     updated_at: datetime
     job_title: Optional[str] = None
+    document_name: Optional[str] = None
 
 
 # ============== Export / Import schemas ==============

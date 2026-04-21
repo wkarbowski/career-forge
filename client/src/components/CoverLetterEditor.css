@@ -198,20 +198,9 @@
 }
 
 [data-theme='dark'] .cl-page {
-  background: #1e1e2e;
-  color: #dde1ec;
+  background: white;
+  color: inherit;
   box-shadow: 0 4px 28px rgba(0, 0, 0, 0.5);
-}
-
-[data-theme='dark'] .cl-sender-line,
-[data-theme='dark'] .cl-empf-line,
-[data-theme='dark'] .cl-place,
-[data-theme='dark'] .cl-date {
-  color: #b0b8cc;
-}
-
-[data-theme='dark'] .cl-sender-contact {
-  color: #8892a4;
 }
 
 [data-theme='dark'] .cl-page [contenteditable='true']:focus {
@@ -664,6 +653,7 @@
 
 .cl-linked-resume select {
   flex: 1;
+  min-width: 0;
   padding: 6px 10px;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
