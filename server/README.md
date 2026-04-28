@@ -33,7 +33,8 @@ Create a `.env` file in the server directory:
 ```env
 APP_NAME="Career Forge API"
 DEBUG=true
-DATABASE_URL="postgresql://careerforge:password@localhost:5432/careerforge"
+# WARNING: replace <your-strong-password> with a real password — do not use verbatim
+DATABASE_URL="postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge"
 SECRET_KEY="your-secret-key-change-in-production"
 CORS_ORIGINS=["http://localhost:3000"]
 ```

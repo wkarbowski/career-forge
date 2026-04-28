@@ -3,6 +3,7 @@
 > A full-stack, self-hostable resume and cover letter builder with a real-time WYSIWYG editor, multi-page A4 pagination, template system, and server-side persistence.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/wkarbowski/career-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/wkarbowski/career-forge/actions/workflows/ci.yml)
 [![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](server/)
 [![Frontend: React 18](https://img.shields.io/badge/Frontend-React%2018-61dafb)](client/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ed)](docker-compose.yml)
@@ -63,7 +64,7 @@
 ### With Docker (recommended)
 
 ```bash
-git clone https://github.com/Wiktor-Karbowski/career-forge.git career-forge
+git clone https://github.com/wkarbowski/career-forge.git career-forge
 cd career-forge
 # Create a .env file with required secrets — see docs/deployment.md for the full variable reference
 docker compose up --build
@@ -136,7 +137,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 ## Security
 
 Found a vulnerability? Please **do not open a public issue**.
-Report it via [GitHub private security advisory](https://github.com/Wiktor-Karbowski/career-forge/security/advisories/new).
+Report it via [GitHub private security advisory](https://github.com/wkarbowski/career-forge/security/advisories/new).
 
 See [SECURITY.md](SECURITY.md) for the full policy.
 
@@ -145,3 +146,9 @@ See [SECURITY.md](SECURITY.md) for the full policy.
 ## License
 
 [MIT](LICENSE) © 2026 Wiktor Karbowski
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history of releases.

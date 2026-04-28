@@ -12,7 +12,7 @@
 - [Migrations](#migrations)
 - [Database Configuration](#database-configuration)
 
----
+--- 
 
 ## Entity-Relationship Diagram
 
@@ -213,7 +213,8 @@ The Alembic `env.py` overrides the database URL from `Settings.database_url`, so
 The application requires PostgreSQL (uses JSONB columns).
 
 ```env
-DATABASE_URL=postgresql://careerforge:password@localhost:5432/careerforge
+# WARNING: replace <your-strong-password> with a real password — do not use verbatim
+DATABASE_URL=postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge
 ```
 
 **Connection Pooling:**

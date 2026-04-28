@@ -145,7 +145,7 @@ career-forge/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/Wiktor-Karbowski/career-forge.git && cd career-forge
+git clone https://github.com/wkarbowski/career-forge.git && cd career-forge
 
 # 2. Start the backend
 cd server
