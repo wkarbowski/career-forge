@@ -4,7 +4,7 @@ If you discover a security vulnerability, **do not open a public issue**. Report
 
 ## Reporting
 
-- **Preferred:** Open a [GitHub private security advisory](https://github.com/Wiktor-Karbowski/career-forge/security/advisories/new) with subject `Security vulnerability report: [short description]`. Include:
+- **Preferred:** Open a [GitHub private security advisory](https://github.com/wkarbowski/career-forge/security/advisories/new) with subject `Security vulnerability report: [short description]`. Include:
   - Steps to reproduce
   - Affected versions
   - Proof of concept (if available)

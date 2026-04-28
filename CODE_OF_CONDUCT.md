@@ -16,7 +16,7 @@ Unacceptable behavior includes harassment, insulting or derogatory comments, per
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by opening a [private security advisory](https://github.com/Wiktor-Karbowski/career-forge/security/advisories/new) or by contacting the maintainer directly through GitHub. Reports will be reviewed and investigated and will remain confidential.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by sending a private message to the maintainer through GitHub. Reports will be reviewed and investigated and will remain confidential.
 
 ### Consequences
 
