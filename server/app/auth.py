@@ -3,18 +3,20 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.database import get_db
 from app.models import RefreshToken, User
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -54,14 +56,14 @@ def _hash_token(token: str) -> str:
 
 def create_access_token(
     data: dict[str, str],
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
     *,
     settings: Settings | None = None,
 ) -> str:
     """Create a signed JWT access token."""
     _settings = settings or get_settings()
     to_encode: dict[str, object] = {**data}
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + (expires_delta or timedelta(minutes=_settings.access_token_expire_minutes))
     to_encode.update({"exp": expire, "type": "access", "iat": now})
     return str(jwt.encode(to_encode, _settings.secret_key, algorithm=_settings.algorithm))
@@ -75,7 +77,7 @@ def create_password_reset_token(
 ) -> str:
     """Create a short-lived JWT token for password reset."""
     _settings = settings or get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + timedelta(minutes=expires_minutes)
     to_encode: dict[str, object] = {
         "sub": str(user_id),
@@ -90,7 +92,7 @@ def verify_password_reset_token(
     token: str,
     *,
     settings: Settings | None = None,
-) -> Optional[int]:
+) -> int | None:
     """Verify a password reset token and return user_id if valid."""
     _settings = settings or get_settings()
     try:
@@ -115,7 +117,7 @@ def verify_password_reset_token(
 def create_refresh_token(
     user_id: int,
     db: Session,
-    device_info: Optional[str] = None,
+    device_info: str | None = None,
     *,
     settings: Settings | None = None,
 ) -> str:
@@ -126,7 +128,7 @@ def create_refresh_token(
     _settings = settings or get_settings()
     raw_token = secrets.token_urlsafe(64)
     token_hash = _hash_token(raw_token)
-    expires_at = datetime.now(timezone.utc) + timedelta(days=_settings.refresh_token_expire_days)
+    expires_at = datetime.now(UTC) + timedelta(days=_settings.refresh_token_expire_days)
 
     refresh_token = RefreshToken(
         token_hash=token_hash,
@@ -142,9 +144,9 @@ def create_refresh_token(
 def verify_refresh_token(
     token: str,
     db: Session,
-    ip_address: Optional[str] = None,
-    user_agent: Optional[str] = None,
-) -> tuple[Optional[User], Optional[RefreshToken]]:
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> tuple[User | None, RefreshToken | None]:
     """Verify a refresh token, applying rotation security.
 
     * Valid & unused → returns ``(User, RefreshToken)``
@@ -153,7 +155,7 @@ def verify_refresh_token(
     """
     token_hash = _hash_token(token)
 
-    stored_token: Optional[RefreshToken] = (
+    stored_token: RefreshToken | None = (
         db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
     )
     if stored_token is None:
@@ -186,11 +188,11 @@ def verify_refresh_token(
     # Timezone-safe expiry check
     expires = stored_token.expires_at
     if expires.tzinfo is None:
-        expires = expires.replace(tzinfo=timezone.utc)
-    if datetime.now(timezone.utc) > expires:
+        expires = expires.replace(tzinfo=UTC)
+    if datetime.now(UTC) > expires:
         return None, None
 
-    user: Optional[User] = db.query(User).filter(User.id == stored_token.user_id).first()
+    user: User | None = db.query(User).filter(User.id == stored_token.user_id).first()
     if user is None or not user.is_active:
         return None, None
 
@@ -200,10 +202,10 @@ def verify_refresh_token(
 def rotate_refresh_token(
     old_token: RefreshToken,
     db: Session,
-    device_info: Optional[str] = None,
+    device_info: str | None = None,
 ) -> str:
     """Mark *old_token* as used and issue a new refresh token."""
-    old_token.used_at = datetime.now(timezone.utc)
+    old_token.used_at = datetime.now(UTC)
     db.commit()
     return create_refresh_token(
         user_id=old_token.user_id,
@@ -236,7 +238,7 @@ def revoke_all_user_tokens(user_id: int, db: Session) -> int:
 def cleanup_expired_tokens(db: Session) -> int:
     """Remove expired refresh tokens. Should run periodically."""
     result: int = (
-        db.query(RefreshToken).filter(RefreshToken.expires_at < datetime.now(timezone.utc)).delete()
+        db.query(RefreshToken).filter(RefreshToken.expires_at < datetime.now(UTC)).delete()
     )
     db.commit()
     return result
@@ -251,7 +253,7 @@ def decode_token(
     token: str,
     *,
     settings: Settings | None = None,
-) -> Optional[int]:
+) -> int | None:
     """Decode and validate a JWT access token, returning ``user_id``.
 
     Validates token signature, expiration, and that ``type == 'access'``.
@@ -292,7 +294,7 @@ async def get_current_user(
     if user_id is None:
         raise credentials_exception
 
-    user: Optional[User] = db.query(User).filter(User.id == user_id).first()
+    user: User | None = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
 
