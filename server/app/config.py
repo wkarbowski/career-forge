@@ -63,7 +63,8 @@ class Settings(BaseSettings):
     account_lockout_duration: int = 15  # minutes
 
     # ── Cookies ──────────────────────────────────────────────────────────
-    cookie_secure: bool = True
+    # Set to True in production (HTTPS only). False is safe for local HTTP dev.
+    cookie_secure: bool = False
     cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     cookie_domain: str = ""
 
@@ -118,6 +119,11 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "Default database password detected in production. "
                     "Set a strong DATABASE_URL in your .env file."
+                )
+            if not self.cookie_secure:
+                raise ValueError(
+                    "COOKIE_SECURE must be True in production. "
+                    "Set COOKIE_SECURE=true in your .env file."
                 )
         return self
 
