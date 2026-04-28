@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
-from typing import Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-
 
 # ---------------------------------------------------------------------------
 # Shared password-strength validator (DRY — used by three schemas)
@@ -79,13 +80,13 @@ class UserResponse(UserBase):
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=100)
-    email: Optional[EmailStr] = None
+    username: str | None = Field(None, min_length=3, max_length=100)
+    email: EmailStr | None = None
 
 
 class UserPreferences(BaseModel):
-    theme: Optional[Literal["dark", "light"]] = None
-    language: Optional[str] = Field(None, min_length=2, max_length=10)
+    theme: Literal["dark", "light"] | None = None
+    language: str | None = Field(None, min_length=2, max_length=10)
 
 
 # ============== Token schemas ==============
@@ -95,7 +96,7 @@ class Token(BaseModel):
     """Legacy token response (access token only)."""
 
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105
 
 
 class TokenPair(BaseModel):
@@ -103,7 +104,7 @@ class TokenPair(BaseModel):
 
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105
     expires_in: int
 
 
@@ -114,7 +115,7 @@ class AccessTokenResponse(BaseModel):
     """
 
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105
     expires_in: int
 
 
@@ -136,7 +137,7 @@ class PasswordChange(BaseModel):
 class RefreshTokenRequest(BaseModel):
     """Request body for token refresh (fallback for clients not using cookies)."""
 
-    refresh_token: Optional[str] = None
+    refresh_token: str | None = None
 
 
 class PasswordResetRequest(BaseModel):
@@ -158,7 +159,7 @@ class PasswordResetConfirm(BaseModel):
 
 
 class TokenData(BaseModel):
-    user_id: Optional[int] = None
+    user_id: int | None = None
 
 
 # ============== Document schemas ==============
@@ -173,15 +174,15 @@ class DocumentBase(BaseModel):
 
 class DocumentCreate(DocumentBase):
     data: dict[str, Any]
-    linked_resume_id: Optional[int] = None
+    linked_resume_id: int | None = None
 
 
 class DocumentUpdate(BaseModel):
-    title: Optional[str] = Field(None, max_length=255)
-    document_type: Optional[DocumentType] = None
-    data: Optional[dict[str, Any]] = None
-    is_default: Optional[bool] = None
-    linked_resume_id: Optional[int] = None
+    title: str | None = Field(None, max_length=255)
+    document_type: DocumentType | None = None
+    data: dict[str, Any] | None = None
+    is_default: bool | None = None
+    linked_resume_id: int | None = None
 
 
 class DocumentResponse(DocumentBase):
@@ -191,8 +192,8 @@ class DocumentResponse(DocumentBase):
     data: dict[str, Any]
     owner_id: int
     is_default: bool
-    share_token: Optional[str] = None
-    linked_resume_id: Optional[int] = None
+    share_token: str | None = None
+    linked_resume_id: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -203,12 +204,12 @@ class DocumentListResponse(DocumentBase):
     id: int
     owner_id: int
     is_default: bool
-    share_token: Optional[str] = None
-    linked_resume_id: Optional[int] = None
+    share_token: str | None = None
+    linked_resume_id: int | None = None
     created_at: datetime
     updated_at: datetime
-    job_title: Optional[str] = None
-    document_name: Optional[str] = None
+    job_title: str | None = None
+    document_name: str | None = None
 
 
 # ============== Export / Import schemas ==============
@@ -222,7 +223,7 @@ class DocumentExport(BaseModel):
 
 
 class DocumentImport(BaseModel):
-    title: Optional[str] = "Imported CV"
+    title: str | None = "Imported CV"
     document_type: DocumentType = "resume"
     data: dict[str, Any]
 
@@ -278,7 +279,7 @@ class LogoutAllResponse(MessageResponse):
 class PasswordResetTokenResponse(MessageResponse):
     """Returned by the forgot-password endpoint (token in body)."""
 
-    reset_token: Optional[str] = None
+    reset_token: str | None = None
 
 
 class ImageUploadResponse(BaseModel):
@@ -307,14 +308,14 @@ class ValidationErrorDetail(BaseModel):
 
     loc: list[str] = Field(default_factory=list, description="Path to the invalid field")
     msg: str = Field(..., description="Human-readable error message")
-    type: Optional[str] = Field(None, description="Error type identifier")
+    type: str | None = Field(None, description="Error type identifier")
 
 
 class ErrorResponse(BaseModel):
     """Standardized error payload returned by all non-2xx responses."""
 
     detail: str = Field(..., description="Human-readable error summary")
-    code: Optional[str] = Field(None, description="Machine-readable error code")
-    field_errors: Optional[list[ValidationErrorDetail]] = Field(
+    code: str | None = Field(None, description="Machine-readable error code")
+    field_errors: list[ValidationErrorDetail] | None = Field(
         None, description="Per-field validation errors, when applicable"
     )

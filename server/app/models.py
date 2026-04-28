@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,7 +12,7 @@ from app.database import Base
 
 def _utcnow() -> datetime:
     """Return current UTC time as a timezone-aware datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class User(Base):
@@ -53,9 +53,9 @@ class Document(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
-    profile_image: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    share_token: Mapped[Optional[str]] = mapped_column(String(64), unique=True, nullable=True, index=True)
-    linked_resume_id: Mapped[Optional[int]] = mapped_column(
+    profile_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
+    linked_resume_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("documents.id", ondelete="SET NULL"),
         nullable=True,
@@ -67,7 +67,7 @@ class Document(Base):
     versions: Mapped[list[DocumentVersion]] = relationship(
         "DocumentVersion", back_populates="document", cascade="all, delete-orphan"
     )
-    linked_resume: Mapped[Optional[Document]] = relationship(
+    linked_resume: Mapped[Document | None] = relationship(
         "Document", remote_side=[id], foreign_keys=[linked_resume_id]
     )
 
@@ -101,9 +101,9 @@ class RefreshToken(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     token_hash: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    device_info: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    device_info: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
-    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
