@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any, Literal
-
-if TYPE_CHECKING:
-    from datetime import datetime
+from datetime import datetime  # noqa: TC003 — Pydantic resolves this at runtime
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
