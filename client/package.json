@@ -8,7 +8,6 @@
     "url": "https://github.com/Wiktor-Karbowski/career-forge.git"
   },
   "private": true,
-  "proxy": "http://localhost:8000",
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "@fontsource/josefin-sans": "^5.2.8",
@@ -32,19 +31,13 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-easy-crop": "^5.5.7",
-    "react-router-dom": "^7.13.0",
-    "react-scripts": "5.0.1"
+    "react-router-dom": "^7.13.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
+    "start": "vite",
+    "build": "vite build",
+    "lint": "tsc --noEmit",
+    "preview": "vite preview"
   },
   "browserslist": {
     "production": [
@@ -63,6 +56,8 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "typescript": "^6.0.2"
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^6.0.2",
+    "vite": "^6.0.0"
   }
 }

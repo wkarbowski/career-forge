@@ -19,8 +19,8 @@ RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
 COPY . .
 
 # Build argument for API URL — baked into the static bundle at build time
-ARG REACT_APP_API_URL=/api
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
 
