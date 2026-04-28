@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Wiktor-Karbowski/career-forge.git"
+    "url": "https://github.com/wkarbowski/career-forge.git"
   },
   "private": true,
   "dependencies": {

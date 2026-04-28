@@ -73,7 +73,8 @@ DEBUG=true
 ENVIRONMENT=development
 
 # Database — PostgreSQL required (JSONB columns)
-DATABASE_URL=postgresql://careerforge:password@localhost:5432/careerforge
+# WARNING: replace <your-strong-password> with a real password — do not use verbatim
+DATABASE_URL=postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge
 
 # Security
 SECRET_KEY=your-secret-key-at-least-32-characters-long
@@ -111,7 +112,7 @@ TRUSTED_HOSTS=
 | `APP_NAME` | `Career Forge API` | Application name |
 | `DEBUG` | `false` | Enable debug mode (Swagger docs) |
 | `ENVIRONMENT` | `development` | `development`, `staging`, or `production` |
-| `DATABASE_URL` | `postgresql://careerforge:password@localhost:5432/careerforge` | PostgreSQL connection string |
+| `DATABASE_URL` | `postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge` | PostgreSQL connection string |
 | `SECRET_KEY` | Auto-generated (dev) | JWT signing key (min 32 chars, recommended 64+) |
 | `ALGORITHM` | `HS256` | JWT signing algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` | Access token lifetime |
@@ -190,7 +191,7 @@ GRANT ALL PRIVILEGES ON DATABASE cvapp TO cvapp;
 
 Update `.env`:
 ```env
-DATABASE_URL=postgresql://cvapp:your-secure-password@localhost/cvapp
+DATABASE_URL=postgresql://cvapp:<your-strong-password>@localhost/cvapp
 ```
 
 ### Running Migrations

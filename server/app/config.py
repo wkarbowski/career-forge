@@ -138,7 +138,11 @@ class Settings(BaseSettings):
     @property
     def trusted_hosts_list(self) -> list[str]:
         if not self.trusted_hosts:
-            return ["*"]
+            # Fail closed: only trust localhost when TRUSTED_HOSTS is not
+            # configured.  This disables the middleware in practice for local
+            # development while blocking Host-header injection in any deployment
+            # that forgot to set the variable.
+            return ["localhost", "127.0.0.1"]
         return [h.strip() for h in self.trusted_hosts.split(",") if h.strip()]
 
     @property
