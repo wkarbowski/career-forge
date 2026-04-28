@@ -88,11 +88,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint (ESLint)
-        run: npm run build -- --no-progress 2>&1 | grep -E "ERROR|WARNING|error|warning" || true
+      - name: Lint (TypeScript)
+        run: npm run lint
 
       - name: Build
         env:
-          CI: false   # prevent treating warnings as errors during build
-          REACT_APP_API_URL: /api
+          VITE_API_URL: /api
         run: npm run build

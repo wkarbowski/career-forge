@@ -30,10 +30,10 @@ export const FEATURES: Readonly<Features> = Object.freeze({
 
   /**
    * GDPR consent banner.
-   * Opt-in via REACT_APP_GDPR=true.
+   * Opt-in via VITE_GDPR=true.
    * Enabled via VITE_GDPR=true or extended features.
    */
-  GDPR_BANNER: CLOUD || process.env.REACT_APP_GDPR === 'true',
+  GDPR_BANNER: CLOUD || import.meta.env.VITE_GDPR === 'true',
 
   /**
    * Server-side PDF export (pixel-perfect, no browser print dialog).

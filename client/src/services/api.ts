@@ -18,7 +18,7 @@ import type {
 } from '../types';
 import { toApiDocumentType } from '../types';
 
-const API_BASE: string = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE: string = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // ============== Token Management ==============
 // Refresh tokens are stored in HttpOnly cookies; only access tokens in localStorage
