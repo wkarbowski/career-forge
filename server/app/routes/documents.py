@@ -1,13 +1,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import secrets
-from datetime import datetime, timezone
-from typing import Any, Literal, Optional, cast
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from sqlalchemy.orm import Session
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 from app.auth import get_current_active_user
 from app.config import get_settings
@@ -54,10 +57,8 @@ async def remove_profile_image(
     if doc.profile_image:
         file_path = os.path.join(UPLOAD_DIR, doc.profile_image)
         if os.path.isfile(file_path):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(file_path)
-            except OSError:
-                pass
         doc.profile_image = None
         db.commit()
         db.refresh(doc)
@@ -95,7 +96,7 @@ async def upload_profile_image(
         raise HTTPException(status_code=413, detail="Image must be 5 MB or smaller")
 
     # Save file
-    filename = f"doc_{document_id}_{int(datetime.now(timezone.utc).timestamp())}{ext}"
+    filename = f"doc_{document_id}_{int(datetime.now(UTC).timestamp())}{ext}"
     file_path = os.path.join(UPLOAD_DIR, filename)
     with open(file_path, "wb") as f:
         f.write(content)
@@ -103,10 +104,8 @@ async def upload_profile_image(
     if doc.profile_image:
         old_path = os.path.join(UPLOAD_DIR, doc.profile_image)
         if os.path.isfile(old_path):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(old_path)
-            except OSError:
-                pass
     doc.profile_image = filename
     db.commit()
     db.refresh(doc)
@@ -136,7 +135,11 @@ async def create_document(
 ) -> DocumentResponse:
     """Create a new document for the current user."""
     sanitized_title = InputSanitizer.sanitize_string(document_data.title)
-    sanitized_data = sanitize_document_data(document_data.data) if isinstance(document_data.data, dict) else document_data.data
+    sanitized_data = (
+        sanitize_document_data(document_data.data)
+        if isinstance(document_data.data, dict)
+        else document_data.data
+    )
 
     new_document = Document(
         title=sanitized_title,
@@ -170,7 +173,7 @@ async def create_document(
 
 @router.get("/", response_model=list[DocumentListResponse])
 async def list_documents(
-    document_type: Optional[str] = Query(None, pattern="^(resume|cover_letter)$"),
+    document_type: str | None = Query(None, pattern="^(resume|cover_letter)$"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> list[DocumentListResponse]:
@@ -232,7 +235,11 @@ async def update_document(
         doc.document_type = document_update.document_type
 
     if document_update.data is not None:
-        doc.data = sanitize_document_data(document_update.data) if isinstance(document_update.data, dict) else document_update.data
+        doc.data = (
+            sanitize_document_data(document_update.data)
+            if isinstance(document_update.data, dict)
+            else document_update.data
+        )
 
     if document_update.is_default is not None:
         # If setting as default, unset other defaults
@@ -306,9 +313,9 @@ async def export_document(
 
     return DocumentExport(
         title=doc.title,
-        document_type=cast(Literal["resume", "cover_letter"], doc.document_type),
+        document_type=cast("Literal['resume', 'cover_letter']", doc.document_type),
         data=doc.data,
-        exported_at=datetime.now(timezone.utc)
+        exported_at=datetime.now(UTC)
     )
 
 
@@ -320,7 +327,11 @@ async def import_document(
 ) -> DocumentResponse:
     """Import a document from JSON data."""
     sanitized_title = InputSanitizer.sanitize_string(document_import.title or "Imported Document")
-    sanitized_data = sanitize_document_data(document_import.data) if isinstance(document_import.data, dict) else document_import.data
+    sanitized_data = (
+        sanitize_document_data(document_import.data)
+        if isinstance(document_import.data, dict)
+        else document_import.data
+    )
 
     new_document = Document(
         title=sanitized_title,
