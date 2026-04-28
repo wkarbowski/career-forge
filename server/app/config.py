@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Sentinel used to detect unset SECRET_KEY
 # ---------------------------------------------------------------------------
-_SECRET_KEY_PLACEHOLDER = "your-secret-key-generate-with-openssl-rand-hex-32"
+_SECRET_KEY_PLACEHOLDER = "your-secret-key-generate-with-openssl-rand-hex-32"  # noqa: S105
 
 
 class Settings(BaseSettings):

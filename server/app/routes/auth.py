@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import os
 from datetime import timedelta
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm  # noqa: TC002 — FastAPI resolves at runtime
 
 from app.audit import AuditEventType, audit_logger, get_client_ip, get_user_agent
 from app.auth import (
@@ -25,6 +25,9 @@ from app.auth import (
 from app.config import get_settings
 from app.database import get_db
 from app.models import User
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 from app.schemas import (
     AccessTokenResponse,
     ErrorResponse,
@@ -114,7 +117,7 @@ def _authenticate_user(
         )
 
     # ── Credential verification ──────────────────────────────────────
-    user: Optional[User] = db.query(User).filter(User.email == email).first()
+    user: User | None = db.query(User).filter(User.email == email).first()
 
     if not user or not verify_password(password, user.hashed_password):
         failures = account_lockout.record_failure(email)
@@ -205,7 +208,7 @@ def _issue_tokens(
 
     return AccessTokenResponse(
         access_token=access_token,
-        token_type="bearer",
+        token_type="bearer",  # noqa: S106
         expires_in=settings.access_token_expire_minutes * 60,
     )
 
@@ -296,8 +299,8 @@ async def login_json(
 async def refresh_tokens(
     request: Request,
     response: Response,
-    token_request: Optional[RefreshTokenRequest] = None,
-    refresh_token_cookie: Optional[str] = Cookie(None, alias="refresh_token"),
+    token_request: RefreshTokenRequest | None = None,
+    refresh_token_cookie: str | None = Cookie(None, alias="refresh_token"),
     db: Session = Depends(get_db),
 ) -> AccessTokenResponse:
     """Refresh access token using a valid refresh token.
@@ -361,7 +364,7 @@ async def refresh_tokens(
 
     return AccessTokenResponse(
         access_token=access_token,
-        token_type="bearer",
+        token_type="bearer",  # noqa: S106
         expires_in=settings.access_token_expire_minutes * 60,
     )
 
@@ -370,8 +373,8 @@ async def refresh_tokens(
 async def logout(
     request: Request,
     response: Response,
-    token_request: Optional[RefreshTokenRequest] = None,
-    refresh_token_cookie: Optional[str] = Cookie(None, alias="refresh_token"),
+    token_request: RefreshTokenRequest | None = None,
+    refresh_token_cookie: str | None = Cookie(None, alias="refresh_token"),
     db: Session = Depends(get_db),
 ) -> MessageResponse:
     """Logout by revoking the refresh token."""
@@ -466,7 +469,7 @@ async def forgot_password(
     user_agent = get_user_agent(request)
     email = reset_request.email.lower()
 
-    user: Optional[User] = db.query(User).filter(User.email == email).first()
+    user: User | None = db.query(User).filter(User.email == email).first()
 
     if not user or not user.is_active:
         audit_logger.log(
@@ -523,7 +526,7 @@ async def reset_password(
             detail="Invalid or expired reset token",
         )
 
-    user: Optional[User] = db.query(User).filter(User.id == user_id).first()
+    user: User | None = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -603,10 +606,8 @@ async def delete_account(
         if doc.profile_image:
             img_path = os.path.join(upload_dir, doc.profile_image)
             if os.path.isfile(img_path):
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(img_path)
-                except OSError:
-                    pass  # best-effort
 
     revoke_all_user_tokens(current_user.id, db)
 

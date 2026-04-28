@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 from sqlalchemy.pool import QueuePool
 
 from app.config import get_settings

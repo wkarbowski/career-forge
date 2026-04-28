@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from typing import Literal, cast
+from contextlib import asynccontextmanager, suppress
+from typing import TYPE_CHECKING, Literal, cast
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from sqlalchemy.orm import Session
 
 from app.audit import AuditLog  # noqa: F401 — ensure table is registered
 from app.auth import cleanup_expired_tokens
@@ -60,10 +63,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     task = asyncio.create_task(_periodic_token_cleanup())
     yield
     task.cancel()
-    try:
+    with suppress(asyncio.CancelledError):
         await task
-    except asyncio.CancelledError:
-        pass
 
 
 app = FastAPI(
@@ -141,6 +142,6 @@ async def get_shared_document(
         raise HTTPException(status_code=404, detail="Shared document not found")
     return SharedDocumentResponse(
         title=doc.title,
-        document_type=cast(Literal["resume", "cover_letter"], doc.document_type),
+        document_type=cast("Literal['resume', 'cover_letter']", doc.document_type),
         data=doc.data,
     )
