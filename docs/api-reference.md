@@ -30,6 +30,7 @@
 Root endpoint. Returns API info.
 
 **Response** `200 OK`
+
 ```json
 {
   "app": "Career Forge API",
@@ -43,6 +44,7 @@ Root endpoint. Returns API info.
 Health check with environment info.
 
 **Response** `200 OK`
+
 ```json
 {
   "status": "healthy",
@@ -61,6 +63,7 @@ All auth endpoints are prefixed with `/api/auth`.
 Create a new user account.
 
 **Request Body**
+
 ```json
 {
   "email": "user@example.com",
@@ -70,11 +73,13 @@ Create a new user account.
 ```
 
 **Validation Rules:**
+
 - `email` — Valid email format, normalized to lowercase
 - `username` — 3–100 chars, only `[a-zA-Z0-9_-]`, sanitized
 - `password` — 8+ chars, must include: uppercase, lowercase, digit, special character
 
 **Response** `201 Created`
+
 ```json
 {
   "id": 1,
@@ -96,6 +101,7 @@ Create a new user account.
 Login via OAuth2 form-data (standard OAuth2 password flow).
 
 **Request** `Content-Type: application/x-www-form-urlencoded`
+
 ```
 username=user@example.com&password=SecureP@ss1
 ```
@@ -103,6 +109,7 @@ username=user@example.com&password=SecureP@ss1
 > Note: The `username` field accepts an email address.
 
 **Response** `200 OK`
+
 ```json
 {
   "access_token": "eyJhbGci...",
@@ -111,6 +118,7 @@ username=user@example.com&password=SecureP@ss1
 ```
 
 Also sets an HttpOnly cookie:
+
 ```
 Set-Cookie: refresh_token=<random-token>; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=604800
 ```
@@ -124,6 +132,7 @@ Set-Cookie: refresh_token=<random-token>; HttpOnly; Secure; SameSite=Lax; Path=/
 Login via JSON body (alternative to form-data).
 
 **Request Body**
+
 ```json
 {
   "email": "user@example.com",
@@ -140,6 +149,7 @@ Login via JSON body (alternative to form-data).
 Refresh the access token using the refresh token.
 
 **Request:** Refresh token sent via HttpOnly cookie (automatic) or request body:
+
 ```json
 {
   "refresh_token": "<token>"
@@ -147,6 +157,7 @@ Refresh the access token using the refresh token.
 ```
 
 **Response** `200 OK`
+
 ```json
 {
   "access_token": "eyJhbGci...",
@@ -167,6 +178,7 @@ Also sets a new refresh token cookie (token rotation).
 Revoke the current refresh token.
 
 **Request:** Refresh token from cookie or body:
+
 ```json
 {
   "refresh_token": "<token>"
@@ -174,6 +186,7 @@ Revoke the current refresh token.
 ```
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Successfully logged out"
@@ -191,10 +204,11 @@ Revoke ALL refresh tokens for the authenticated user (all devices).
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Successfully logged out from all devices",
-  "revoked_sessions": 3
+  "sessions_revoked": 3
 }
 ```
 
@@ -207,6 +221,7 @@ Get the current authenticated user's profile.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -228,6 +243,7 @@ Update user preferences (theme, language).
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Request Body**
+
 ```json
 {
   "theme": "light",
@@ -236,10 +252,12 @@ Update user preferences (theme, language).
 ```
 
 **Validation:**
+
 - `theme` — Must be `"dark"` or `"light"`
 - `language` — Optional string (e.g., `"en"`, `"de"`)
 
 **Response** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -261,6 +279,7 @@ Change password for the authenticated user. Requires the current password.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Request Body**
+
 ```json
 {
   "current_password": "OldP@ss1",
@@ -271,6 +290,7 @@ Change password for the authenticated user. Requires the current password.
 **Validation:** `new_password` — 8+ chars, must include: uppercase, lowercase, digit, special character.
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Password updated successfully"
@@ -286,6 +306,7 @@ Change password for the authenticated user. Requires the current password.
 Request a password reset token for the given email.
 
 **Request Body** (no auth required)
+
 ```json
 {
   "email": "user@example.com"
@@ -293,6 +314,7 @@ Request a password reset token for the given email.
 ```
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "If that email exists, a reset token has been generated",
@@ -311,6 +333,7 @@ Always returns `200` regardless of whether the email exists (prevents user enume
 Reset a user's password using a reset token.
 
 **Request Body** (no auth required)
+
 ```json
 {
   "token": "<reset-token>",
@@ -321,6 +344,7 @@ Reset a user's password using a reset token.
 **Validation:** `new_password` — 8+ chars, must include: uppercase, lowercase, digit, special character.
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Password has been reset successfully"
@@ -340,6 +364,7 @@ Delete the authenticated user's account and all associated data.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Account deleted successfully"
@@ -357,6 +382,7 @@ All document endpoints are prefixed with `/api/documents`. All require `Authoriz
 Create a new document.
 
 **Request Body**
+
 ```json
 {
   "title": "My Professional Resume",
@@ -367,6 +393,7 @@ Create a new document.
 > `data` is a JSON string containing the full document content.
 
 **Response** `201 Created`
+
 ```json
 {
   "id": 1,
@@ -386,6 +413,7 @@ Create a new document.
 List all documents for the authenticated user (lightweight — no `data` field).
 
 **Response** `200 OK`
+
 ```json
 [
   {
@@ -414,6 +442,7 @@ List all documents for the authenticated user (lightweight — no `data` field).
 Get a specific document with full data.
 
 **Response** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -435,6 +464,7 @@ Get a specific document with full data.
 Update a document.
 
 **Request Body**
+
 ```json
 {
   "title": "Updated Resume Title",
@@ -472,6 +502,7 @@ Get the user's default document, or the most recently updated document if no def
 Export a document as JSON with export metadata.
 
 **Response** `200 OK`
+
 ```json
 {
   "title": "My Professional Resume",
@@ -487,6 +518,7 @@ Export a document as JSON with export metadata.
 Import a document from exported JSON data.
 
 **Request Body**
+
 ```json
 {
   "title": "Imported Resume",
@@ -503,6 +535,7 @@ Import a document from exported JSON data.
 Create a copy of an existing document.
 
 **Response** `201 Created`
+
 ```json
 {
   "id": 3,
@@ -520,6 +553,7 @@ Create a copy of an existing document.
 Upload a profile image for a document.
 
 **Request** `Content-Type: multipart/form-data`
+
 ```
 file: <image-file>
 ```
@@ -527,10 +561,10 @@ file: <image-file>
 **Validation:** File must be an image (JPEG, PNG, GIF, WebP).
 
 **Response** `200 OK`
+
 ```json
 {
-  "profile_image": "uuid-filename.jpg",
-  "message": "Image uploaded successfully"
+  "url": "uploads/profile_images/uuid-filename.jpg"
 }
 ```
 
@@ -545,6 +579,7 @@ Remove a document's profile image.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Profile image removed"
@@ -555,19 +590,29 @@ Remove a document's profile image.
 
 ### `POST /api/documents/{document_id}/versions`
 
-Create a snapshot (version) of a document.
+Create a named snapshot of the current document state.
 
 **Headers:** `Authorization: Bearer <access_token>`
 
+**Request Body**
+
+```json
+{
+  "version_name": "Before Job Fair 2026"
+}
+```
+
 **Response** `201 Created`
+
 ```json
 {
   "id": 1,
-  "document_id": 1,
-  "data": "{...}",
+  "version_name": "Before Job Fair 2026",
   "created_at": "2026-02-13T16:00:00"
 }
 ```
+
+**Errors:** `400` (10-version limit per document reached)
 
 ---
 
@@ -578,11 +623,12 @@ List all saved versions of a document.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 [
   {
     "id": 1,
-    "document_id": 1,
+    "version_name": "Before Job Fair 2026",
     "created_at": "2026-02-13T16:00:00"
   }
 ]
@@ -597,10 +643,11 @@ Get a specific version with full data.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "id": 1,
-  "document_id": 1,
+  "version_name": "Before Job Fair 2026",
   "data": "{...}",
   "created_at": "2026-02-13T16:00:00"
 }
@@ -637,10 +684,11 @@ Generate a shareable link for a document.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "share_token": "<random-token>",
-  "share_url": "/api/shared/<random-token>"
+  "url": "/api/shared/<random-token>"
 }
 ```
 
@@ -653,6 +701,7 @@ Remove the shareable link from a document.
 **Headers:** `Authorization: Bearer <access_token>`
 
 **Response** `200 OK`
+
 ```json
 {
   "message": "Share link removed"
@@ -666,6 +715,7 @@ Remove the shareable link from a document.
 Public endpoint — view a shared document (no authentication required).
 
 **Response** `200 OK`
+
 ```json
 {
   "title": "My Professional Resume",
@@ -698,6 +748,7 @@ Query audit logs with filtering and pagination.
 | `limit` | integer | Page size (default: 50, max: 100) |
 
 **Response** `200 OK`
+
 ```json
 {
   "logs": [...],
@@ -713,6 +764,7 @@ Query audit logs with filtering and pagination.
 Security statistics dashboard.
 
 **Response** `200 OK`
+
 ```json
 {
   "total_events": 1250,
@@ -730,6 +782,7 @@ Security statistics dashboard.
 List all available event types and severity levels.
 
 **Response** `200 OK`
+
 ```json
 {
   "event_types": ["login_success", "login_failure", ...],
@@ -748,6 +801,7 @@ Recent warning-and-above events.
 | `hours` | integer | 24 | Lookback period (max: 168) |
 
 **Response** `200 OK`
+
 ```json
 {
   "alerts": [...],
@@ -764,6 +818,7 @@ Complete audit trail for a specific user.
 **Query Parameters:** `skip`, `limit`
 
 **Response** `200 OK`
+
 ```json
 {
   "user_id": 1,
@@ -780,6 +835,7 @@ All events from a specific IP address.
 **Query Parameters:** `skip`, `limit`
 
 **Response** `200 OK`
+
 ```json
 {
   "ip_address": "192.168.1.1",
@@ -793,8 +849,8 @@ All events from a specific IP address.
 
 ## Static Files
 
-| Path | Description |
-|------|-------------|
+| Path                                 | Description             |
+| ------------------------------------ | ----------------------- |
 | `/uploads/profile_images/{filename}` | Uploaded profile images |
 
 ---
@@ -809,16 +865,16 @@ All errors follow this format:
 }
 ```
 
-| Status Code | Meaning |
-|-------------|---------|
-| `400` | Bad request (validation failure, duplicate email/username) |
-| `401` | Unauthorized (invalid/expired token) |
-| `403` | Forbidden (account locked, insufficient permissions) |
-| `404` | Resource not found |
-| `413` | Request body too large (> 10 MB) |
-| `422` | Validation error (Pydantic) |
-| `429` | Rate limit exceeded |
-| `500` | Internal server error |
+| Status Code | Meaning                                                    |
+| ----------- | ---------------------------------------------------------- |
+| `400`       | Bad request (validation failure, duplicate email/username) |
+| `401`       | Unauthorized (invalid/expired token)                       |
+| `403`       | Forbidden (account locked, insufficient permissions)       |
+| `404`       | Resource not found                                         |
+| `413`       | Request body too large (> 10 MB)                           |
+| `422`       | Validation error (Pydantic)                                |
+| `429`       | Rate limit exceeded                                        |
+| `500`       | Internal server error                                      |
 
 ---
 
@@ -826,12 +882,13 @@ All errors follow this format:
 
 Requests are rate-limited per IP address:
 
-| Scope | Limit | Window |
-|-------|-------|--------|
-| General API | 60 requests | per minute |
+| Scope                          | Limit       | Window     |
+| ------------------------------ | ----------- | ---------- |
+| General API                    | 60 requests | per minute |
 | Auth endpoints (`/api/auth/*`) | 10 requests | per minute |
 
 Response headers on every request:
+
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 58
@@ -839,6 +896,7 @@ X-RateLimit-Reset: 1707830400
 ```
 
 When exceeded:
+
 ```
 HTTP/1.1 429 Too Many Requests
 Retry-After: 45

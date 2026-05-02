@@ -21,13 +21,14 @@
 
 ## Application Entry Point
 
-### `index.js`
+### `index.tsx`
 
 Renders `<App />` into `#root`. Standard React 18 `createRoot` entry.
 
-### `App.js`
+### `App.tsx`
 
 The root component that:
+
 1. Wraps the app in 6 nested context providers
 2. Defines all routes with guards (`ProtectedRoute`, `EditorRoute`)
 3. Contains the `CVEditor` component (the core editing interface)
@@ -39,12 +40,12 @@ The root component that:
 
 ### ThemeContext
 
-**File:** `src/contexts/ThemeContext.js`
+**File:** `src/contexts/ThemeContext.tsx`
 
-| State | Type | Description |
-|-------|------|-------------|
-| `theme` | `"dark" \| "light"` | Current theme |
-| `toggleTheme()` | function | Switch between dark and light |
+| State           | Type                | Description                   |
+| --------------- | ------------------- | ----------------------------- |
+| `theme`         | `"dark" \| "light"` | Current theme                 |
+| `toggleTheme()` | function            | Switch between dark and light |
 
 - Persists to `localStorage('career-forge-theme')`
 - Sets `data-theme` attribute on `<html>` element
@@ -52,16 +53,16 @@ The root component that:
 
 ---
 
-### I18nContext (via `i18n.js`)
+### I18nContext (via `i18n.tsx`)
 
-**File:** `src/i18n.js`
+**File:** `src/i18n.tsx`
 
-| State | Type | Description |
-|-------|------|-------------|
-| `lang` | `"en" \| "de"` | Current language |
-| `setLang(lang)` | function | Change language |
-| `t(key)` | function | Translate a dot-notation key |
-| `availableLanguages` | array | `[{code, label}]` |
+| State                | Type           | Description                  |
+| -------------------- | -------------- | ---------------------------- |
+| `lang`               | `"en" \| "de"` | Current language             |
+| `setLang(lang)`      | function       | Change language              |
+| `t(key)`             | function       | Translate a dot-notation key |
+| `availableLanguages` | array          | `[{code, label}]`            |
 
 - Custom implementation (no external i18n library)
 - Dot-notation key resolution: `t('nav.editor')` → `locales[lang].nav.editor`
@@ -73,68 +74,60 @@ The root component that:
 
 ---
 
-### TemplateContext
-
-**File:** `src/contexts/TemplateContext.js`
-
-| State | Type | Description |
-|-------|------|-------------|
-| `templates` | array | Available template IDs |
-| `current` | string | Currently selected template ID |
-
-Available templates:
-- `resume-modern` — Modern Professional resume
-- `classic-professional` — Classic Professional resume
-- `executive-prestige` — Executive Prestige resume
-- `ats-optimized` — ATS Optimized resume
-- `cover-executive` — Executive Cover Letter
-- `cover-professional` — Standard Cover Letter
-
----
-
 ### AppStateContext
 
-**File:** `src/contexts/AppStateContext.js`
+**File:** `src/contexts/AppStateContext.tsx`
 
-The core CV data context. Manages:
+The core document state context. Manages:
 
-| State | Type | Description |
-|-------|------|-------------|
-| `data` | object | Full CV content (name, position, experience[], education[], skills[], etc.) |
-| `settings` | object | Visual settings: `{ sidebarColor1, sidebarColor2, accentColor }` |
-| `profileImage` | string\|null | Base64 or filename of profile photo |
-| `visibleSections` | object | Boolean map: `{ summary: true, skills: true, ... }` |
-| `sidebarOrder` | array | Ordered section IDs: `['summary', 'skills', 'languages', ...]` |
-| `pages` | array | Page data for multi-page content |
+| State             | Type                         | Description                                                                 |
+| ----------------- | ---------------------------- | --------------------------------------------------------------------------- |
+| `data`            | `CVData`                     | Full CV content (name, position, experience[], education[], skills[], etc.) |
+| `settings`        | `CVSettings`                 | Visual settings: colors, fonts, layout                                      |
+| `clSettings`      | `CLSettings`                 | Cover letter visual settings                                                |
+| `profileImage`    | `string\|null`               | URL or filename of profile photo                                            |
+| `visibleSections` | `VisibleSections`            | Boolean map of visible sections                                             |
+| `sidebarOrder`    | `string[]`                   | Ordered section IDs                                                         |
+| `documentType`    | `"resume" \| "cover-letter"` | Active document type                                                        |
+| `coverLetterData` | `CoverLetterData`            | Cover letter content                                                        |
+| `documentTitle`   | `string`                     | Document title shown in the editor                                          |
 
 **Key methods:**
-- `updateField(path, value)` — Update any nested field
-- `updateArrayItem(arrayPath, index, field, value)` — Update item in an array
-- `addArrayItem(arrayPath, template)` — Add new item to a section
-- `deleteArrayItem(arrayPath, index)` — Remove an item
-- `updateSettings(newSettings)` — Update color settings
+
+- `setData(data)` — Replace CV data
+- `setSettings(settings)` — Replace visual settings
+- `setClSettings(settings)` — Replace cover letter settings
 - `setVisibleSections(sections)` — Toggle section visibility
 - `setSidebarOrder(order)` — Reorder sidebar sections
 - `setProfileImage(image)` — Set profile photo
+- `setDocumentType(type)` — Switch between resume and cover letter
+- `setCoverLetterData(data)` — Replace cover letter content
+- `setDocumentTitle(title)` — Update the document title
 - `resetToInitial()` — Reset all data to defaults
-- `loadFullState(state)` — Load complete state (from server or import)
+- `addCustomSection(template)` — Add a custom document section
+- `removeCustomSection(sectionId)` — Remove a custom section
+- `updateCustomSection(sectionId, updates)` — Update a custom section
+- `migrateData(data)` — Migrate older data shapes to the current schema
+
+State is persisted to `localStorage` under the key `'career-forge-state'` with debounced writes.
 
 ---
 
 ### PageContext
 
-**File:** `src/contexts/PageContext.js`
+**File:** `src/contexts/PageContext.tsx`
 
 Multi-page pagination and zoom state.
 
-| State | Type | Description |
-|-------|------|-------------|
-| `pages` | array | Page data array |
-| `currentPageIndex` | number | Active page (0-based) |
-| `zoom` | number | Zoom level (0.5 – 2.0) |
-| `viewMode` | `"pages" \| "continuous"` | Display mode |
+| State              | Type                      | Description            |
+| ------------------ | ------------------------- | ---------------------- |
+| `pages`            | array                     | Page data array        |
+| `currentPageIndex` | number                    | Active page (0-based)  |
+| `zoom`             | number                    | Zoom level (0.5 – 2.0) |
+| `viewMode`         | `"pages" \| "continuous"` | Display mode           |
 
 **Methods:**
+
 - `goToPage(index)` — Navigate to specific page
 - `nextPage()` / `prevPage()` — Navigate sequentially
 - `addPage()` / `removePage()` — Manage page count
@@ -142,6 +135,7 @@ Multi-page pagination and zoom state.
 - `setViewMode(mode)` — Toggle view mode
 
 **Page Configuration (A4 at 96 DPI):**
+
 - Width: 794px (210mm)
 - Height: 1123px (297mm)
 - Margins: 40px
@@ -150,38 +144,55 @@ Multi-page pagination and zoom state.
 
 ### AuthContext
 
-**File:** `src/contexts/AuthContext.js`
+**File:** `src/contexts/AuthContext.tsx`
 
-Authentication and CV persistence.
+Authentication and document persistence.
 
-| State | Type | Description |
-|-------|------|-------------|
-| `user` | object\|null | Current user info |
-| `loading` | boolean | Auth operation in progress |
-| `error` | string\|null | Last auth error |
-| `isAuthenticated` | boolean | User is logged in |
-| `isGuest` | boolean | Guest mode active |
-| `cvList` | array | User's saved CVs |
-| `currentCvId` | number\|null | Currently loaded CV ID |
+| State               | Type                       | Description                  |
+| ------------------- | -------------------------- | ---------------------------- |
+| `user`              | `User\|null`               | Current user info            |
+| `loading`           | `boolean`                  | Auth operation in progress   |
+| `error`             | `string\|null`             | Last auth error              |
+| `isAuthenticated`   | `boolean`                  | User is logged in            |
+| `isGuest`           | `boolean`                  | Guest mode active            |
+| `documentList`      | `Document[]`               | User’s saved documents       |
+| `currentDocumentId` | `number\|'template'\|null` | Currently loaded document ID |
 
 **Auth Methods:**
+
 - `login(email, password)` — Authenticate and store tokens
 - `register(email, username, password)` — Create account and auto-login
 - `logout()` — Revoke tokens, clear state
 - `logoutAllDevices()` — Revoke all sessions
 - `startGuestMode()` — Enable editor without account
-- `exitGuestMode()` — Leave guest mode
 
-**CV Methods:**
-- `saveCv(cvId, payload)` — Save CV to server
-- `loadCv(cvId)` — Load CV from server into AppStateContext
-- `createNewCv(title)` — Create and load a new CV
-- `deleteCv(cvId)` — Delete from server
-- `renameCv(cvId, title)` — Rename a CV
-- `refreshCvList()` — Reload CV list from server
+**Document Methods:**
+
+- `saveDocument(title, data)` — Create or update document on server
+- `refreshDocumentList()` — Reload document list from server
+- `setCurrentDocumentId(id)` — Set active document
 
 **Preference Methods:**
+
 - `updatePreferences(prefs)` — Sync theme/language to server
+
+---
+
+### UndoContext
+
+**File:** `src/contexts/UndoContext.tsx`
+
+Undo/redo history for document edits.
+
+| State     | Type      | Description               |
+| --------- | --------- | ------------------------- |
+| `canUndo` | `boolean` | Whether undo is available |
+| `canRedo` | `boolean` | Whether redo is available |
+
+**Methods:**
+
+- `undo()` — Revert to previous state
+- `redo()` — Re-apply reverted state
 
 ---
 
@@ -189,51 +200,57 @@ Authentication and CV persistence.
 
 ### Layout Components
 
-| Component | Description |
-|-----------|-------------|
+| Component        | Description                                                                                                                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **GlobalHeader** | Persistent top navigation bar. Shows logo, nav links (Editor, Templates, Dashboard), save status, language switcher, theme toggle, and user menu. Hidden on landing page for unauthenticated users. |
-| **UserMenu** | Dropdown menu with user info, CV list, new CV, dashboard link, logout. For guests: login button + exit guest. |
+| **UserMenu**     | Dropdown menu with user info, CV list, new CV, dashboard link, logout. For guests: login button + exit guest.                                                                                       |
 
 ### Page Components
 
-| Component | Route | Description |
-|-----------|-------|-------------|
-| **HomePage** | `/` | Landing page with hero, feature cards, and login/register or guest entry options. Contains the `AuthModal`. |
-| **AuthModal** | — | Modal dialog toggling between login and register forms. Validates password length (≥6), username (≥3), and password confirmation. |
-| **TemplatesGallery** | `/templates` | Filterable grid of template cards. Filters by document type and category. Templates show CSS-rendered mini previews. |
-| **CVDashboard** | `/dashboard` | Full CV management table. Search, sort (title/name/position/date), multi-select with bulk delete, inline rename, and per-row actions (edit, duplicate, delete). |
+| Component            | Route        | Description                                                                                                                       |
+| -------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| **HomePage**         | `/`          | Landing page with hero, feature cards, and login/register or guest entry options. Contains the `AuthModal`.                       |
+| **AuthModal**        | —            | Modal dialog toggling between login and register forms. Validates password length (≥6), username (≥3), and password confirmation. |
+| **TemplatesGallery** | `/templates` | Filterable grid of template cards. Filters by document type and category. Templates show CSS-rendered mini previews.              |
+| **CVDashboard**      | `/dashboard` | Document management: create, search, sort, duplicate, share, delete, version history.                                             |
 
 ### CV Editor Components
 
-| Component | Description |
-|-----------|-------------|
-| **CVEditor** | Core editor page. Contains title bar, import/export, toolbar, vertical menu, and `CVPagesEditor`. Auto-saves with 2s debounce for authenticated users. |
-| **CVPagesEditor** | Multi-page pagination engine. Renders A4-sized pages (794×1123px). Uses a hidden measurer to calculate page count, clips content per page with `translateY()` offsets. Supports Ctrl+scroll zoom. |
-| **PageControls** | Fixed control bar: page nav (prev/next with input), add/remove page, zoom in/out/reset, view mode toggle. |
-| **VerticalMenu** | Sticky side panel with expandable flyouts for color settings (sidebar gradient + accent) and section visibility toggles. |
+| Component               | Description                                                                                                                                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **CVEditor**            | Core editor page. Contains document title bar, export/import toolbar, `CentralToolbar` or `CLToolbar`, `VerticalMenu`, and either `CVPagesEditor` (resume) or `CoverLetterEditor` (cover letter). Auto-saves with 1s debounce for authenticated users. |
+| **CVPagesEditor**       | Multi-page pagination engine for resumes. Renders A4-sized pages (794×1123px). Uses a hidden measurer to calculate page count, clips content per page with `translateY()` offsets. Supports Ctrl+scroll zoom.                                          |
+| **CoverLetterEditor**   | Dedicated cover letter editor with DIN 5008-style layout. Handles sender/recipient blocks, body text, and signature fields.                                                                                                                            |
+| **PageControls**        | Fixed control bar: page nav (prev/next with input), add/remove page, zoom in/out/reset, view mode toggle.                                                                                                                                              |
+| **VerticalMenu**        | Sticky side panel with expandable flyouts for color settings (sidebar gradient + accent) and section visibility toggles.                                                                                                                               |
+| **VersionHistory**      | Side panel for creating named document snapshots and restoring them.                                                                                                                                                                                   |
+| **KeywordMatcher**      | Side panel for pasting a job description and checking which keywords appear in the current CV.                                                                                                                                                         |
+| **ProfileCompleteness** | Bottom bar that shows how complete the CV is based on filled fields.                                                                                                                                                                                   |
 
 ### CV Content Components
 
-| Component | Description |
-|-----------|-------------|
-| **Sidebar** | Left sidebar of the CV. Contains profile image and 6 reorderable sections: Summary, Skills, Languages, Courses, Strengths, Achievements. Sections can be reordered with ↑/↓ arrows. |
-| **MainContent** | Right area of the CV. Contains header (name, position, contact info) and Experience + Education sections with add/delete entry buttons. |
-| **EditableText** | Inline editing component using `contentEditable`. DOMPurify sanitization on input and paste. Supports placeholder text and HTML formatting. |
-| **LanguageLevel** | Visual proficiency indicator: 5 clickable dots (1=Beginner to 5=Native). |
+| Component         | Description                                                                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sidebar**       | Left sidebar of the CV. Contains profile image and 6 reorderable sections: Summary, Skills, Languages, Courses, Strengths, Achievements. Sections can be reordered with ↑/↓ arrows. |
+| **MainContent**   | Right area of the CV. Contains header (name, position, contact info) and Experience + Education sections with add/delete entry buttons.                                             |
+| **EditableText**  | Inline editing component using `contentEditable`. DOMPurify sanitization on input and paste. Supports placeholder text and HTML formatting.                                         |
+| **LanguageLevel** | Visual proficiency indicator: 5 clickable dots (1=Beginner to 5=Native).                                                                                                            |
 
 ### Toolbar Components
 
-| Component | Description |
-|-----------|-------------|
-| **TextToolbar / TextToolbarFixed** | Floating rich-text formatting toolbar. Appears on text selection. Features: font family (Rubik/Lato/Arial), font size (10–36px), bold, italic, underline, strikethrough, text/bg colors, alignment, lists, remove formatting. Uses `document.execCommand()`. |
+| Component          | Description                                                                                                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CentralToolbar** | Document-level toolbar for resumes. Controls font families, font sizes, and color settings. Rendered at the top of the editor.                                                                          |
+| **CLToolbar**      | Document-level toolbar for cover letters. Controls formatting options specific to the cover letter layout.                                                                                              |
+| **TextToolbar**    | Floating rich-text formatting toolbar. Appears on text selection. Features: bold, italic, underline, strikethrough, text/bg colors, alignment, lists, remove formatting. Uses `document.execCommand()`. |
 
 ### UI Controls
 
-| Component | Description |
-|-----------|-------------|
-| **ThemeToggle** | Sun/moon button to switch dark/light theme. |
-| **LanguageSwitcher** | Dropdown to switch UI language (EN/DE). |
-| **TemplateSelector** | Dropdown for selecting templates from TemplateContext. |
+| Component             | Description                                                               |
+| --------------------- | ------------------------------------------------------------------------- |
+| **ThemeToggle**       | Sun/moon button to switch dark/light theme.                               |
+| **LanguageSwitcher**  | Dropdown to switch UI language (EN/DE).                                   |
+| **ImageCropperModal** | Modal for cropping a profile image before upload. Uses `react-easy-crop`. |
 
 ---
 
@@ -247,8 +264,8 @@ All text in the CV is live-editable through `EditableText` components:
 2. User types or pastes content
 3. `DOMPurify.sanitize()` strips dangerous HTML
 4. `onInput` callback fires with sanitized `innerHTML`
-5. `AppStateContext.updateField()` updates state
-6. For authenticated users: 2-second debounced auto-save to server
+5. `AppStateContext` state setters update the relevant field
+6. For authenticated users: 1-second debounced auto-save to server
 
 **Allowed HTML tags:** `b`, `i`, `u`, `strong`, `em`, `br`, `p`, `ul`, `ol`, `li`, `a`, `span`, `div`
 
@@ -276,6 +293,7 @@ The `CVPagesEditor` implements a word-processor-like page system:
 6. Page breaks attempt to avoid splitting elements mid-way
 
 **Controls via `PageControls`:**
+
 - Previous/Next page navigation
 - Jump to page by number
 - Add/Remove pages manually
@@ -285,6 +303,7 @@ The `CVPagesEditor` implements a word-processor-like page system:
 ### Export & Import
 
 **JSON Export** includes the full CV state:
+
 ```json
 {
   "data": { "name": "...", "experience": [...], ... },
@@ -304,13 +323,13 @@ The `CVPagesEditor` implements a word-processor-like page system:
 
 ### Template Definitions
 
-Defined in `src/data/templates.js`:
+Defined in `src/data/templates.ts`:
 
-| Template | Type | Category | Colors |
-|----------|------|----------|--------|
-| Classic Professional | Resume | Professional | Indigo gradient (#312e81 → #4f46e5) |
-| Resume Modern | Resume | Modern | Cyan gradient (#0e7490 → #06b6d4) |
-| Cover Professional | Cover Letter | Professional | Indigo accent |
+| Template             | Type         | Category     | Colors                              |
+| -------------------- | ------------ | ------------ | ----------------------------------- |
+| Classic Professional | Resume       | Professional | Indigo gradient (#312e81 → #4f46e5) |
+| Resume Modern        | Resume       | Modern       | Cyan gradient (#0e7490 → #06b6d4)   |
+| Cover Professional   | Cover Letter | Professional | Indigo accent                       |
 
 Each template defines: settings (colors), visible sections, sidebar order, and metadata.
 
@@ -324,7 +343,8 @@ Each template defines: settings (colors), visible sections, sidebar order, and m
 
 ### Template Configuration
 
-All templates are defined in `src/data/templates.js`:
+All templates are defined in `src/data/templates.ts`:
+
 - `classic-professional` — Standard corporate resume
 - `resume-modern` — Modern/contemporary resume
 - `cover-professional` — DIN 5008 cover letter with signature support
@@ -335,27 +355,27 @@ All templates are defined in `src/data/templates.js`:
 
 ### Setup
 
-Custom i18n system in `src/i18n.js` using React Context. No external library.
+Custom i18n system in `src/i18n.tsx` using React Context. No external library.
 
 ### Translation Keys
 
 Organized by category with dot-notation access:
 
-| Category | Example Keys |
-|----------|-------------|
-| `home.*` | `home.title`, `home.subtitle`, `home.guestMode` |
-| `nav.*` | `nav.editor`, `nav.templates`, `nav.dashboard` |
-| `toolbar.*` | `toolbar.print`, `toolbar.export`, `toolbar.import` |
-| `sections.*` | `sections.summary`, `sections.experience`, `sections.education` |
-| `auth.*` | `auth.login`, `auth.register`, `auth.email`, `auth.password` |
-| `dashboard.*` | `dashboard.title`, `dashboard.search`, `dashboard.sort` |
-| `templates.*` | `templates.title`, `templates.useTemplate` |
-| `settings.*` | `settings.colors`, `settings.sections` |
+| Category      | Example Keys                                                    |
+| ------------- | --------------------------------------------------------------- |
+| `home.*`      | `home.title`, `home.subtitle`, `home.guestMode`                 |
+| `nav.*`       | `nav.editor`, `nav.templates`, `nav.dashboard`                  |
+| `toolbar.*`   | `toolbar.print`, `toolbar.export`, `toolbar.import`             |
+| `sections.*`  | `sections.summary`, `sections.experience`, `sections.education` |
+| `auth.*`      | `auth.login`, `auth.register`, `auth.email`, `auth.password`    |
+| `dashboard.*` | `dashboard.title`, `dashboard.search`, `dashboard.sort`         |
+| `templates.*` | `templates.title`, `templates.useTemplate`                      |
+| `settings.*`  | `settings.colors`, `settings.sections`                          |
 
 ### Adding a New Language
 
 1. Create `src/locales/<code>.json` with all translation keys
-2. Add the language to the `availableLanguages` array in `i18n.js`
+2. Add the language to the `availableLanguages` array in `i18n.tsx`
 
 ---
 
@@ -382,6 +402,7 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 ```
 
 **Variable categories:**
+
 - `--bg-*` — Background colors (primary, secondary, tertiary, hover, input, elevated)
 - `--text-*` — Text colors (primary, secondary, muted)
 - `--border-*` — Border colors (default, hover, focus)
@@ -414,7 +435,7 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 ### Available APIs
 
 ```javascript
-import { authApi, documentApi } from './services/api';
+import { authApi, documentApi } from "./services/api";
 
 // Auth
 await authApi.register(email, username, password);
@@ -452,26 +473,26 @@ await documentApi.uploadProfileImage(documentId, file);
 
 ### CSS Files
 
-| File | Scope |
-|------|-------|
-| `App.css` | Global styles, theme variables, document content styles, print rules |
-| `index.css` | Base reset |
-| `GlobalHeader.css` | Navigation bar |
-| `HomePage.css` | Landing page |
-| `DocumentDashboard.css` | Dashboard table |
-| `CVPagesEditor.css` | Multi-page editor |
-| `CoverLetterEditor.css` | Cover letter editor |
-| `TemplatesGallery.css` | Template gallery grid |
+| File                    | Scope                                                                |
+| ----------------------- | -------------------------------------------------------------------- |
+| `App.css`               | Global styles, theme variables, document content styles, print rules |
+| `index.css`             | Base reset                                                           |
+| `GlobalHeader.css`      | Navigation bar                                                       |
+| `HomePage.css`          | Landing page                                                         |
+| `DocumentDashboard.css` | Dashboard table                                                      |
+| `CVPagesEditor.css`     | Multi-page editor                                                    |
+| `CoverLetterEditor.css` | Cover letter editor                                                  |
+| `TemplatesGallery.css`  | Template gallery grid                                                |
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+B` | Bold |
-| `Ctrl+I` | Italic |
-| `Ctrl+U` | Underline |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
+| Shortcut      | Action      |
+| ------------- | ----------- |
+| `Ctrl+B`      | Bold        |
+| `Ctrl+I`      | Italic      |
+| `Ctrl+U`      | Underline   |
+| `Ctrl+Z`      | Undo        |
+| `Ctrl+Y`      | Redo        |
 | `Ctrl+Scroll` | Zoom in/out |

@@ -60,7 +60,7 @@ This installs:
 - `react` 18.2
 - `react-dom` 18.2
 - `react-router-dom` 7
-- `react-scripts` 5
+- `vite` 6 (dev dependency)
 - `dompurify` 3
 
 ### 3. Configure environment variables
@@ -73,7 +73,7 @@ REACT_APP_API_URL=http://localhost:8000/api
 
 If this variable is not set, the application falls back to `http://localhost:8000/api` at runtime.
 
-> **Note:** This value is baked into the JavaScript bundle at build time by Create React App. Changing it after `npm run build` requires a rebuild.
+> **Note:** This value is resolved at build time by Vite via the `define` config in `vite.config.ts`. Changing it after `npm run build` requires a rebuild.
 
 ### 4. Ensure the backend is running
 
@@ -167,17 +167,17 @@ client/
 ## Available Scripts
 
 ```bash
-# Start development server with hot reload
+# Start Vite development server with HMR on http://localhost:3000
 npm start
 
 # Create an optimised production build in build/
 npm run build
 
-# Run tests in interactive watch mode
-npm test
+# Serve the production build locally for inspection
+npm run preview
 
-# Eject from Create React App (irreversible — only if you need full config control)
-npm run eject
+# Type-check all TypeScript files without emitting output
+npm run lint
 ```
 
 ---
@@ -273,7 +273,7 @@ node --version
 
 ### Changes to `.env` are not reflected
 
-Environment variables are resolved at build time by `react-scripts`. After changing `.env`, stop the development server and restart it:
+Environment variables are resolved at build time by Vite. After changing `.env`, stop the development server and restart it:
 
 ```bash
 # Stop with Ctrl+C, then:
@@ -294,6 +294,8 @@ Ensure the server is configured to serve `index.html` for all non-asset routes (
 REACT_APP_API_URL=https://api.example.com/api npm run build
 ```
 
+The `REACT_APP_API_URL` variable is resolved at build time via the `define` config in `vite.config.ts`.
+
 Deploy the contents of the `build/` directory to your hosting provider. Configure the host to return `index.html` for all 404 responses to support deep linking.
 
 ### Nginx (self-hosted)
@@ -311,7 +313,7 @@ The repository includes a production-ready `nginx.conf` that:
 ## Resources
 
 - [React documentation](https://react.dev)
-- [Create React App documentation](https://create-react-app.dev)
+- [Vite documentation](https://vite.dev)
 - [react-router-dom documentation](https://reactrouter.com)
 - [DOMPurify](https://github.com/cure53/DOMPurify)
 - [Font Awesome icons](https://fontawesome.com/icons)

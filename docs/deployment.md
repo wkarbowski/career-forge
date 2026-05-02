@@ -45,8 +45,8 @@
 ./scripts/setup_postgres.sh
 
 # Or manually
-sudo -u postgres psql -c "CREATE USER cvapp WITH PASSWORD 'strong-password';"
-sudo -u postgres psql -c "CREATE DATABASE cvapp OWNER cvapp;"
+sudo -u postgres psql -c "CREATE USER careerforge WITH PASSWORD 'strong-password';"
+sudo -u postgres psql -c "CREATE DATABASE careerforge OWNER careerforge;"
 ```
 
 ### 2. Configure Environment
@@ -57,7 +57,7 @@ Create `/opt/career-forge/server/.env`:
 APP_NAME=Career Forge API
 DEBUG=false
 ENVIRONMENT=production
-DATABASE_URL=postgresql://cvapp:strong-password@localhost/cvapp
+DATABASE_URL=postgresql://careerforge:strong-password@localhost/careerforge
 SECRET_KEY=your-64-char-random-string-generated-with-openssl-rand-hex-32
 CORS_ORIGINS=https://yourdomain.com
 RATE_LIMIT_BACKEND=redis
@@ -74,6 +74,7 @@ ACCOUNT_LOCKOUT_DURATION=30
 ```
 
 Generate a secure secret key:
+
 ```bash
 openssl rand -hex 32
 ```
@@ -147,6 +148,7 @@ The `build/` directory contains static files that can be served by any web serve
 
 **Option A: Nginx (recommended)**
 Copy `build/` to your web root:
+
 ```bash
 sudo cp -r build/* /var/www/career-forge/
 ```
@@ -155,6 +157,7 @@ sudo cp -r build/* /var/www/career-forge/
 Drag the `build/` folder to Netlify's deploy page.
 
 **Option C: GitHub Pages**
+
 ```bash
 npm install -g gh-pages
 gh-pages -d build
@@ -234,6 +237,7 @@ sudo certbot --nginx -d yourdomain.com
 ```
 
 Auto-renewal is configured by default. Verify:
+
 ```bash
 sudo certbot renew --dry-run
 ```
@@ -242,17 +246,17 @@ sudo certbot renew --dry-run
 
 ## Production Environment Variables
 
-| Variable | Required Value | Why |
-|----------|---------------|-----|
-| `DEBUG` | `false` | Disables Swagger docs, prevents debug info leaks |
-| `ENVIRONMENT` | `production` | Enables security hardening |
-| `SECRET_KEY` | 64+ random chars | JWT security |
-| `ENFORCE_HTTPS` | `true` | Force HTTPS redirect |
-| `COOKIE_SECURE` | `true` | Cookies only sent over HTTPS |
-| `COOKIE_SAMESITE` | `lax` or `strict` | CSRF protection |
-| `DATABASE_URL` | PostgreSQL URL | Production-grade database |
-| `CORS_ORIGINS` | `https://yourdomain.com` | No localhost |
-| `TRUSTED_HOSTS` | `yourdomain.com` | Host header validation |
+| Variable          | Required Value           | Why                                              |
+| ----------------- | ------------------------ | ------------------------------------------------ |
+| `DEBUG`           | `false`                  | Disables Swagger docs, prevents debug info leaks |
+| `ENVIRONMENT`     | `production`             | Enables security hardening                       |
+| `SECRET_KEY`      | 64+ random chars         | JWT security                                     |
+| `ENFORCE_HTTPS`   | `true`                   | Force HTTPS redirect                             |
+| `COOKIE_SECURE`   | `true`                   | Cookies only sent over HTTPS                     |
+| `COOKIE_SAMESITE` | `lax` or `strict`        | CSRF protection                                  |
+| `DATABASE_URL`    | PostgreSQL URL           | Production-grade database                        |
+| `CORS_ORIGINS`    | `https://yourdomain.com` | No localhost                                     |
+| `TRUSTED_HOSTS`   | `yourdomain.com`         | Host header validation                           |
 
 ---
 
@@ -261,6 +265,7 @@ sudo certbot renew --dry-run
 ### Audit Logs
 
 The built-in audit system logs to both the database and stdout. Audit logs can be:
+
 - Piped to log aggregation (ELK, Loki, etc.) via stdout
 
 ### Health Check
@@ -271,6 +276,7 @@ curl https://yourdomain.com/api/health
 ```
 
 ### Security Stats
+
 
 
 ---
@@ -290,6 +296,7 @@ Set up a cron job using the provided backup script:
 ```
 
 The backup script:
+
 - Backs up PostgreSQL via `pg_dump`
 - Compresses with gzip
 - Supports `--restore`, `--list`, `--cleanup`
@@ -314,6 +321,7 @@ cd server
 ```
 
 This validates:
+
 - `DEBUG=false`
 - `ENVIRONMENT=production`
 - `SECRET_KEY` length ≥ 64

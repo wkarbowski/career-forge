@@ -1,28 +1,25 @@
 # Security Policy — Career Forge
 
-If you discover a security vulnerability, **do not open a public issue**. Report it privately so we can address it before public disclosure.
+If you find a security vulnerability, please report it through [GitHub private security advisories](https://github.com/wkarbowski/career-forge/security/advisories/new) rather than opening a public issue. This gives maintainers and other self-hosters time to patch before details are public.
 
 ## Reporting
 
-- **Preferred:** Open a [GitHub private security advisory](https://github.com/wkarbowski/career-forge/security/advisories/new) with subject `Security vulnerability report: [short description]`. Include:
-  - Steps to reproduce
-  - Affected versions
-  - Proof of concept (if available)
+Open a private advisory at the link above and include:
 
-- **Alternative:** If your platform supports private issues, create a private issue and mark it as "security".
+- Steps to reproduce
+- Affected versions / commit
+- Proof of concept (if available)
 
-## Response Process
+## Response
 
-- We will acknowledge receipt within **72 hours**.
-- We will investigate and provide status updates until resolved.
-- Disclosure timing will be coordinated with the reporter.
+- Acknowledgement within **72 hours**.
+- Investigation and status updates until resolved.
+- Disclosure coordinated with the reporter.
 
-## Patches and Fixes
+## Patches
 
-- If you can provide a patch, submit it in a **private branch** and reference it in the report.  
-- **Do not publish** the patch publicly until the issue is fixed.
+If you have a fix, include it in the advisory report (GitHub lets you attach a patch or reference a private fork). Once a patched release is available, coordinated public disclosure is fine.
 
 ## Notes
 
-- Do not include credentials, secrets, or personal data in your report.  
-- Private advisories are reviewed by the maintainer. Coordinated disclosure is appreciated.
+Do not include passwords, tokens, or personal data in your report.
