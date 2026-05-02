@@ -40,9 +40,11 @@ Thumbs.db
 
 # Testing
 coverage/
+htmlcov/
 *.lcov
 .pytest_cache/
 .coverage
+coverage.xml
 
 # Misc
 *.tgz
