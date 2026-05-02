@@ -21,18 +21,18 @@ Templates define the visual style and section configuration for CV documents. Th
 
 ### Available Templates
 
-| ID | Name | Type | Category | Sidebar Colors |
-|----|------|------|----------|------|
-| `resume-modern` | Modern Professional | Resume | Modern | Teal (#006666) |
-| `classic-professional` | Classic Professional | Resume | Professional | Navy gradient (#0f2847 → #1e3a5f) |
-| `executive-prestige` | Executive Prestige | Resume | Professional | Dark gradient (#111827 → #374151) |
-| `ats-optimized` | ATS Optimized | Resume | Technical | Navy gradient (#1a1a2e → #16213e) |
-| `cover-executive` | Executive Cover Letter | Cover Letter | Professional | Dark gradient (#111827 → #374151) |
-| `cover-professional` | Standard Cover Letter | Cover Letter | Professional | Indigo accent (#2563eb) |
+| ID                     | Name                   | Type         | Category     | Sidebar Colors                    |
+| ---------------------- | ---------------------- | ------------ | ------------ | --------------------------------- |
+| `resume-modern`        | Modern Professional    | Resume       | Modern       | Teal (#006666)                    |
+| `classic-professional` | Classic Professional   | Resume       | Professional | Navy gradient (#0f2847 → #1e3a5f) |
+| `executive-prestige`   | Executive Prestige     | Resume       | Professional | Dark gradient (#111827 → #374151) |
+| `ats-optimized`        | ATS Optimized          | Resume       | Technical    | Navy gradient (#1a1a2e → #16213e) |
+| `cover-executive`      | Executive Cover Letter | Cover Letter | Professional | Dark gradient (#111827 → #374151) |
+| `cover-professional`   | Standard Cover Letter  | Cover Letter | Professional | Indigo accent (#2563eb)           |
 
 ### Template Structure
 
-Each template in `src/data/templates.js` includes:
+Each template in `src/data/templates.ts` includes:
 
 ```javascript
 {
@@ -69,25 +69,27 @@ Each template in `src/data/templates.js` includes:
 
 ### Template Data Files
 
-Located in `src/data/templates.js`:
+Located in `src/data/templates.ts`:
 
-| Template ID | Type | Description |
-|-------------|------|-------------|
-| `resume-modern` | `resume` | Sleek modern design with teal tones |
-| `classic-professional` | `resume` | Traditional professional resume with navy sidebar |
-| `executive-prestige` | `resume` | Executive layout with dark gradient |
-| `ats-optimized` | `resume` | Clean, parser-friendly layout for ATS systems |
-| `cover-executive` | `cover-letter` | Executive cover letter with dark gradient |
-| `cover-professional` | `cover-letter` | Standard professional cover letter |
+| Template ID            | Type           | Description                                       |
+| ---------------------- | -------------- | ------------------------------------------------- |
+| `resume-modern`        | `resume`       | Sleek modern design with teal tones               |
+| `classic-professional` | `resume`       | Traditional professional resume with navy sidebar |
+| `executive-prestige`   | `resume`       | Executive layout with dark gradient       |
+| `ats-optimized`        | `resume`       | Clean, parser-friendly layout for ATS systems     |
+| `cover-executive`      | `cover-letter` | Executive cover letter with dark gradient         |
+| `cover-professional`   | `cover-letter` | Standard professional cover letter                |
 
 ### Filter Categories
 
 **Document Types:**
+
 - `all` — All documents
 - `resume` — Resume/CV documents
 - `cover-letter` — Cover letters
 
 **Categories:**
+
 - `all` — All styles
 - `professional` — Classic, traditional layouts
 - `modern` — Contemporary, sleek designs
@@ -104,12 +106,12 @@ getTemplateById(templateId) → template config
     │
     ▼
 Apply to AppStateContext:
-  - updateSettings(template.settings)         → colors
+  - setSettings(template.settings)            → colors
   - setVisibleSections(template.visibleSections) → section toggles
   - setSidebarOrder(template.sidebarOrder)    → section order
     │
     ▼
-sessionStorage.setItem('selected-template', id)
+sessionStorage.setItem('selectedTemplateId', id)
     │
     ▼
 navigate('/editor') → Editor renders with new settings
@@ -117,7 +119,8 @@ navigate('/editor') → Editor renders with new settings
 
 ### Adding a New Template
 
-1. Add the template definition to the `cvTemplates` array in `src/data/templates.js`:
+1. Add the template definition to the `cvTemplates` array in `src/data/templates.ts`:
+
    ```javascript
    {
      id: 'my-custom-template',
@@ -160,46 +163,51 @@ theme state: "dark" ↔ "light"
 Defined in `src/App.css` under `[data-theme="dark"]` and `[data-theme="light"]`:
 
 #### Background Colors
-| Variable | Dark | Light |
-|----------|------|-------|
-| `--bg-primary` | `#0a0a0b` | `#fafafa` |
-| `--bg-secondary` | `#121214` | `#f0f0f2` |
-| `--bg-tertiary` | `#1a1a1f` | `#e8e8ec` |
-| `--bg-hover` | `rgba(255,255,255,0.05)` | `rgba(0,0,0,0.04)` |
-| `--bg-input` | `rgba(255,255,255,0.05)` | `#ffffff` |
-| `--bg-elevated` | `#1e1e24` | `#ffffff` |
+
+| Variable         | Dark                     | Light              |
+| ---------------- | ------------------------ | ------------------ |
+| `--bg-primary`   | `#0a0a0b`                | `#fafafa`          |
+| `--bg-secondary` | `#121214`                | `#f0f0f2`          |
+| `--bg-tertiary`  | `#1a1a1f`                | `#e8e8ec`          |
+| `--bg-hover`     | `rgba(255,255,255,0.05)` | `rgba(0,0,0,0.04)` |
+| `--bg-input`     | `rgba(255,255,255,0.05)` | `#ffffff`          |
+| `--bg-elevated`  | `#1e1e24`                | `#ffffff`          |
 
 #### Text Colors
-| Variable | Dark | Light |
-|----------|------|-------|
-| `--text-primary` | `#f0f0f0` | `#1a1a1a` |
+
+| Variable           | Dark      | Light     |
+| ------------------ | --------- | --------- |
+| `--text-primary`   | `#f0f0f0` | `#1a1a1a` |
 | `--text-secondary` | `#a0a0a8` | `#4a4a52` |
-| `--text-muted` | `#68687a` | `#8a8a96` |
+| `--text-muted`     | `#68687a` | `#8a8a96` |
 
 #### Accent Colors
-| Variable | Dark | Light |
-|----------|------|-------|
-| `--accent-color` | `#6366f1` | `#4f46e5` |
-| `--accent-hover` | `#818cf8` | `#6366f1` |
-| `--accent-muted` | `rgba(99,102,241,0.15)` | `rgba(79,70,229,0.1)` |
-| `--accent-glow` | `rgba(99,102,241,0.3)` | `rgba(79,70,229,0.15)` |
-| `--accent-secondary` | `#22d3ee` | `#0891b2` |
+
+| Variable             | Dark                    | Light                  |
+| -------------------- | ----------------------- | ---------------------- |
+| `--accent-color`     | `#6366f1`               | `#4f46e5`              |
+| `--accent-hover`     | `#818cf8`               | `#6366f1`              |
+| `--accent-muted`     | `rgba(99,102,241,0.15)` | `rgba(79,70,229,0.1)`  |
+| `--accent-glow`      | `rgba(99,102,241,0.3)`  | `rgba(79,70,229,0.15)` |
+| `--accent-secondary` | `#22d3ee`               | `#0891b2`              |
 
 #### Status Colors
-| Variable | Dark | Light |
-|----------|------|-------|
+
+| Variable          | Dark      | Light     |
+| ----------------- | --------- | --------- |
 | `--success-color` | `#10b981` | `#059669` |
-| `--error-color` | `#ef4444` | `#dc2626` |
+| `--error-color`   | `#ef4444` | `#dc2626` |
 | `--warning-color` | `#f59e0b` | `#d97706` |
 
 #### Effects
-| Variable | Dark | Light |
-|----------|------|-------|
-| `--shadow-sm` | Subtle dark shadow | Subtle light shadow |
-| `--shadow-md` | Medium dark shadow | Medium light shadow |
-| `--shadow-lg` | Large dark shadow with accent glow | Large clean shadow |
-| `--glass-bg` | `rgba(255,255,255,0.03)` | `rgba(255,255,255,0.7)` |
-| `--glass-border` | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.08)` |
+
+| Variable         | Dark                               | Light                   |
+| ---------------- | ---------------------------------- | ----------------------- |
+| `--shadow-sm`    | Subtle dark shadow                 | Subtle light shadow     |
+| `--shadow-md`    | Medium dark shadow                 | Medium light shadow     |
+| `--shadow-lg`    | Large dark shadow with accent glow | Large clean shadow      |
+| `--glass-bg`     | `rgba(255,255,255,0.03)`           | `rgba(255,255,255,0.7)` |
+| `--glass-border` | `rgba(255,255,255,0.08)`           | `rgba(0,0,0,0.08)`      |
 
 ### Using Theme Variables in Components
 
@@ -233,7 +241,7 @@ Defined in `src/App.css` under `[data-theme="dark"]` and `[data-theme="light"]`:
 Custom i18n implementation using React Context (no external library):
 
 ```
-I18nProvider (src/i18n.js)
+I18nProvider (src/i18n.tsx)
     ├─► lang: "en" | "de"
     ├─► t(key): dot-notation translation lookup
     ├─► setLang(code): change language
@@ -242,44 +250,44 @@ I18nProvider (src/i18n.js)
 
 ### Translation Files
 
-| File | Language | Keys |
-|------|----------|------|
-| `src/locales/en.json` | English | ~180 keys |
-| `src/locales/de.json` | German | ~180 keys |
+| File                  | Language | Keys      |
+| --------------------- | -------- | --------- |
+| `src/locales/en.json` | English  | ~180 keys |
+| `src/locales/de.json` | German   | ~180 keys |
 
 ### Key Namespaces
 
-| Namespace | Description | Example Keys |
-|-----------|-------------|-------------|
-| `home` | Landing page | `home.title`, `home.subtitle`, `home.guestMode` |
-| `nav` | Navigation | `nav.editor`, `nav.templates`, `nav.dashboard` |
-| `toolbar` | Editor toolbar | `toolbar.print`, `toolbar.export` |
-| `sections` | CV section names | `sections.summary`, `sections.experience` |
-| `settings` | Settings panel | `settings.colors`, `settings.sections` |
-| `auth` | Auth forms | `auth.login`, `auth.register`, `auth.email` |
-| `dashboard` | CV dashboard | `dashboard.title`, `dashboard.search` |
-| `templates` | Template gallery | `templates.title`, `templates.useTemplate` |
-| `userMenu` | User menu | `userMenu.logout`, `userMenu.newCV` |
-| `saveStatus` | Save indicator | `saveStatus.saving`, `saveStatus.saved` |
-| `pages` | Page controls | `pages.page`, `pages.zoom` |
-| `buttons` | Common buttons | `buttons.add`, `buttons.delete` |
-| `profile` | Profile section | `profile.photo`, `profile.upload` |
-| `placeholders` | Placeholder text | `placeholders.name`, `placeholders.email` |
-| `common` | Common strings | `common.cancel`, `common.confirm` |
+| Namespace      | Description      | Example Keys                                    |
+| -------------- | ---------------- | ----------------------------------------------- |
+| `home`         | Landing page     | `home.title`, `home.subtitle`, `home.guestMode` |
+| `nav`          | Navigation       | `nav.editor`, `nav.templates`, `nav.dashboard`  |
+| `toolbar`      | Editor toolbar   | `toolbar.print`, `toolbar.export`               |
+| `sections`     | CV section names | `sections.summary`, `sections.experience`       |
+| `settings`     | Settings panel   | `settings.colors`, `settings.sections`          |
+| `auth`         | Auth forms       | `auth.login`, `auth.register`, `auth.email`     |
+| `dashboard`    | CV dashboard     | `dashboard.title`, `dashboard.search`           |
+| `templates`    | Template gallery | `templates.title`, `templates.useTemplate`      |
+| `userMenu`     | User menu        | `userMenu.logout`, `userMenu.newCV`             |
+| `saveStatus`   | Save indicator   | `saveStatus.saving`, `saveStatus.saved`         |
+| `pages`        | Page controls    | `pages.page`, `pages.zoom`                      |
+| `buttons`      | Common buttons   | `buttons.add`, `buttons.delete`                 |
+| `profile`      | Profile section  | `profile.photo`, `profile.upload`               |
+| `placeholders` | Placeholder text | `placeholders.name`, `placeholders.email`       |
+| `common`       | Common strings   | `common.cancel`, `common.confirm`               |
 
 ### Using Translations
 
 ```jsx
-import { useI18n } from '../i18n';
+import { useI18n } from "../i18n";
 
 function MyComponent() {
   const { t, lang, setLang } = useI18n();
-  
+
   return (
     <div>
-      <h1>{t('home.title')}</h1>
-      <p>{t('sections.experience')}</p>
-      <button onClick={() => setLang('de')}>Deutsch</button>
+      <h1>{t("home.title")}</h1>
+      <p>{t("sections.experience")}</p>
+      <button onClick={() => setLang("de")}>Deutsch</button>
     </div>
   );
 }
@@ -291,16 +299,17 @@ function MyComponent() {
    Copy `src/locales/en.json` to `src/locales/<code>.json` and translate all values.
 
 2. **Register the language:**
-   ```javascript
-   // src/i18n.js
-   import fr from './locales/fr.json';
-   
+
+   ```typescript
+   // src/i18n.tsx
+   import fr from "./locales/fr.json";
+
    const translations = { en, de, fr };
-   
+
    const availableLanguages = [
-     { code: 'en', label: 'English' },
-     { code: 'de', label: 'Deutsch' },
-     { code: 'fr', label: 'Français' }
+     { code: "en", label: "English" },
+     { code: "de", label: "Deutsch" },
+     { code: "fr", label: "Français" },
    ];
    ```
 
@@ -336,26 +345,32 @@ The application includes extensive `@media print` CSS rules in `src/App.css` for
     size: A4;
     margin: 0;
   }
-  
+
   /* Hide all non-CV elements */
-  .global-header, .text-toolbar, .vertical-menu,
-  .page-controls, .editor-toolbar { display: none !important; }
-  
+  .global-header,
+  .text-toolbar,
+  .vertical-menu,
+  .page-controls,
+  .editor-toolbar {
+    display: none !important;
+  }
+
   /* Scale to fit A4 */
   .cv-page {
     transform: scale(0.85);
     width: 117.65%;
   }
-  
+
   /* Preserve background colors */
   .sidebar {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     color-adjust: exact;
   }
-  
+
   /* Prevent content splitting */
-  .experience-entry, .education-entry {
+  .experience-entry,
+  .education-entry {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -364,11 +379,11 @@ The application includes extensive `@media print` CSS rules in `src/App.css` for
 
 ### Browser Print Instructions
 
-| Browser | Background Colors Setting |
-|---------|--------------------------|
-| Chrome/Edge | Print → More settings → "Background graphics" ✓ |
-| Firefox | Print → Options → "Print Background Colors and Images" ✓ |
-| Safari | Print → "Print backgrounds" ✓ |
+| Browser     | Background Colors Setting                                |
+| ----------- | -------------------------------------------------------- |
+| Chrome/Edge | Print → More settings → "Background graphics" ✓          |
+| Firefox     | Print → Options → "Print Background Colors and Images" ✓ |
+| Safari      | Print → "Print backgrounds" ✓                            |
 
 ### Print Optimization Tips
 

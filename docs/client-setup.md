@@ -53,23 +53,35 @@ npm install
 
 ### Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `react` | ^18.2.0 | UI library |
-| `react-dom` | ^18.2.0 | DOM rendering |
-| `react-router-dom` | ^7.13.0 | Client-side routing |
-| `react-scripts` | 5.0.1 | CRA build toolchain (Webpack, Babel, ESLint) |
-| `dompurify` | ^3.0.0 | HTML sanitization for inline editing || `@fontsource/*` | 5.2.x | 16 self-hosted font families |
-| `@fortawesome/fontawesome-free` | ^7.2.0 | Self-hosted icon library |
+| Package                         | Version | Purpose                              |
+| ------------------------------- | ------- | ------------------------------------ |
+| `react`                         | ^18.2.0 | UI library                           |
+| `react-dom`                     | ^18.2.0 | DOM rendering                        |
+| `react-router-dom`              | ^7.13.0 | Client-side routing                  |
+| `dompurify`                     | ^3.0.0  | HTML sanitization for inline editing |
+| `react-easy-crop`               | ^5.5.7  | Profile image cropper                |
+| `html2canvas`                   | ^1.4.1  | Canvas rendering utility             |
+| `@fontsource/*`                 | 5.2.x   | 16 self-hosted font families         |
+| `@fortawesome/fontawesome-free` | ^7.2.0  | Self-hosted icon library             |
+
+**Dev dependencies (build & test):**
+
+| Package                | Version | Purpose                            |
+| ---------------------- | ------- | ---------------------------------- |
+| `vite`                 | ^6.3.3  | Build tool and dev server          |
+| `@vitejs/plugin-react` | ^4.5.0  | React fast-refresh plugin for Vite |
+| `typescript`           | ^6.0.2  | TypeScript compiler                |
+| `vitest`               | ^3.1.2  | Unit test runner                   |
+
 ---
 
 ## Development
 
 ```bash
-npm start
+npm run dev
 ```
 
-Opens `http://localhost:3000` with hot module replacement (HMR).
+Opens `http://localhost:3000` with hot module replacement (HMR). The dev server proxies `/api` requests to `http://localhost:8000` automatically (configured in `vite.config.ts`).
 
 ### Environment Variables
 
@@ -78,26 +90,25 @@ Create a `.env` file in the `client/` directory (optional):
 ```env
 # API server URL (defaults to http://localhost:8000/api)
 REACT_APP_API_URL=http://localhost:8000/api
-
-# Custom port
-PORT=3000
 ```
 
-> All custom environment variables must be prefixed with `REACT_APP_` to be available in the React app.
+> The `REACT_APP_*` prefix is bridged into Vite builds via `vite.config.ts`'s `define` block. You do not need to rename variables to `VITE_*`.
 
 ### Proxy Setup
 
 The client communicates with the backend at `http://localhost:8000`. Start both servers:
 
 **Terminal 1 (Backend):**
+
 ```bash
 cd server && source venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 
 **Terminal 2 (Frontend):**
+
 ```bash
-cd client && npm start
+cd client && npm run dev
 ```
 
 ---
@@ -111,6 +122,7 @@ npm run build
 Creates an optimized production build in `client/build/`.
 
 The build folder contains:
+
 - Minified and bundled JavaScript
 - Optimized CSS
 - Static assets
@@ -130,14 +142,14 @@ npx serve -s build -l 3000
 npm test
 ```
 
-Runs the Jest test runner in watch mode.
+Runs Vitest in watch mode.
 
 ```bash
 # Run tests once (CI mode)
-CI=true npm test
+npm run test -- --run
 
 # Run with coverage report
-CI=true npm test -- --coverage
+npm run test -- --run --coverage
 ```
 
 ---
@@ -146,22 +158,23 @@ CI=true npm test -- --coverage
 
 ### API URL
 
-The API service layer (`src/services/api.js`) uses:
+The API service layer (`src/services/api.ts`) uses:
 
-```javascript
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+```typescript
+const API_BASE: string =
+  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 ```
 
-Set `REACT_APP_API_URL` in `.env` or at build time for production.
+Set `REACT_APP_API_URL` in `client/.env` or at build time for production.
 
 ### Bundled Resources
 
 All fonts and icons are **self-hosted** via npm packages — no external CDN requests are made.
 
-| Resource | Package | Purpose |
-|----------|---------|---------|
-| 16 font families | `@fontsource/*` | Body text, headings, CV templates |
-| Font Awesome 7 | `@fortawesome/fontawesome-free` | UI icons |
+| Resource         | Package                         | Purpose                           |
+| ---------------- | ------------------------------- | --------------------------------- |
+| 16 font families | `@fontsource/*`                 | Body text, headings, CV templates |
+| Font Awesome 7   | `@fortawesome/fontawesome-free` | UI icons                          |
 
 ---
 
@@ -187,11 +200,11 @@ Edit CSS custom properties in `src/App.css`:
 
 ### Default Document Data
 
-Edit `src/data/initialData.js` to change the default document content shown to new users.
+Edit `src/data/initialData.ts` to change the default document content shown to new users.
 
 ### Templates
 
-Add new templates in `src/data/templates.js`:
+Add new templates in `src/data/templates.ts`:
 
 ```javascript
 {
@@ -210,23 +223,23 @@ Add new templates in `src/data/templates.js`:
 ### Adding a New Language
 
 1. Create `src/locales/<code>.json` with all translation keys (copy `en.json` as a starting point)
-2. Add the language to `availableLanguages` in `src/i18n.js`:
-   ```javascript
+2. Add the language to `availableLanguages` in `src/i18n.tsx`:
+   ```typescript
    const availableLanguages = [
-     { code: 'en', label: 'English' },
-     { code: 'de', label: 'Deutsch' },
-     { code: 'fr', label: 'Français' }  // new
+     { code: "en", label: "English" },
+     { code: "de", label: "Deutsch" },
+     { code: "fr", label: "Français" }, // new
    ];
    ```
 
 ### Adding a New CV Section
 
-1. Add default data in `src/data/initialData.js`
-2. Add the section to `visibleSections` in `src/contexts/AppStateContext.js`
-3. Add rendering logic in `src/components/Sidebar/Sidebar.js` or `src/components/MainContent/MainContent.js`
+1. Add default data in `src/data/initialData.ts`
+2. Add the section to `visibleSections` in `src/contexts/AppStateContext.tsx`
+3. Add rendering logic in the relevant component inside `src/components/`
 4. Add the section key to `sidebarOrder` if it belongs in the sidebar
 5. Add translation keys in both `src/locales/en.json` and `src/locales/de.json`
-6. Add a toggle checkbox in `src/components/VerticalMenu.js`
+6. Add a toggle in `src/components/VerticalMenu.tsx`
 
 ---
 
@@ -235,19 +248,25 @@ Add new templates in `src/data/templates.js`:
 ### Common Issues
 
 **Port already in use:**
+
 ```bash
-PORT=3001 npm start
+# Vite reads server.port from vite.config.ts (default 3000).
+# Override at runtime:
+npx vite --port 3001
 ```
 
 **Blank page after build:**
+
 - Check that `homepage` in `package.json` matches your deployment path
 - If deploying to a subdirectory, set `"homepage": "/subdirectory/"`
 
 **CORS errors with backend:**
+
 - Ensure the backend `CORS_ORIGINS` includes `http://localhost:3000`
 - Check that the API URL is correct in `.env`
 
 **npm install failures:**
+
 ```bash
 rm -rf node_modules package-lock.json
 npm cache clean --force
@@ -255,12 +274,13 @@ npm install
 ```
 
 **Hot reload not working:**
+
 ```bash
 # Stop the dev server (Ctrl+C) and restart
-npm start
+npm run dev
 ```
 
 **Print layout issues:**
+
 - Reset browser zoom to 100% before printing
-- Enable "Background graphics" in print dialog
-- See the [Print Guide](../client/PRINT-GUIDE.md) for browser-specific instructions
+- Enable "Background graphics" in the print dialog

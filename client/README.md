@@ -27,7 +27,7 @@ The React-based frontend for **Career Forge**, a full-featured resume and cover 
 |---|---|---|
 | React | 18.2 | UI framework |
 | react-router-dom | 7 | Client-side routing |
-| react-scripts (CRA) | 5 | Build tooling |
+| Vite | 6 | Build tooling |
 | DOMPurify | 3 | HTML sanitisation |
 | Nginx | 1.27 (Alpine) | Production static file server + API proxy |
 
@@ -121,10 +121,10 @@ In Docker the value is injected as a build argument (`ARG REACT_APP_API_URL=/api
 ## Available Scripts
 
 ```bash
-npm start          # Start the development server on http://localhost:3000
+npm start          # Start the Vite development server on http://localhost:3000
 npm run build      # Create an optimised production build in build/
-npm test           # Run tests in watch mode (Jest + React Testing Library)
-npm run eject      # Eject from CRA — irreversible
+npm run preview    # Serve the production build locally for inspection
+npm run lint       # Type-check all TypeScript files (tsc --noEmit)
 ```
 
 ---
@@ -145,6 +145,8 @@ See the root `docker-compose.yml` for the full service definition.
 ```bash
 REACT_APP_API_URL=https://api.example.com/api npm run build
 ```
+
+The `REACT_APP_API_URL` variable is resolved at build time by Vite via the `define` config.
 
 Deploy the generated `build/` directory to any static hosting provider (Netlify, Vercel, GitHub Pages, S3, etc.). Ensure the host is configured to serve `index.html` for all routes to support client-side routing.
 

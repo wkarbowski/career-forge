@@ -42,23 +42,23 @@ pip install -r requirements.txt
 
 ### Dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `fastapi` | Web framework |
-| `uvicorn[standard]` | ASGI server |
-| `sqlalchemy` | ORM |
-| `psycopg2-binary` | PostgreSQL driver |
-| `python-jose[cryptography]` | JWT tokens |
-| `bcrypt` | Password hashing |
-| `python-multipart` | Form data / file uploads |
-| `pydantic` | Data validation |
-| `pydantic-settings` | Environment-based settings |
-| `email-validator` | Email validation |
-| `alembic` | Database migrations |
-| `redis` | Redis client (optional) |
-| `bleach` | HTML sanitization |
-| `tinycss2` | CSS sanitization (defense-in-depth) |
-| `gunicorn` | Production WSGI server |
+| Package                     | Purpose                             |
+| --------------------------- | ----------------------------------- |
+| `fastapi`                   | Web framework                       |
+| `uvicorn[standard]`         | ASGI server                         |
+| `sqlalchemy`                | ORM                                 |
+| `psycopg2-binary`           | PostgreSQL driver                   |
+| `python-jose[cryptography]` | JWT tokens                          |
+| `bcrypt`                    | Password hashing                    |
+| `python-multipart`          | Form data / file uploads            |
+| `pydantic`                  | Data validation                     |
+| `pydantic-settings`         | Environment-based settings          |
+| `email-validator`           | Email validation                    |
+| `alembic`                   | Database migrations                 |
+| `redis`                     | Redis client (optional)             |
+| `bleach`                    | HTML sanitization                   |
+| `tinycss2`                  | CSS sanitization (defense-in-depth) |
+| `gunicorn`                  | Production WSGI server              |
 
 ---
 
@@ -107,30 +107,30 @@ TRUSTED_HOSTS=
 
 ### Environment Variables Reference
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `APP_NAME` | `Career Forge API` | Application name |
-| `DEBUG` | `false` | Enable debug mode (Swagger docs) |
-| `ENVIRONMENT` | `development` | `development`, `staging`, or `production` |
-| `DATABASE_URL` | `postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge` | PostgreSQL connection string |
-| `SECRET_KEY` | Auto-generated (dev) | JWT signing key (min 32 chars, recommended 64+) |
-| `ALGORITHM` | `HS256` | JWT signing algorithm |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` | Access token lifetime |
-| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
-| `REFRESH_TOKEN_ROTATE` | `true` | Enable token rotation |
-| `CORS_ORIGINS` | `localhost:3000` | Allowed CORS origins |
-| `RATE_LIMIT_PER_MINUTE` | `60` | General rate limit |
-| `RATE_LIMIT_AUTH_PER_MINUTE` | `10` | Auth rate limit |
-| `RATE_LIMIT_BACKEND` | `memory` | `memory` or `redis` |
-| `REDIS_URL` | — | Redis connection URL |
-| `REDIS_PASSWORD` | — | Redis password |
-| `ACCOUNT_LOCKOUT_ATTEMPTS` | `10` | Failed login threshold |
-| `ACCOUNT_LOCKOUT_DURATION` | `15` | Lockout duration (minutes) |
-| `COOKIE_SECURE` | `true` | HTTPS-only cookies |
-| `COOKIE_SAMESITE` | `lax` | Cookie SameSite policy |
-| `COOKIE_DOMAIN` | — | Cookie domain scope |
-| `ENFORCE_HTTPS` | `false` | Force HTTPS redirect |
-| `TRUSTED_HOSTS` | — | Allowed host headers |
+| Variable                      | Default                                                                      | Description                                     |
+| ----------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------- |
+| `APP_NAME`                    | `Career Forge API`                                                           | Application name                                |
+| `DEBUG`                       | `false`                                                                      | Enable debug mode (Swagger docs)                |
+| `ENVIRONMENT`                 | `development`                                                                | `development`, `staging`, or `production`       |
+| `DATABASE_URL`                | `postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge` | PostgreSQL connection string                    |
+| `SECRET_KEY`                  | Auto-generated (dev)                                                         | JWT signing key (min 32 chars, recommended 64+) |
+| `ALGORITHM`                   | `HS256`                                                                      | JWT signing algorithm                           |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `15`                                                                         | Access token lifetime                           |
+| `REFRESH_TOKEN_EXPIRE_DAYS`   | `7`                                                                          | Refresh token lifetime                          |
+| `REFRESH_TOKEN_ROTATE`        | `true`                                                                       | Enable token rotation                           |
+| `CORS_ORIGINS`                | `localhost:3000`                                                             | Allowed CORS origins                            |
+| `RATE_LIMIT_PER_MINUTE`       | `60`                                                                         | General rate limit                              |
+| `RATE_LIMIT_AUTH_PER_MINUTE`  | `10`                                                                         | Auth rate limit                                 |
+| `RATE_LIMIT_BACKEND`          | `memory`                                                                     | `memory` or `redis`                             |
+| `REDIS_URL`                   | —                                                                            | Redis connection URL                            |
+| `REDIS_PASSWORD`              | —                                                                            | Redis password                                  |
+| `ACCOUNT_LOCKOUT_ATTEMPTS`    | `10`                                                                         | Failed login threshold                          |
+| `ACCOUNT_LOCKOUT_DURATION`    | `15`                                                                         | Lockout duration (minutes)                      |
+| `COOKIE_SECURE`               | `true`                                                                       | HTTPS-only cookies                              |
+| `COOKIE_SAMESITE`             | `lax`                                                                        | Cookie SameSite policy                          |
+| `COOKIE_DOMAIN`               | —                                                                            | Cookie domain scope                             |
+| `ENFORCE_HTTPS`               | `false`                                                                      | Force HTTPS redirect                            |
+| `TRUSTED_HOSTS`               | —                                                                            | Allowed host headers                            |
 
 > **Important:** In development, if `SECRET_KEY` is not set, one is auto-generated with a warning. In production, always set a strong `SECRET_KEY` (64+ chars). `DEBUG=true` is **fatal** in production environment.
 
@@ -157,6 +157,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 Or with Gunicorn:
+
 ```bash
 gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
@@ -168,30 +169,35 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ### PostgreSQL
 
 **Option 1: Use the setup script**
+
 ```bash
 chmod +x scripts/setup_postgres.sh
 ./scripts/setup_postgres.sh
 ```
 
 This creates:
-- Database: `cvapp`
-- User: `cvapp`
+
+- Database: `careerforge`
+- User: `careerforge`
 - Outputs the `DATABASE_URL` for your `.env`
 
 **Option 2: Manual setup**
+
 ```bash
 sudo -u postgres psql
 ```
+
 ```sql
-CREATE USER cvapp WITH PASSWORD 'your-secure-password';
-CREATE DATABASE cvapp OWNER cvapp;
-GRANT ALL PRIVILEGES ON DATABASE cvapp TO cvapp;
+CREATE USER careerforge WITH PASSWORD 'your-secure-password';
+CREATE DATABASE careerforge OWNER careerforge;
+GRANT ALL PRIVILEGES ON DATABASE careerforge TO careerforge;
 \q
 ```
 
 Update `.env`:
+
 ```env
-DATABASE_URL=postgresql://cvapp:<your-strong-password>@localhost/cvapp
+DATABASE_URL=postgresql://careerforge:<your-strong-password>@localhost/careerforge
 ```
 
 ### Running Migrations
@@ -219,7 +225,7 @@ alembic revision --autogenerate -m "description of changes"
 ./scripts/backup_database.sh --list
 
 # Restore from backup
-./scripts/backup_database.sh --restore backups/cvapp_20260213_120000.sql.gz
+./scripts/backup_database.sh --restore backups/careerforge_20260213_120000.sql.gz
 
 # Clean old backups (>7 days)
 ./scripts/backup_database.sh --cleanup
@@ -255,10 +261,10 @@ Admin users can access the `/api/admin/*` endpoints for audit log monitoring and
 
 When `DEBUG=true`, interactive API documentation is available:
 
-| URL | Format |
-|-----|--------|
-| `http://localhost:8000/api/docs` | Swagger UI |
-| `http://localhost:8000/api/redoc` | ReDoc |
+| URL                                      | Format       |
+| ---------------------------------------- | ------------ |
+| `http://localhost:8000/api/docs`         | Swagger UI   |
+| `http://localhost:8000/api/redoc`        | ReDoc        |
 | `http://localhost:8000/api/openapi.json` | OpenAPI JSON |
 
 > These are automatically disabled in production (`DEBUG=false`).
@@ -270,6 +276,7 @@ When `DEBUG=true`, interactive API documentation is available:
 ### Common Issues
 
 **Port already in use:**
+
 ```bash
 # Find the process
 lsof -i :8000
@@ -280,14 +287,17 @@ uvicorn app.main:app --reload --port 8001
 ```
 
 **CORS errors:**
+
 - Verify `CORS_ORIGINS` includes your frontend URL (e.g., `http://localhost:3000`)
 - Include both `localhost` and `127.0.0.1` variants
 
 **JWT errors:**
+
 - Ensure `SECRET_KEY` is consistent between restarts
 - Check token expiry (`ACCESS_TOKEN_EXPIRE_MINUTES`)
 
 **Migration errors:**
+
 ```bash
 # Reset to a specific revision
 alembic downgrade <revision>
@@ -297,5 +307,6 @@ alembic stamp head
 ```
 
 **Redis connection failed:**
+
 - Rate limiting automatically falls back to in-memory
 - Check `REDIS_URL` and `REDIS_PASSWORD` settings

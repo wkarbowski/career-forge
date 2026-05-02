@@ -1,9 +1,10 @@
 # Career Forge — Resume & Cover Letter Builder
 
-> A full-stack, self-hostable resume and cover letter builder with a real-time WYSIWYG editor, multi-page A4 pagination, template system, and server-side persistence.
+> A full-stack, self-hostable resume and cover letter builder with a real-time WYSIWYG editor, multi-page A4 pagination, and a template system.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/wkarbowski/career-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/wkarbowski/career-forge/actions/workflows/ci.yml)
+[![codecov](https://img.shields.io/badge/coverage-check%20CI-brightgreen)](server/tests/)
 [![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](server/)
 [![Frontend: React 18](https://img.shields.io/badge/Frontend-React%2018-61dafb)](client/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ed)](docker-compose.yml)
@@ -12,18 +13,26 @@
 
 ## Features
 
-- **WYSIWYG inline editing** — click any field to edit; floating toolbar for bold, italic, lists, colour, alignment
-- **Multi-page A4 pagination** — automatic page flow, zoom, and view-mode controls
+- **WYSIWYG inline editing** — click any field to edit in place; central editor toolbar for formatting
+- **Multi-page A4 pagination** — page count calculated automatically from content height; zoom and view-mode controls
+- **Cover letter editor** — dedicated DIN 5008-style cover letter editor with its own toolbar and layout
 - **Template gallery** — professional, modern, and cover-letter templates with live colour previews
 - **Document dashboard** — create, rename, search, sort, filter, and delete saved documents
 - **Auth system** — register / login with JWT access tokens + HttpOnly-cookie refresh tokens; guest mode with no account required
-- **PDF / Print export** — browser-print with print-optimised CSS that hides all UI chrome
+- **PDF / Print export** — browser print via `window.print()` with print-optimised CSS that hides all UI chrome
 - **JSON import / export** — full document backup and portability
-- **Profile image upload** — upload a photo directly from the editor
+- **Profile image upload** — upload and crop a photo directly from the editor
+- **Version history** — create named snapshots and restore previous versions
+- **Keyword matcher** — paste a job description and see matching keywords highlighted
 - **Dark / Light theme** — persisted per user
 - **Multi-language UI** — English and German locales (persisted per user)
 - **Auto-save** — debounced background sync when authenticated
 - **Security hardened** — rate limiting, CSRF protection, audit logging, account lockout, security headers
+
+---
+
+## Screenshots
+
 
 ---
 
@@ -46,17 +55,17 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, React Router v7, CRA 5 |
-| Fonts | 16× @fontsource/* (self-hosted) |
-| Icons | Font Awesome Free 7 (self-hosted) |
-| Sanitization | DOMPurify 3 |
-| Backend | FastAPI 0.115+, Python 3.12+ |
-| ORM / Migrations | SQLAlchemy 2, Alembic |
-| Database | PostgreSQL 16 |
-| Cache / Rate Limiting | Redis 7 |
-| Containerization | Docker + Docker Compose |
+| Layer                 | Technology                        |
+| --------------------- | --------------------------------- |
+| Frontend              | React 18, React Router v7, Vite 6 |
+| Fonts                 | 16× @fontsource/\* (self-hosted)  |
+| Icons                 | Font Awesome Free 7 (self-hosted) |
+| Sanitization          | DOMPurify 3                       |
+| Backend               | FastAPI 0.115+, Python 3.12+      |
+| ORM / Migrations      | SQLAlchemy 2, Alembic             |
+| Database              | PostgreSQL 16                     |
+| Cache / Rate Limiting | Redis 7                           |
+| Containerization      | Docker + Docker Compose           |
 
 ---
 
@@ -91,25 +100,44 @@ npm start
 
 See the full guides in [`docs/`](docs/):
 
-| Guide | Description |
-|-------|-------------|
-| [Server Setup](docs/server-setup.md) | Backend installation & configuration |
-| [Client Setup](docs/client-setup.md) | Frontend installation & development |
-| [Deployment](docs/deployment.md) | Production deployment checklist |
-| [API Reference](docs/api-reference.md) | Complete REST API documentation |
-| [Architecture](docs/architecture.md) | System design & data flow |
-| [Security](docs/security.md) | Auth, middleware, audit logging |
+| Guide                                  | Description                          |
+| -------------------------------------- | ------------------------------------ |
+| [Server Setup](docs/server-setup.md)   | Backend installation & configuration |
+| [Client Setup](docs/client-setup.md)   | Frontend installation & development  |
+| [Deployment](docs/deployment.md)       | Production deployment checklist      |
+| [API Reference](docs/api-reference.md) | Complete REST API documentation      |
+| [Architecture](docs/architecture.md)   | System design & data flow            |
+| [Security](docs/security.md)           | Auth, middleware, audit logging      |
 
 ---
 
-## Architecture
+## Testing
 
-Career Forge architecture:
+### Backend Tests
 
-- **Core application** — the complete self-hostable application.
-- **Extended layer** — optional modules (billing, OAuth, server-side PDF, shareable links, admin panel) loaded as an overlay at deploy time.
+Run the test suite with coverage:
 
-Optional extended modules add operational features for managed deployments.
+```bash
+cd server
+python -m venv venv && source venv/bin/activate
+pip install -r requirements-dev.txt
+pytest
+```
+
+View coverage report:
+
+```bash
+pytest --cov-report=html
+open htmlcov/index.html  # or xdg-open on Linux
+```
+
+### Frontend Tests
+
+```bash
+cd client
+npm install
+npm test
+```
 
 ---
 
@@ -117,11 +145,11 @@ Optional extended modules add operational features for managed deployments.
 
 Create a `.env` file in the project root and set at minimum:
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SECRET_KEY` | **Yes** | JWT signing key — `openssl rand -hex 32` |
-| `POSTGRES_PASSWORD` | Prod | PostgreSQL password |
-| `REDIS_PASSWORD` | Prod | Redis password (if using Redis rate limiting) |
+| Variable            | Required | Description                                   |
+| ------------------- | -------- | --------------------------------------------- |
+| `SECRET_KEY`        | **Yes**  | JWT signing key — `openssl rand -hex 32`      |
+| `POSTGRES_PASSWORD` | Prod     | PostgreSQL password                           |
+| `REDIS_PASSWORD`    | Prod     | Redis password (if using Redis rate limiting) |
 
 See [docs/deployment.md](docs/deployment.md) for the full list of variables.
 

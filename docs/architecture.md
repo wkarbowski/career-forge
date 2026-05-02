@@ -33,7 +33,7 @@ Career Forge follows a **client-server architecture** with a clear separation be
                                             └───────────────┘
 ```
 
-**Communication**: REST API over HTTP(S) with JSON payloads. Authentication tokens are split between `localStorage` (access token) and HttpOnly cookies (refresh token) for XSS mitigation.
+**Communication**: REST API over HTTP(S) with JSON payloads. Authentication tokens are split between `localStorage` (access token, theme preference, language preference) and HttpOnly cookies (refresh token) for XSS mitigation.
 
 ---
 
@@ -41,16 +41,16 @@ Career Forge follows a **client-server architecture** with a clear separation be
 
 ### Context Provider Hierarchy
 
-The app uses 6 React Context providers nested in a specific order. Each child provider can access its parent's context:
+The app uses 6 React Context providers nested in this order:
 
 ```
 <BrowserRouter>
   └─ <ThemeProvider>           — dark/light theme state
       └─ <I18nProvider>        — language & translations
-          └─ <TemplateProvider> — available templates & selection
-              └─ <AppStateProvider>  — CV data, settings, sections
-                  └─ <PageProvider>  — multi-page pagination & zoom
-                      └─ <AuthProvider>  — user auth, CV persistence
+          └─ <AppStateProvider>  — CV data, settings, document type, cover letter data
+              └─ <PageProvider>  — multi-page pagination & zoom
+                  └─ <AuthProvider>  — user auth, document list, auto-save
+                      └─ <UndoProvider>  — undo/redo history
                           └─ <AppContentInner>  — routes & layout
 ```
 
@@ -66,52 +66,54 @@ App
 │  └─ UserMenu
 │
 ├─ HomePage (route: /)
-│  ├─ Hero Section
-│  ├─ AuthModal (login/register dialog)
-│  └─ Feature Cards
+│  └─ AuthModal (login/register dialog)
 │
 ├─ TemplatesGallery (route: /templates)
 │  ├─ Filter Controls (type, category)
 │  └─ TemplateCard[] (with CSS previews)
 │
-├─ CVDashboard (route: /dashboard)
+├─ DocumentDashboard (route: /dashboard)
 │  ├─ Search + Sort Controls
 │  ├─ Bulk Actions (multi-select, delete)
-│  └─ CVRow[] (rename, edit, duplicate, delete)
+│  └─ DocumentRow[] (rename, edit, duplicate, delete, share)
+│
+├─ AccountSettings (route: /account)
+│
+├─ PrivacyPolicyPage (route: /privacy)
+│
+├─ SharedDocumentViewer (route: /shared/:shareToken)
 │
 └─ CVEditor (route: /editor, /editor/:cvId)
-   ├─ Editor Toolbar (title, print, export, import)
-   ├─ VerticalMenu (colors, section toggles)
-   ├─ TextToolbar (floating rich-text formatting)
-   └─ CVPagesEditor
-      ├─ PageControls (navigation, zoom, view mode)
-      └─ Page[] (A4 clipped views)
-         ├─ Sidebar
-         │  ├─ ProfileImage
-         │  ├─ Summary
-         │  ├─ Skills[]
-         │  ├─ Languages[] + LanguageLevel
-         │  ├─ Courses[]
-         │  ├─ Strengths[]
-         │  └─ Achievements[]
-         └─ MainContent
-            ├─ Header (name, position, contact)
-            ├─ Experience[]
-            └─ Education[]
+   ├─ Editor Toolbar (title, export JSON/PDF, import, versions, keywords)
+   ├─ CentralToolbar (resume: colors, font controls)
+   ├─ CLToolbar       (cover letter: layout, font controls)
+   ├─ VerticalMenu (section toggles, color settings)
+   ├─ CVPagesEditor (resume mode)
+   │  ├─ PageControls (navigation, zoom, view mode)
+   │  └─ Page[] (A4 clipped views)
+   │     ├─ Sidebar
+   │     └─ MainContent
+   ├─ CoverLetterEditor (cover letter mode)
+   ├─ VersionHistory side panel
+   └─ KeywordMatcher side panel
 ```
 
 ### Routing
 
-| Route | Component | Guard | Description |
-|-------|-----------|-------|-------------|
-| `/` | `HomePage` | None | Landing page |
-| `/templates` | `TemplatesGallery` | None | Browse templates |
-| `/dashboard` | `DocumentDashboard` | `ProtectedRoute` | Document management |
-| `/editor` | `DocumentEditor` | `EditorRoute` | New/template document |
-| `/editor/:cvId` | `DocumentEditor` | `ProtectedRoute` | Edit saved document |
-| `*` | Redirect → `/` | — | Catch-all |
+| Route                 | Component                 | Guard            | Description                    |
+| --------------------- | ------------------------- | ---------------- | ------------------------------ |
+| `/`                   | `HomePageWrapper`         | None             | Landing page                   |
+| `/templates`          | `TemplatesGalleryWrapper` | None             | Browse templates               |
+| `/privacy`            | `PrivacyPolicyPage`       | None             | Privacy policy                 |
+| `/shared/:shareToken` | `SharedDocumentViewer`    | None             | Public read-only document view |
+| `/account`            | `AccountSettings`         | `ProtectedRoute` | Account management             |
+| `/dashboard`          | `DocumentDashboard`       | `ProtectedRoute` | Document management            |
+| `/editor`             | `CVEditor`                | `EditorRoute`    | New/template document          |
+| `/editor/:cvId`       | `CVEditor`                | `ProtectedRoute` | Edit saved document            |
+| `*`                   | Redirect → `/`            | —                | Catch-all                      |
 
 **Route Guards:**
+
 - `ProtectedRoute` — Redirects unauthenticated users to `/`
 - `EditorRoute` — Allows both authenticated and guest users; redirects others to `/`
 
@@ -166,19 +168,19 @@ Incoming Request
 
 ### Module Responsibilities
 
-| Module | File | Responsibility |
-|--------|------|---------------|
-| **Entry Point** | `main.py` | App factory, middleware registration, CORS, health check |
-| **Models** | `models.py` | SQLAlchemy ORM models (User, Document, RefreshToken) |
-| **Schemas** | `schemas.py` | Pydantic request/response validation |
-| **Auth** | `auth.py` | Password hashing, JWT creation/validation, token rotation |
-| **Security** | `security.py` | 7 middleware classes, rate limiting, input sanitization |
-| **Audit** | `audit.py` | Event logging (25 event types), DB + file dual output |
-| **Config** | `config.py` | Environment-based settings via pydantic-settings |
-| **Database** | `database.py` | Engine, session factory, connection pooling |
-| **Auth Routes** | `routes/auth.py` | Register, login, refresh, logout, preferences |
-| **Document Routes** | `routes/documents.py` | CRUD, export, import, duplicate, image upload |
-| **Admin Routes** | `routes/admin.py` | Audit log queries, security stats, alerts |
+| Module              | File                  | Responsibility                                                                  |
+| ------------------- | --------------------- | ------------------------------------------------------------------------------- |
+| **Entry Point**     | `main.py`             | App factory, middleware registration, CORS, health check                        |
+| **Models**          | `models.py`           | SQLAlchemy ORM models (User, Document, DocumentVersion, RefreshToken, AuditLog) |
+| **Schemas**         | `schemas.py`          | Pydantic request/response validation                                            |
+| **Auth**            | `auth.py`             | Password hashing, JWT creation/validation, token rotation                       |
+| **Security**        | `security.py`         | 7 middleware classes, rate limiting, input sanitization                         |
+| **Audit**           | `audit.py`            | Event logging (25 event types), DB + file dual output                           |
+| **Config**          | `config.py`           | Environment-based settings via pydantic-settings                                |
+| **Database**        | `database.py`         | Engine, session factory, connection pooling                                     |
+| **Auth Routes**     | `routes/auth.py`      | Register, login, refresh, logout, preferences                                   |
+| **Document Routes** | `routes/documents.py` | CRUD, export, import, duplicate, image upload                                   |
+| **Admin Routes**    | `routes/admin.py`     | Audit log queries, security stats, alerts                                       |
 
 ---
 
@@ -313,7 +315,7 @@ CVEditor renders with new settings applied
 Every incoming request passes through the middleware stack in order:
 
 1. **TrustedHostMiddleware** — Reject requests with invalid `Host` headers
-2. **HTTPSRedirectMiddleware** — Redirect HTTP → HTTPS (production)  
+2. **HTTPSRedirectMiddleware** — Redirect HTTP → HTTPS (production)
 3. **RequestSizeLimitMiddleware** — Reject bodies > 10 MB
 4. **RateLimitMiddleware** — Check per-IP rate limits (60/min general, 10/min auth)
 5. **ContentTypeValidationMiddleware** — Enforce `Content-Type: application/json` on mutations
@@ -322,6 +324,7 @@ Every incoming request passes through the middleware stack in order:
 8. **CORSMiddleware** — Handle preflight and cross-origin headers
 
 After middleware, the request reaches the appropriate route handler which may:
+
 - Authenticate via `get_current_user` (JWT Bearer dependency)
 - Validate request body via Pydantic schema
 - Perform database operations via SQLAlchemy session
