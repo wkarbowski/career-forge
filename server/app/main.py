@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -29,7 +30,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-Base.metadata.create_all(bind=engine)
+# Skip database initialization during test runs (tests manage their own DB)
+if not os.getenv("PYTEST_CURRENT_TEST"):
+    Base.metadata.create_all(bind=engine)
 
 settings = get_settings()
 
