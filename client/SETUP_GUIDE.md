@@ -6,16 +6,17 @@ This guide covers everything needed to run the Career Forge frontend locally, in
 
 ## Prerequisites
 
-| Tool | Minimum version | Notes |
-|---|---|---|
-| Node.js | 20 LTS | Required for local development |
-| npm | 9+ | Bundled with Node.js |
-| Docker | 24+ | Required for containerised setup |
-| Docker Compose | 2.20+ | Used in the repository root |
+| Tool           | Minimum version | Notes                            |
+| -------------- | --------------- | -------------------------------- |
+| Node.js        | 20 LTS          | Required for local development   |
+| npm            | 9+              | Bundled with Node.js             |
+| Docker         | 24+             | Required for containerised setup |
+| Docker Compose | 2.20+           | Used in the repository root      |
 
 ### Installing Node.js
 
 **Fedora / RHEL:**
+
 ```bash
 sudo dnf install nodejs npm -y
 node --version   # should print v20.x.x
@@ -23,17 +24,20 @@ npm --version    # should print 10.x.x
 ```
 
 **Ubuntu / Debian:**
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 **macOS (via Homebrew):**
+
 ```bash
 brew install node
 ```
 
 **Windows (via winget):**
+
 ```bash
 winget install OpenJS.NodeJS.LTS
 ```
@@ -57,6 +61,7 @@ npm install
 ```
 
 This installs:
+
 - `react` 18.2
 - `react-dom` 18.2
 - `react-router-dom` 7
@@ -99,6 +104,7 @@ docker compose up --build
 ```
 
 The client container performs a multi-stage build:
+
 1. **Build stage** — Node 20 Alpine compiles the React bundle. `REACT_APP_API_URL` defaults to `/api` (relative path, resolved by Nginx).
 2. **Production stage** — Nginx 1.27 Alpine serves the static bundle on port 80, proxies `/api/*` and `/uploads/*` to the backend container, and applies security headers.
 
@@ -117,45 +123,46 @@ client/
 ├── public/
 │   └── index.html                  # HTML shell — loads Font Awesome from CDN
 ├── src/
-│   ├── App.js                      # Root component: routing, auth guards, auto-save
+│   ├── App.tsx                     # Root component: routing, auth guards, auto-save
 │   ├── App.css                     # Global layout and CV styles
-│   ├── i18n.js                     # Lightweight i18n context (en / de)
+│   ├── i18n.tsx                    # Lightweight i18n context (en / de)
 │   ├── components/
-│   │   ├── GlobalHeader.js         # Persistent navigation bar
-│   │   ├── HomePage.js             # Landing page / entry point
-│   │   ├── CVPagesEditor.js        # Multi-page document editor
-│   │   ├── CVDashboard.js          # Saved-document management dashboard
-│   │   ├── TemplatesGallery.js     # Template picker with live previews
-│   │   ├── AuthModal.js            # Authentication modal (login / register)
-│   │   ├── EditableText.js         # contentEditable text wrapper
-│   │   ├── LanguageLevel.js        # 5-dot language proficiency widget
-│   │   ├── TextToolbar.js          # Floating inline formatting toolbar
-│   │   ├── VerticalMenu.js         # Editor side toolbar (print, export…)
-│   │   ├── ThemeToggle.js          # Light / dark theme switch
-│   │   ├── LanguageSwitcher.js     # UI language selector
-│   │   ├── UserMenu.js             # Account dropdown menu
+│   │   ├── GlobalHeader.tsx        # Persistent navigation bar
+│   │   ├── HomePage.tsx            # Landing page / entry point
+│   │   ├── CVPagesEditor.tsx       # Multi-page document editor
+│   │   ├── CoverLetterEditor.tsx   # Cover letter editor
+│   │   ├── DocumentDashboard.tsx   # Saved-document management dashboard
+│   │   ├── TemplatesGallery.jsx    # Template picker with live previews
+│   │   ├── AuthModal.tsx           # Authentication modal (login / register)
+│   │   ├── EditableText.tsx        # contentEditable text wrapper
+│   │   ├── LanguageLevel.tsx       # 5-dot language proficiency widget
+│   │   ├── CentralToolbar.tsx      # Toolbar for resume editor
+│   │   ├── CLToolbar.tsx           # Toolbar for cover letter editor
+│   │   ├── TextToolbar.tsx         # Floating inline formatting toolbar
+│   │   ├── VerticalMenu.tsx        # Editor side toolbar (print, export…)
+│   │   ├── ThemeToggle.tsx         # Light / dark theme switch
+│   │   ├── LanguageSwitcher.tsx    # UI language selector
+│   │   ├── UserMenu.tsx            # Account dropdown menu
+│   │   ├── AccountSettings.tsx     # Account settings page
+│   │   ├── VersionHistory.tsx      # Document version history panel
+│   │   ├── KeywordMatcher.tsx      # Job description keyword matcher
 │   │   ├── Sidebar/                # CV sidebar section components
 │   │   └── MainContent/            # CV main content section components
 │   ├── contexts/
-│   │   ├── AppStateContext.js      # Global CV data and layout settings
-│   │   ├── AuthContext.js          # Authentication state, CV list, save helpers
-│   │   ├── PageContext.js          # Multi-page document state
-│   │   ├── TemplateContext.js      # Active template state
-│   │   └── ThemeContext.js         # Theme (light / dark) state
+│   │   ├── AppStateContext.tsx     # Global CV data and layout settings
+│   │   ├── AuthContext.tsx         # Authentication state, document list, save helpers
+│   │   ├── PageContext.tsx         # Multi-page document state
+│   │   ├── UndoContext.tsx         # Undo / redo state management
+│   │   └── ThemeContext.tsx        # Theme (light / dark) state
 │   ├── data/
-│   │   ├── initialData.js          # Default CV data structure
-│   │   └── templates.js            # Template definitions (colours, sections, layout)
-│   ├── hooks/
-│   │   └── useLocalStorage.js      # Typed localStorage hook
+│   │   ├── initialData.ts          # Default CV data structure
+│   │   └── templates.ts            # Template definitions (colours, sections, layout)
 │   ├── locales/
 │   │   ├── en.json                 # English UI strings
 │   │   └── de.json                 # German UI strings
 │   ├── services/
-│   │   └── api.js                  # Fetch wrappers for auth, CV CRUD, and uploads
-│   └── templates/
-│       ├── resume-default.js       # Default resume page template
-│       ├── resume-modern.js        # Modern resume page template
-│       └── cover-letter-default.js # Default cover letter page template
+│   │   └── api.ts                  # Fetch wrappers for auth, document CRUD, and uploads
+│   └── types/                      # Shared TypeScript type definitions
 ├── Dockerfile                      # Multi-stage Docker build
 ├── nginx.conf                      # Nginx: SPA routing + /api reverse proxy
 ├── package.json
@@ -184,15 +191,18 @@ npm run lint
 
 ## Application Routing
 
-| Path | Component | Access |
-|---|---|---|
-| `/` | `HomePage` | Public |
-| `/templates` | `TemplatesGallery` | Guest or authenticated |
-| `/editor` | `CVEditor` | Guest or authenticated |
-| `/editor/:cvId` | `CVEditor` (loads saved CV) | Guest or authenticated |
-| `/dashboard` | `CVDashboard` | Authenticated only |
+| Path                  | Component              | Access                 |
+| --------------------- | ---------------------- | ---------------------- |
+| `/`                   | `HomePage`             | Public                 |
+| `/templates`          | `TemplatesGallery`     | Public                 |
+| `/privacy`            | `PrivacyPolicyPage`    | Public                 |
+| `/shared/:shareToken` | `SharedDocumentViewer` | Public                 |
+| `/editor`             | `CVPagesEditor`        | Guest or authenticated |
+| `/editor/:cvId`       | `CVPagesEditor`        | Guest or authenticated |
+| `/dashboard`          | `DocumentDashboard`    | Authenticated only     |
+| `/account`            | `AccountSettings`      | Authenticated only     |
 
-Unauthenticated users accessing `/dashboard` are redirected to `/`.
+Unauthenticated users accessing protected routes are redirected to `/`.
 
 ---
 
@@ -210,7 +220,7 @@ The client uses JWT-based authentication:
 
 ### Changing template colours
 
-Template colour schemes are defined in `src/data/templates.js`. Each template object contains a `settings` property:
+Template colour schemes are defined in `src/data/templates.ts`. Each template object contains a `settings` property:
 
 ```javascript
 settings: {
@@ -224,23 +234,22 @@ Modify these values to adjust the sidebar gradient and accent colour for any tem
 
 ### Adding a new template
 
-1. Add a new entry to the `cvTemplates` array in `src/data/templates.js` following the existing structure.
-2. Optionally create a matching page layout in `src/templates/`.
-3. The template will appear automatically in `TemplatesGallery`.
+1. Add a new entry to the `cvTemplates` array in `src/data/templates.ts` following the existing structure.
+2. The template will appear automatically in `TemplatesGallery`.
 
 ### Adding a new UI language
 
 1. Create a new locale file in `src/locales/` (e.g., `fr.json`) with all keys from `en.json`.
-2. Import and register it in `src/i18n.js`:
-   ```javascript
-   import fr from './locales/fr.json';
+2. Import and register it in `src/i18n.tsx`:
+   ```typescript
+   import fr from "./locales/fr.json";
    const locales = { en, de, fr };
    ```
 3. The new language will appear in `LanguageSwitcher` automatically.
 
 ### Changing default CV data
 
-Edit `src/data/initialData.js` to change the placeholder text shown when a new document is created.
+Edit `src/data/initialData.ts` to change the placeholder text shown when a new document is created.
 
 ---
 
@@ -249,7 +258,7 @@ Edit `src/data/initialData.js` to change the placeholder text shown when a new d
 ### Port 3000 is already in use
 
 ```bash
-PORT=3001 npm start
+npm start -- --port 3001
 ```
 
 ### `npm install` fails or produces errors

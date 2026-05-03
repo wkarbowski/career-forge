@@ -13,16 +13,19 @@ versioning follows [Semantic Versioning](https://semver.org/).
 ## [1.1.0] — 2026-03-08
 
 ### Added
+
 - Cover letter editor with full DIN 5008 Anschreiben layout (sender, recipient, date/place, subject, salutation, body, closing, signature)
 - Signature support in cover letters: draw on canvas or upload an image
 - Inline error banners in the account dropdown menu (no more browser `alert()` dialogs)
 
 ### Fixed
+
 - `setCurrentCvId('new')` corrected to `'template'` in GlobalHeader, fixing the new-document flow
 - All remaining `alert()` / `window.alert()` calls (6 sites) replaced with in-app status feedback or inline error banners
-- Unused Python imports removed from `security.py` and `routes/cvs.py`
+- Unused Python imports removed from `security.py` and `routes/documents.py`
 
 ### Changed
+
 - Dead code removed: `TemplateSelector`, `TemplateContext`, and `useLocalStorage` (none had any live callers)
 - All stale `cv-app` repository slug references replaced with `career-forge` throughout docs, package files, and Docker configs
 - `.env.example` removed from version control (variables are documented in `docs/deployment.md`)
@@ -34,6 +37,7 @@ versioning follows [Semantic Versioning](https://semver.org/).
 ### Initial public open-source release
 
 #### Added
+
 - Full-stack WYSIWYG resume builder: React 18 frontend + FastAPI backend
 - Multi-page A4 pagination with automatic page flow and zoom controls
 - Rich text toolbar: bold, italic, underline, font size, colour, text alignment, ordered and unordered lists

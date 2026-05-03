@@ -4,11 +4,14 @@ FastAPI backend for the Career Forge resume and cover letter builder.
 
 ## Features
 
-- User authentication (register, login, JWT tokens)
-- CV CRUD operations (create, read, update, delete)
-- Export/Import CVs as JSON
-- CV duplication
-- Default CV selection
+- User authentication (register, login, JWT access tokens + HttpOnly refresh tokens)
+- Document CRUD operations (create, read, update, delete)
+- Export/Import documents as JSON
+- Document duplication
+- Default document selection
+- Document version history (named snapshots)
+- Shareable public links for documents
+- Profile image upload
 
 ## Setup
 
@@ -56,26 +59,26 @@ The API will be available at `http://localhost:8000`
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Login (form-data) |
-| POST | `/api/auth/login/json` | Login (JSON body) |
-| GET | `/api/auth/me` | Get current user info |
+| Method | Endpoint               | Description           |
+| ------ | ---------------------- | --------------------- |
+| POST   | `/api/auth/register`   | Register a new user   |
+| POST   | `/api/auth/login`      | Login (form-data)     |
+| POST   | `/api/auth/login/json` | Login (JSON body)     |
+| GET    | `/api/auth/me`         | Get current user info |
 
 ### Documents
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/documents/` | List all user's documents |
-| POST | `/api/documents/` | Create a new document |
-| GET | `/api/documents/{id}` | Get a specific document |
-| PUT | `/api/documents/{id}` | Update a document |
-| DELETE | `/api/documents/{id}` | Delete a document |
-| GET | `/api/documents/{id}/export` | Export document as JSON |
-| POST | `/api/documents/import` | Import document from JSON |
-| POST | `/api/documents/{id}/duplicate` | Duplicate a document |
-| GET | `/api/documents/default/current` | Get default/latest document |
+| Method | Endpoint                         | Description                 |
+| ------ | -------------------------------- | --------------------------- |
+| GET    | `/api/documents/`                | List all user's documents   |
+| POST   | `/api/documents/`                | Create a new document       |
+| GET    | `/api/documents/{id}`            | Get a specific document     |
+| PUT    | `/api/documents/{id}`            | Update a document           |
+| DELETE | `/api/documents/{id}`            | Delete a document           |
+| GET    | `/api/documents/{id}/export`     | Export document as JSON     |
+| POST   | `/api/documents/import`          | Import document from JSON   |
+| POST   | `/api/documents/{id}/duplicate`  | Duplicate a document        |
+| GET    | `/api/documents/default/current` | Get default/latest document |
 
 ## Example Usage
 
@@ -84,7 +87,7 @@ The API will be available at `http://localhost:8000`
 ```bash
 curl -X POST "http://localhost:8000/api/auth/register" \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "username": "johndoe", "password": "secret123"}'
+  -d '{"email": "user@example.com", "username": "johndoe", "password": "SecureP@ss1"}'
 ```
 
 ### Login
@@ -110,11 +113,14 @@ The application requires PostgreSQL (uses JSONB columns). Configure `DATABASE_UR
 
 ### Models
 
-- **Document**: id, title, document_type, data (JSONB), owner_id, is_default, profile_image, created_at, updated_at
+- **Document**: id, title, document_type, data (JSONB), owner_id, is_default, profile_image, share_token, linked_resume_id, created_at, updated_at
+- **DocumentVersion**: id, document_id (FK), version_name, data (JSONB), created_at
+- **RefreshToken**: id, token_hash, user_id, device_info, is_revoked, used_at, expires_at, created_at
 
 ## Security Notes
 
 - Change `SECRET_KEY` in production
 - Use HTTPS in production
 - Passwords are hashed using bcrypt
-- JWT tokens expire after 7 days by default
+- Passwords must be 8+ chars including uppercase, lowercase, digit, and special character
+- Access tokens expire after 15 minutes; refresh tokens expire after 7 days
