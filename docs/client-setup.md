@@ -78,7 +78,7 @@ npm install
 ## Development
 
 ```bash
-npm run dev
+npm start
 ```
 
 Opens `http://localhost:3000` with hot module replacement (HMR). The dev server proxies `/api` requests to `http://localhost:8000` automatically (configured in `vite.config.ts`).
@@ -108,7 +108,7 @@ uvicorn app.main:app --reload --port 8000
 **Terminal 2 (Frontend):**
 
 ```bash
-cd client && npm run dev
+cd client && npm start
 ```
 
 ---
@@ -277,7 +277,7 @@ npm install
 
 ```bash
 # Stop the dev server (Ctrl+C) and restart
-npm run dev
+npm start
 ```
 
 **Print layout issues:**

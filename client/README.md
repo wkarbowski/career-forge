@@ -23,13 +23,13 @@ The React-based frontend for **Career Forge**, a full-featured resume and cover 
 
 ## Tech Stack
 
-| Dependency | Version | Purpose |
-|---|---|---|
-| React | 18.2 | UI framework |
-| react-router-dom | 7 | Client-side routing |
-| Vite | 6 | Build tooling |
-| DOMPurify | 3 | HTML sanitisation |
-| Nginx | 1.27 (Alpine) | Production static file server + API proxy |
+| Dependency       | Version       | Purpose                                   |
+| ---------------- | ------------- | ----------------------------------------- |
+| React            | 18.2          | UI framework                              |
+| react-router-dom | 7             | Client-side routing                       |
+| Vite             | 6             | Build tooling                             |
+| DOMPurify        | 3             | HTML sanitisation                         |
+| Nginx            | 1.27 (Alpine) | Production static file server + API proxy |
 
 ---
 
@@ -40,48 +40,48 @@ client/
 ├── public/
 │   └── index.html                  # HTML shell (Font Awesome CDN included)
 ├── src/
-│   ├── App.js                      # Root component: routing, auth guards, auto-save
+│   ├── App.tsx                     # Root component: routing, auth guards, auto-save
 │   ├── App.css                     # Global CV and layout styles
-│   ├── i18n.js                     # Lightweight i18n context (en / de)
+│   ├── i18n.tsx                    # Lightweight i18n context (en / de)
 │   ├── components/
-│   │   ├── GlobalHeader.js         # Persistent top navigation bar
-│   │   ├── HomePage.js             # Landing page with login / guest entry points
-│   │   ├── CVPagesEditor.js        # Multi-page document editor
-│   │   ├── CVDashboard.js          # Saved document management dashboard
-│   │   ├── TemplatesGallery.js     # Browsable template picker
-│   │   ├── AuthModal.js            # Login / register modal
-│   │   ├── EditableText.js         # contentEditable wrapper component
-│   │   ├── LanguageLevel.js        # Interactive 5-dot language proficiency widget
-│   │   ├── TextToolbar.js          # Floating rich-text formatting toolbar
-│   │   ├── TextToolbarFixed.js     # Fixed-position formatting toolbar variant
-│   │   ├── LanguageSwitcher.js     # UI language selector (en / de)
-│   │   ├── ThemeToggle.js          # Light / dark theme switch
-│   │   ├── UserMenu.js             # User account dropdown
-│   │   ├── VerticalMenu.js         # Editor side toolbar (print, export, settings…)
-│   │   ├── TemplateSelector.js     # In-editor template switcher
-│   │   ├── PageControls.js         # Per-page add / remove / reorder controls
+│   │   ├── GlobalHeader.tsx        # Persistent top navigation bar
+│   │   ├── HomePage.tsx            # Landing page with login / guest entry points
+│   │   ├── CVPagesEditor.tsx       # Multi-page document editor
+│   │   ├── CoverLetterEditor.tsx   # Cover letter editor
+│   │   ├── DocumentDashboard.tsx   # Saved document management dashboard
+│   │   ├── TemplatesGallery.jsx    # Browsable template picker
+│   │   ├── AuthModal.tsx           # Login / register modal
+│   │   ├── EditableText.tsx        # contentEditable wrapper component
+│   │   ├── LanguageLevel.tsx       # Interactive 5-dot language proficiency widget
+│   │   ├── CentralToolbar.tsx      # Toolbar for resume editor
+│   │   ├── CLToolbar.tsx           # Toolbar for cover letter editor
+│   │   ├── TextToolbar.tsx         # Floating rich-text formatting toolbar
+│   │   ├── TextToolbarFixed.tsx    # Fixed-position formatting toolbar variant
+│   │   ├── LanguageSwitcher.tsx    # UI language selector (en / de)
+│   │   ├── ThemeToggle.tsx         # Light / dark theme switch
+│   │   ├── UserMenu.tsx            # User account dropdown
+│   │   ├── VerticalMenu.tsx        # Editor side toolbar (print, export, settings…)
+│   │   ├── PageControls.tsx        # Per-page add / remove / reorder controls
+│   │   ├── AccountSettings.tsx     # Account settings page
+│   │   ├── VersionHistory.tsx      # Document version history panel
+│   │   ├── KeywordMatcher.tsx      # Job description keyword matcher
 │   │   ├── Sidebar/                # CV sidebar section components
 │   │   └── MainContent/            # CV main content section components
 │   ├── contexts/
-│   │   ├── AppStateContext.js      # Global CV data and settings state
-│   │   ├── AuthContext.js          # Auth state, CV list, save helpers
-│   │   ├── PageContext.js          # Multi-page state management
-│   │   ├── TemplateContext.js      # Active template state
-│   │   └── ThemeContext.js         # Theme state
+│   │   ├── AppStateContext.tsx     # Global CV data and settings state
+│   │   ├── AuthContext.tsx         # Auth state, document list, save helpers
+│   │   ├── PageContext.tsx         # Multi-page state management
+│   │   ├── UndoContext.tsx         # Undo / redo state management
+│   │   └── ThemeContext.tsx        # Theme state
 │   ├── data/
-│   │   ├── initialData.js          # Default CV data structure
-│   │   └── templates.js            # Template definitions (colours, sections, layout)
-│   ├── hooks/
-│   │   └── useLocalStorage.js      # Typed localStorage hook
+│   │   ├── initialData.ts          # Default CV data structure
+│   │   └── templates.ts            # Template definitions (colours, sections, layout)
 │   ├── locales/
 │   │   ├── en.json                 # English translations
 │   │   └── de.json                 # German translations
 │   ├── services/
-│   │   └── api.js                  # Axios-style fetch wrappers (auth, CV CRUD, uploads)
-│   └── templates/
-│       ├── resume-default.js       # Default resume page template
-│       ├── resume-modern.js        # Modern resume page template
-│       └── cover-letter-default.js # Default cover letter page template
+│   │   └── api.ts                  # Fetch wrappers (auth, document CRUD, uploads)
+│   └── types/                      # Shared TypeScript type definitions
 ├── Dockerfile                      # Multi-stage build → Nginx production image
 ├── nginx.conf                      # Nginx config: SPA routing + /api proxy to backend
 ├── package.json
@@ -92,20 +92,23 @@ client/
 
 ## Routing
 
-| Path | Component | Access |
-|---|---|---|
-| `/` | `HomePage` | Public |
-| `/templates` | `TemplatesGallery` | Guest or authenticated |
-| `/editor` | `CVEditor` | Guest or authenticated |
-| `/editor/:cvId` | `CVEditor` | Guest or authenticated |
-| `/dashboard` | `CVDashboard` | Authenticated only |
+| Path                  | Component              | Access                 |
+| --------------------- | ---------------------- | ---------------------- |
+| `/`                   | `HomePage`             | Public                 |
+| `/templates`          | `TemplatesGallery`     | Public                 |
+| `/privacy`            | `PrivacyPolicyPage`    | Public                 |
+| `/shared/:shareToken` | `SharedDocumentViewer` | Public                 |
+| `/editor`             | `CVPagesEditor`        | Guest or authenticated |
+| `/editor/:cvId`       | `CVPagesEditor`        | Guest or authenticated |
+| `/dashboard`          | `DocumentDashboard`    | Authenticated only     |
+| `/account`            | `AccountSettings`      | Authenticated only     |
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
+| Variable            | Default                     | Description                                               |
+| ------------------- | --------------------------- | --------------------------------------------------------- |
 | `REACT_APP_API_URL` | `http://localhost:8000/api` | Backend API base URL, baked into the bundle at build time |
 
 Create a `.env` file in the `client/` directory for local overrides:
