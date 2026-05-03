@@ -312,7 +312,7 @@ The backup script:
 
 ```bash
 # PostgreSQL
-pg_dump cvapp | gzip > backup_$(date +%Y%m%d).sql.gz
+pg_dump careerforge | gzip > backup_$(date +%Y%m%d).sql.gz
 ```
 
 ---

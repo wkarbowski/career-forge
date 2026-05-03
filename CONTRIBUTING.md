@@ -10,7 +10,7 @@ Thank you for considering contributing! Please follow these guidelines to keep c
 
 ## Code Style & Tests
 
-- Follow existing code style. Prettier and ESLint are configured for the frontend; PEP 8 for the Python backend
+- Follow existing code style. TypeScript strict type-checking (`npm run lint`) is enforced for the frontend; PEP 8 for the Python backend
 - Run `npm run build` (client) or `pytest` (server) to verify nothing is broken before opening a PR
 - Add tests for bug fixes and new features when practical
 
