@@ -29,7 +29,7 @@
     "dompurify": "^3.4.2",
     "html2canvas": "^1.4.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^19.2.6",
     "react-easy-crop": "^5.5.7",
     "react-router-dom": "^7.13.0"
   },
