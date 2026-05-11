@@ -33,6 +33,20 @@
 
 ## Screenshots
 
+**Resume editor** — inline editing, sidebar layout, linked cover letters, profile completeness bar:
+![Resume editor](docs/images/resume_example.png)
+
+**Cover letter editor** — DIN 5008-style layout with linked resume chip and live preview:
+![Cover letter editor](docs/images/cover_letter_example.png)
+
+**Document dashboard (grid view)** — Application Packages grouping and card layout:
+![Dashboard grid view](docs/images/Dashboard_Grid_View.png)
+
+**Document dashboard (list view)** — sortable table with quick actions:
+![Dashboard list view](docs/images/Dashboard_List_View.png)
+
+**Template gallery** — resume and cover letter templates with colour previews:
+![Template gallery](docs/images/Templates.png)
 
 ---
 
