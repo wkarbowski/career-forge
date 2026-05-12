@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     # ── General ──────────────────────────────────────────────────────────
     app_name: str = "Career Forge API"
     debug: bool = False
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: Literal["development", "staging", "production", "test"] = "development"
 
     # ── Database ─────────────────────────────────────────────────────────
     # PostgreSQL required.  Set DATABASE_URL in your .env file.
