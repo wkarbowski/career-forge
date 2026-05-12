@@ -462,7 +462,6 @@ async def forgot_password(
 ) -> PasswordResetTokenResponse:
     """Request a password reset token.
 
-    
     Always returns 200 to prevent email enumeration.
     """
     ip_address = get_client_ip(request)
