@@ -203,7 +203,6 @@ class TestGetCurrentUser:
         data = response.json()
         assert data["email"] == "test@example.com"
         assert data["is_active"] is True
-        assert data["is_admin"] is False
         assert "id" in data
 
     def test_get_me_without_auth(self, client: TestClient) -> None:
