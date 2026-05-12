@@ -15,6 +15,9 @@ os.environ.setdefault(
 )
 os.environ.setdefault("ENVIRONMENT", "development")
 os.environ.setdefault("DEBUG", "true")
+os.environ.setdefault("RATE_LIMIT_AUTH_PER_MINUTE", "1000")
+os.environ.setdefault("RATE_LIMIT_PER_MINUTE", "10000")
+os.environ.setdefault("ACCOUNT_LOCKOUT_ATTEMPTS", "1000")
 # Use PostgreSQL for tests (recommended) or override with SQLite if needed
 os.environ.setdefault(
     "DATABASE_URL", "postgresql://testuser:testpass@localhost:5433/testdb"
