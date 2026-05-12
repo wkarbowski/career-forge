@@ -16,6 +16,9 @@ dist/
 .env.test.local
 .env.production.local
 
+# Devcontainer environment file
+.devcontainer/.env.devcontainer
+
 # Logs
 logs/
 *.log
