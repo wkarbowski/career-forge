@@ -630,3 +630,106 @@ class TestProfileImage:
             files=files,
         )
         assert response.status_code == 401
+
+
+class TestDocumentOwnershipGuards:
+    """404 ownership guards on secondary endpoints not covered elsewhere."""
+
+    def test_export_other_users_document_returns_404(
+        self, client: TestClient, auth_headers: dict, other_user: User, db: Session
+    ) -> None:
+        other_doc = Document(
+            title="Other Export", document_type="resume", data={}, owner_id=other_user.id
+        )
+        db.add(other_doc)
+        db.commit()
+        db.refresh(other_doc)
+
+        response = client.get(
+            f"/api/documents/{other_doc.id}/export", headers=auth_headers
+        )
+        assert response.status_code == 404
+
+    def test_revoke_share_link_no_token_is_noop(
+        self, client: TestClient, auth_headers: dict, test_document: Document
+    ) -> None:
+        """DELETE /share on a doc that has no token must still return 204."""
+        assert test_document.share_token is None
+        response = client.delete(
+            f"/api/documents/{test_document.id}/share", headers=auth_headers
+        )
+        assert response.status_code == 204
+
+    def test_revoke_share_link_other_user_returns_404(
+        self, client: TestClient, auth_headers: dict, other_user: User, db: Session
+    ) -> None:
+        other_doc = Document(
+            title="Other Shared",
+            document_type="resume",
+            data={},
+            owner_id=other_user.id,
+            share_token="other-share-token",
+        )
+        db.add(other_doc)
+        db.commit()
+        db.refresh(other_doc)
+
+        response = client.delete(
+            f"/api/documents/{other_doc.id}/share", headers=auth_headers
+        )
+        assert response.status_code == 404
+
+    def test_remove_profile_image_other_user_returns_404(
+        self, client: TestClient, auth_headers: dict, other_user: User, db: Session
+    ) -> None:
+        other_doc = Document(
+            title="Other Doc",
+            document_type="resume",
+            data={},
+            owner_id=other_user.id,
+            profile_image="some.jpg",
+        )
+        db.add(other_doc)
+        db.commit()
+        db.refresh(other_doc)
+
+        response = client.delete(
+            f"/api/documents/{other_doc.id}/profile-image", headers=auth_headers
+        )
+        assert response.status_code == 404
+
+
+class TestDocumentDataSanitization:
+    """sanitize_document_data is called on create/update — verify XSS is stripped."""
+
+    def test_create_strips_script_tag_from_data(
+        self, client: TestClient, auth_headers: dict
+    ) -> None:
+        response = client.post(
+            "/api/documents/",
+            headers=auth_headers,
+            json={
+                "title": "XSS Test",
+                "document_type": "resume",
+                "data": {"bio": "<script>alert(1)</script>Hello"},
+            },
+        )
+        assert response.status_code == 201
+        bio = response.json()["data"]["bio"]
+        assert "<script>" not in bio
+        assert "<script>" not in bio
+
+    def test_update_strips_script_tag_from_data(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        test_document: Document,
+    ) -> None:
+        response = client.put(
+            f"/api/documents/{test_document.id}",
+            headers=auth_headers,
+            json={"data": {"bio": "<img onerror=alert(1) src=x>"}},
+        )
+        assert response.status_code == 200
+        bio = response.json()["data"]["bio"]
+        assert "onerror" not in bio

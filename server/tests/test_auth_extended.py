@@ -330,3 +330,76 @@ class TestRefreshTokenRotation:
             .count()
         )
         assert active == 0
+
+
+class TestOAuth2FormLogin:
+    """Tests for POST /api/auth/login (OAuth2 form-data variant)."""
+
+    def test_form_login_success(self, client: TestClient, test_user: User) -> None:
+        response = client.post(
+            "/api/auth/login",
+            data={"username": "test@example.com", "password": "TestPassword123!"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "access_token" in data
+        assert data["token_type"] == "bearer"
+        assert "refresh_token" in response.cookies
+
+    def test_form_login_wrong_password(self, client: TestClient, test_user: User) -> None:
+        response = client.post(
+            "/api/auth/login",
+            data={"username": "test@example.com", "password": "WrongPassword1!"},
+        )
+        assert response.status_code == 401
+
+    def test_form_login_nonexistent_user(self, client: TestClient) -> None:
+        response = client.post(
+            "/api/auth/login",
+            data={"username": "nobody@nowhere.example", "password": "SomePass1!"},
+        )
+        assert response.status_code == 401
+
+
+class TestRefreshWithBodyToken:
+    """Refresh using a token in the request body (cookie-less fallback)."""
+
+    def test_refresh_with_body_token_succeeds(self, client: TestClient, test_user: User) -> None:
+        login_r = client.post(
+            "/api/auth/login/json",
+            json={"email": "test@example.com", "password": "TestPassword123!"},
+        )
+        assert login_r.status_code == 200
+        raw_token = login_r.cookies.get("refresh_token")
+        assert raw_token is not None
+
+        # Clear cookies so the server cannot use the cookie
+        client.cookies.clear()
+
+        response = client.post("/api/auth/refresh", json={"refresh_token": raw_token})
+        assert response.status_code == 200
+        assert "access_token" in response.json()
+
+
+class TestForgotPasswordInactiveAccount:
+    """forgot-password on an inactive account returns the same opaque 200."""
+
+    def test_inactive_account_returns_opaque_response(self, client: TestClient, db: Session) -> None:
+        from app.auth import get_password_hash
+
+        inactive = User(
+            email="inactive2@example.com",
+            username="inactive2user",
+            hashed_password=get_password_hash("TestPassword123!"),
+            is_active=False,
+        )
+        db.add(inactive)
+        db.commit()
+
+        response = client.post(
+            "/api/auth/forgot-password",
+            json={"email": "inactive2@example.com"},
+        )
+        assert response.status_code == 200
+        # Must behave identically to unknown email (anti-enumeration)
+        assert response.json().get("reset_token") is None
