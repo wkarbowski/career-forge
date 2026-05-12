@@ -15,6 +15,9 @@ os.environ.setdefault(
 )
 os.environ.setdefault("ENVIRONMENT", "development")
 os.environ.setdefault("DEBUG", "true")
+os.environ.setdefault("RATE_LIMIT_AUTH_PER_MINUTE", "1000")
+os.environ.setdefault("RATE_LIMIT_PER_MINUTE", "10000")
+os.environ.setdefault("ACCOUNT_LOCKOUT_ATTEMPTS", "1000")
 # Use PostgreSQL for tests (recommended) or override with SQLite if needed
 os.environ.setdefault(
     "DATABASE_URL", "postgresql://testuser:testpass@localhost:5433/testdb"
@@ -29,7 +32,7 @@ from sqlalchemy.pool import StaticPool
 from app.database import Base, get_db
 from app.main import app
 from app.models import User
-from app.security import get_password_hash
+from app.auth import get_password_hash
 
 # Create test engine - use in-memory SQLite if DATABASE_URL is not set for PostgreSQL
 TEST_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
@@ -81,6 +84,7 @@ def test_user(db: Session) -> User:
     """Create a test user in the database."""
     user = User(
         email="test@example.com",
+        username="testuser",
         hashed_password=get_password_hash("TestPassword123!"),
         is_active=True,
         is_admin=False,
@@ -98,6 +102,7 @@ def admin_user(db: Session) -> User:
     """Create an admin user in the database."""
     user = User(
         email="admin@example.com",
+        username="adminuser",
         hashed_password=get_password_hash("AdminPassword123!"),
         is_active=True,
         is_admin=True,
@@ -114,7 +119,7 @@ def admin_user(db: Session) -> User:
 def auth_headers(client: TestClient, test_user: User) -> dict[str, str]:
     """Get authentication headers for a test user."""
     response = client.post(
-        "/api/auth/login",
+        "/api/auth/login/json",
         json={"email": "test@example.com", "password": "TestPassword123!"},
     )
     assert response.status_code == 200
@@ -126,7 +131,7 @@ def auth_headers(client: TestClient, test_user: User) -> dict[str, str]:
 def admin_headers(client: TestClient, admin_user: User) -> dict[str, str]:
     """Get authentication headers for an admin user."""
     response = client.post(
-        "/api/auth/login",
+        "/api/auth/login/json",
         json={"email": "admin@example.com", "password": "AdminPassword123!"},
     )
     assert response.status_code == 200
