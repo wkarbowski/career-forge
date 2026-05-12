@@ -137,3 +137,20 @@ def admin_headers(client: TestClient, admin_user: User) -> dict[str, str]:
     assert response.status_code == 200
     data = response.json()
     return {"Authorization": f"Bearer {data['access_token']}"}
+
+
+@pytest.fixture(scope="function")
+def test_document(db: Session, test_user: User) -> "Document":
+    """Create a single resume document owned by test_user."""
+    from app.models import Document
+
+    doc = Document(
+        title="Test Resume",
+        document_type="resume",
+        data={"name": "Test User", "position": "Developer"},
+        owner_id=test_user.id,
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+    return doc
