@@ -20,14 +20,14 @@ class TestDocumentCreation:
             headers=auth_headers,
             json={
                 "title": "My Resume",
-                "type": "cv",
+                "document_type": "resume",
                 "data": {"name": "John Doe", "position": "Software Engineer"},
             },
         )
         assert response.status_code == 201
         data = response.json()
         assert data["title"] == "My Resume"
-        assert data["type"] == "cv"
+        assert data["document_type"] == "resume"
         assert data["owner_id"] == test_user.id
 
     def test_create_document_unauthenticated(self, client: TestClient) -> None:
@@ -36,7 +36,7 @@ class TestDocumentCreation:
             "/api/documents/",
             json={
                 "title": "My Resume",
-                "type": "cv",
+                "document_type": "resume",
                 "data": {},
             },
         )
@@ -57,13 +57,13 @@ class TestDocumentRetrieval:
         # Create some documents
         doc1 = Document(
             title="Resume 1",
-            type="cv",
+            document_type="resume",
             data={"name": "Test"},
             owner_id=test_user.id,
         )
         doc2 = Document(
             title="Cover Letter 1",
-            type="cover_letter",
+            document_type="cover_letter",
             data={"name": "Test"},
             owner_id=test_user.id,
         )
@@ -86,7 +86,7 @@ class TestDocumentRetrieval:
         """Test getting a specific document by ID."""
         doc = Document(
             title="Test Doc",
-            type="cv",
+            document_type="resume",
             data={"name": "Test User"},
             owner_id=test_user.id,
         )
@@ -118,7 +118,7 @@ class TestDocumentRetrieval:
         # Create a document owned by other user
         other_doc = Document(
             title="Other User Document",
-            type="cv",
+            document_type="resume",
             data={"name": "Other User"},
             owner_id=other_user.id,
         )
@@ -144,7 +144,7 @@ class TestDocumentUpdate:
         """Test updating own document."""
         doc = Document(
             title="Original Title",
-            type="cv",
+            document_type="resume",
             data={"name": "Original"},
             owner_id=test_user.id,
         )
@@ -157,7 +157,7 @@ class TestDocumentUpdate:
             headers=auth_headers,
             json={
                 "title": "Updated Title",
-                "type": "cv",
+                "document_type": "resume",
                 "data": {"name": "Updated"},
             },
         )
@@ -176,7 +176,7 @@ class TestDocumentUpdate:
         """Test that users cannot update other users' documents."""
         other_doc = Document(
             title="Other User Document",
-            type="cv",
+            document_type="resume",
             data={"name": "Other User"},
             owner_id=other_user.id,
         )
@@ -187,7 +187,7 @@ class TestDocumentUpdate:
         response = client.put(
             f"/api/documents/{other_doc.id}",
             headers=auth_headers,
-            json={"title": "Hacked", "type": "cv", "data": {}},
+            json={"title": "Hacked", "document_type": "resume", "data": {}},
         )
         assert response.status_code == 404
 
@@ -205,7 +205,7 @@ class TestDocumentDeletion:
         """Test deleting own document."""
         doc = Document(
             title="To Delete",
-            type="cv",
+            document_type="resume",
             data={"name": "Test"},
             owner_id=test_user.id,
         )
@@ -230,7 +230,7 @@ class TestDocumentDeletion:
         """Test that users cannot delete other users' documents."""
         other_doc = Document(
             title="Other User Document",
-            type="cv",
+            document_type="resume",
             data={"name": "Other User"},
             owner_id=other_user.id,
         )
