@@ -91,7 +91,7 @@
     "position": "Job title or target role",
     "phone": "Phone number",
     "email": "Email address",
-    "website": "LinkedIn, GitHub or portfolio URL",
+    "website": "Add URL",
     "location": "Location",
     "title": "Job Title",
     "company": "Company",
@@ -454,20 +454,16 @@
     },
     "items": {
       "classic-professional": {
-        "name": "Classic Professional",
-        "description": "A clean, traditional layout trusted by Fortune 500 recruiters. Deep navy tones convey reliability and competence."
+        "name": "Right Sidebar",
+        "description": "Sidebar on the right, content on the left. Navy color scheme. Works well for traditional industries and corporate roles."
       },
       "resume-modern": {
-        "name": "Modern Professional",
-        "description": "A sleek, contemporary layout with refined teal tones and clean modern typography. Ideal for tech, creative, and modern industry professionals."
+        "name": "Left Sidebar",
+        "description": "Sidebar on the left, content on the right. Teal color scheme. Good fit for tech, creative, and modern roles."
       },
       "executive-prestige": {
-        "name": "Executive Prestige",
-        "description": "Commanding charcoal palette with gold accents and serif typography. Designed for senior leaders, directors, and C-suite roles."
-      },
-      "ats-optimized": {
-        "name": "ATS Optimized",
-        "description": "A single-column, parser-friendly layout designed to pass Applicant Tracking Systems with maximum keyword visibility."
+        "name": "Dark Header",
+        "description": "Full-width dark header band at the top, no sidebar. Serif font, charcoal and gold palette. Best for senior or formal roles."
       },
       "cover-modern": {
         "name": "Modern Cover Letter",
