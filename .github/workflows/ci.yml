@@ -63,7 +63,7 @@ jobs:
           DEBUG: "false"
           CORS_ORIGINS: "http://localhost:3000"
         run: |
-          pip install pytest pytest-asyncio httpx
+          pip install pytest pytest-asyncio httpx pytest-cov
           pytest --tb=short -q
 
   # ── Frontend (React / Node) ──────────────────────────────────────────────────
