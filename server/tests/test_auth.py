@@ -121,7 +121,7 @@ class TestLogin:
     def test_login_inactive_user(self, client: TestClient, db: Session) -> None:
         """Test login with inactive account fails."""
         # Create inactive user
-        from app.security import get_password_hash
+        from app.auth import get_password_hash
 
         inactive_user = User(
             email="inactive@example.com",

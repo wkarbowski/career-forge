@@ -29,7 +29,7 @@ from sqlalchemy.pool import StaticPool
 from app.database import Base, get_db
 from app.main import app
 from app.models import User
-from app.security import get_password_hash
+from app.auth import get_password_hash
 
 # Create test engine - use in-memory SQLite if DATABASE_URL is not set for PostgreSQL
 TEST_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
