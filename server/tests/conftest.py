@@ -81,6 +81,7 @@ def test_user(db: Session) -> User:
     """Create a test user in the database."""
     user = User(
         email="test@example.com",
+        username="testuser",
         hashed_password=get_password_hash("TestPassword123!"),
         is_active=True,
         is_admin=False,
@@ -98,6 +99,7 @@ def admin_user(db: Session) -> User:
     """Create an admin user in the database."""
     user = User(
         email="admin@example.com",
+        username="adminuser",
         hashed_password=get_password_hash("AdminPassword123!"),
         is_active=True,
         is_admin=True,
@@ -114,7 +116,7 @@ def admin_user(db: Session) -> User:
 def auth_headers(client: TestClient, test_user: User) -> dict[str, str]:
     """Get authentication headers for a test user."""
     response = client.post(
-        "/api/auth/login",
+        "/api/auth/login/json",
         json={"email": "test@example.com", "password": "TestPassword123!"},
     )
     assert response.status_code == 200
@@ -126,7 +128,7 @@ def auth_headers(client: TestClient, test_user: User) -> dict[str, str]:
 def admin_headers(client: TestClient, admin_user: User) -> dict[str, str]:
     """Get authentication headers for an admin user."""
     response = client.post(
-        "/api/auth/login",
+        "/api/auth/login/json",
         json={"email": "admin@example.com", "password": "AdminPassword123!"},
     )
     assert response.status_code == 200
