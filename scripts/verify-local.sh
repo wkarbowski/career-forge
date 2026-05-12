@@ -52,9 +52,19 @@ cd "$REPO_ROOT/client"
 npm run lint || fail "TypeScript type-check failed"
 pass "tsc passed"
 
-# ── 4. Tests ──────────────────────────────────────────────────────────────────
+# ── 4. Frontend tests (Vitest) ───────────────────────────────────────────────
 if [[ "$SKIP_TESTS" == true ]]; then
   echo "${CYAN}Skipping tests (--skip-tests)${RESET}"
+else
+  step "Frontend tests (vitest)"
+  cd "$REPO_ROOT/client"
+  npm test || fail "Frontend tests failed"
+  pass "Frontend tests passed"
+fi
+
+# ── 5. Backend tests (pytest) ─────────────────────────────────────────────────
+if [[ "$SKIP_TESTS" == true ]]; then
+  : # already skipped above
 else
   step "Backend tests (pytest)"
   if [[ -z "${DATABASE_URL:-}" ]]; then
@@ -70,7 +80,7 @@ else
   pass "Tests passed"
 fi
 
-# ── 5. Frontend production build ──────────────────────────────────────────────
+# ── 6. Frontend production build ──────────────────────────────────────────────
 step "Frontend build (vite)"
 cd "$REPO_ROOT/client"
 VITE_API_URL=/api npm run build || fail "Frontend build failed"
