@@ -106,7 +106,9 @@ class TestLogin:
             },
         )
         assert response.status_code == 401
-        assert "invalid credentials" in response.json()["detail"].lower() or "incorrect" in response.json()["detail"].lower()(self, client: TestClient) -> None:
+        assert "invalid credentials" in response.json()["detail"].lower() or "incorrect" in response.json()["detail"].lower()
+
+    def test_login_nonexistent_user(self, client: TestClient) -> None:
         """Test login with non-existent email fails."""
         response = client.post(
             "/api/auth/login/json",
