@@ -1,0 +1,75 @@
+{
+  "name": "Career Forge",
+  "dockerComposeFile": "docker-compose.devcontainer.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "vscode",
+
+  // Run once after the container is first created
+  "postCreateCommand": "bash .devcontainer/postCreate.sh",
+
+  // Forward dev server ports into the host browser
+  "forwardPorts": [3000, 8000, 15432],
+  "portsAttributes": {
+    "3000":  { "label": "Frontend — Vite HMR",  "onAutoForward": "notify" },
+    "8000":  { "label": "Backend — FastAPI",     "onAutoForward": "notify" },
+    "15432": { "label": "PostgreSQL (dev)",       "onAutoForward": "silent" }
+  },
+
+  "customizations": {
+    "vscode": {
+
+      // ── Extensions ────────────────────────────────────────────────────────
+      "extensions": [
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        // TypeScript / React
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        // Docker / containers
+        "ms-azuretools.vscode-docker",
+        // Git
+        "eamodio.gitlens",
+        // Misc QoL
+        "editorconfig.editorconfig",
+        "mikestead.dotenv"
+      ],
+
+      // ── Editor settings (scoped to this dev container) ────────────────────
+      "settings": {
+        // Python interpreter is the one pip installs into
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+
+        // Ruff as the Python formatter; disable the slower legacy linters
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "ruff.lint.run": "onType",
+
+        // Prettier for TS/TSX
+        "[typescript]":     { "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
+        "[typescriptreact]":{ "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
+
+        // Trim whitespace everywhere (matches pre-commit hook)
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        // Point ESLint at the client folder
+        "eslint.workingDirectories": ["client"],
+
+        // Show test runner inline
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestPath": "pytest",
+        "python.testing.cwd": "${workspaceFolder}/server"
+      }
+    }
+  }
+}

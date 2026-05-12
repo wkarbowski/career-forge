@@ -1,0 +1,48 @@
+# Dev Container compose — self-contained, does NOT require a .env file.
+# Hardcoded credentials are intentionally dev-only and never used in production.
+#
+# Provides:
+#   devcontainer  — the VS Code workspace container (Python 3.12 + Node 20)
+#   postgres      — PostgreSQL 16 with a throwaway dev database
+
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # Workspace source (cached for macOS/Windows performance; no-op on Linux)
+      - ..:/workspace:cached
+      # Persist pip-installed packages across rebuilds
+      - careerforge-pip-cache:/usr/local/lib/python3.12/site-packages
+      # Persist node_modules across rebuilds — avoids re-running npm ci every time
+      - careerforge-node-modules:/workspace/client/node_modules
+    # Keep container alive for VS Code to attach to
+    command: sleep infinity
+    env_file:
+      - .env.devcontainer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    network_mode: service:postgres # share network so ports just work
+
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - .env.devcontainer
+    volumes:
+      - careerforge-pgdata:/var/lib/postgresql/data
+    ports:
+      # Expose on a high port so it doesn't clash with a local postgres
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U careerforge -d careerforge_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  careerforge-pgdata:
+  careerforge-pip-cache:
+  careerforge-node-modules:
