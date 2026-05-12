@@ -10,6 +10,7 @@ import os
 from typing import Iterator
 
 # Set test environment variables BEFORE importing app modules
+os.environ["PYTEST_CURRENT_TEST"] = "1"  # prevent main.py create_all at import time
 os.environ.setdefault(
     "SECRET_KEY", "test-secret-key-minimum-32-characters-long-for-testing"
 )

@@ -166,3 +166,55 @@ class TestRefreshTokenDB:
         user, record = verify_refresh_token(raw, db)
         assert user is None
         assert record is None
+
+
+class TestCleanupExpiredTokens:
+    """cleanup_expired_tokens removes expired rows and leaves valid ones alone."""
+
+    def test_cleanup_removes_expired_tokens(self, test_user: User, db: Session) -> None:
+        from app.auth import cleanup_expired_tokens
+
+        expired = RefreshToken(
+            token_hash="expired-hash-xyz",
+            user_id=test_user.id,
+            expires_at=datetime(2000, 1, 1, tzinfo=UTC),
+        )
+        db.add(expired)
+        db.commit()
+
+        removed = cleanup_expired_tokens(db)
+        assert removed >= 1
+        assert (
+            db.query(RefreshToken).filter(RefreshToken.token_hash == "expired-hash-xyz").first()
+            is None
+        )
+
+    def test_cleanup_preserves_valid_tokens(self, test_user: User, db: Session) -> None:
+        from app.auth import cleanup_expired_tokens, create_refresh_token
+
+        create_refresh_token(test_user.id, db)
+        before_count = db.query(RefreshToken).filter(RefreshToken.user_id == test_user.id).count()
+
+        cleanup_expired_tokens(db)
+
+        after_count = db.query(RefreshToken).filter(RefreshToken.user_id == test_user.id).count()
+        assert after_count == before_count  # valid token must survive
+
+
+class TestSanitizeHtml:
+    """InputSanitizer.sanitize_html preserves safe tags and strips dangerous ones."""
+
+    def test_safe_bold_tag_preserved(self) -> None:
+        result = InputSanitizer.sanitize_html("<b>hello</b>")
+        assert "hello" in result
+        assert "<b>" in result
+
+    def test_script_tag_stripped(self) -> None:
+        result = InputSanitizer.sanitize_html("<script>badcode</script>Safe")
+        assert "<script>" not in result
+        assert "Safe" in result
+
+    def test_inline_event_handler_stripped(self) -> None:
+        result = InputSanitizer.sanitize_html('<p onclick="evil()">Text</p>')
+        assert "onclick" not in result
+        assert "Text" in result
