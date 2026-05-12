@@ -29,3 +29,12 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=500]
       - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: frontend-typecheck
+        name: TypeScript type check (tsc --noEmit)
+        language: system
+        entry: bash -c 'cd client && npm run lint'
+        pass_filenames: false
+        files: ^client/.*\.(ts|tsx|js|jsx)$
