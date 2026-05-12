@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { act } from "react";
 import { describe, expect, it, vi } from "vitest";
 import App from "../src/App";
 
@@ -33,26 +34,35 @@ vi.mock("../src/services/api", () => ({
 }));
 
 describe("App – smoke tests", () => {
-  it("renders the application without crashing", () => {
-    expect(() => render(<App />)).not.toThrow();
+  it("renders the application without crashing", async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    // no throw = pass
   });
 
-  it("mounts with the GlobalHeader showing Career Forge branding", () => {
-    render(<App />);
+  it("mounts with the GlobalHeader showing Career Forge branding", async () => {
+    await act(async () => {
+      render(<App />);
+    });
     // GlobalHeader is hidden on the home page for unauthenticated users;
     // the home page hero title provides the branding check.
     expect(screen.getAllByText("Career Forge").length).toBeGreaterThan(0);
   });
 
-  it("renders the home page hero section for unauthenticated users", () => {
-    render(<App />);
+  it("renders the home page hero section for unauthenticated users", async () => {
+    await act(async () => {
+      render(<App />);
+    });
     // Home page subtitle text is visible on the unauthenticated landing page
     const subtitleMatchers = screen.queryAllByText(/resume|cover letter/i);
     expect(subtitleMatchers.length).toBeGreaterThan(0);
   });
 
-  it("renders login and guest-mode CTAs on the home page", () => {
-    render(<App />);
+  it("renders login and guest-mode CTAs on the home page", async () => {
+    await act(async () => {
+      render(<App />);
+    });
     expect(
       screen.getByRole("button", { name: /login|sign in|register/i }),
     ).toBeInTheDocument();
