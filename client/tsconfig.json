@@ -18,8 +18,8 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": false,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules", "build", "dist"]
 }

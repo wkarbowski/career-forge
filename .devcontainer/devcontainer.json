@@ -12,14 +12,13 @@
   // Forward dev server ports into the host browser
   "forwardPorts": [3000, 8000, 15432],
   "portsAttributes": {
-    "3000":  { "label": "Frontend — Vite HMR",  "onAutoForward": "notify" },
-    "8000":  { "label": "Backend — FastAPI",     "onAutoForward": "notify" },
-    "15432": { "label": "PostgreSQL (dev)",       "onAutoForward": "silent" }
+    "3000": { "label": "Frontend — Vite HMR", "onAutoForward": "notify" },
+    "8000": { "label": "Backend — FastAPI", "onAutoForward": "notify" },
+    "15432": { "label": "PostgreSQL (dev)", "onAutoForward": "silent" }
   },
 
   "customizations": {
     "vscode": {
-
       // ── Extensions ────────────────────────────────────────────────────────
       "extensions": [
         // Python
@@ -55,8 +54,14 @@
         "ruff.lint.run": "onType",
 
         // Prettier for TS/TSX
-        "[typescript]":     { "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
-        "[typescriptreact]":{ "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
 
         // Trim whitespace everywhere (matches pre-commit hook)
         "files.trimTrailingWhitespace": true,
