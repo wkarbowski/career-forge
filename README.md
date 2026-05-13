@@ -6,7 +6,7 @@
 [![CI](https://github.com/wkarbowski/career-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/wkarbowski/career-forge/actions/workflows/ci.yml)
 [![codecov](https://img.shields.io/badge/coverage-check%20CI-brightgreen)](server/tests/)
 [![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](server/)
-[![Frontend: React 18](https://img.shields.io/badge/Frontend-React%2018-61dafb)](client/)
+[![Frontend: React 19](https://img.shields.io/badge/Frontend-React%2019-61dafb)](client/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ed)](docker-compose.yml)
 
 ---
@@ -54,7 +54,7 @@
 
 ```
 ┌─────────────────────────────────────────────┐
-│              Client (React 18)              │
+│              Client (React 19)              │
 │  Router v7 · 25+ Components · 6 Contexts   │
 │          API Service (fetch + JWT)          │
 └─────────────────┬───────────────────────────┘
@@ -70,7 +70,7 @@
 
 | Layer                 | Technology                        |
 | --------------------- | --------------------------------- |
-| Frontend              | React 18, React Router v7, Vite 6 |
+| Frontend              | React 19, React Router v7, Vite 8 |
 | Fonts                 | 16× @fontsource/\* (self-hosted)  |
 | Icons                 | Font Awesome Free 7 (self-hosted) |
 | Sanitization          | DOMPurify 3                       |

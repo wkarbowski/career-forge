@@ -1,6 +1,6 @@
 # Career Forge — Frontend
 
-The React-based frontend for **Career Forge**, a full-featured resume and cover letter editor. Built with React 18, it communicates with a FastAPI backend and is served in production via Nginx inside Docker.
+The React-based frontend for **Career Forge**, a full-featured resume and cover letter editor. Built with React 19, it communicates with a FastAPI backend and is served in production via Nginx inside Docker.
 
 ---
 

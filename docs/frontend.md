@@ -23,7 +23,7 @@
 
 ### `index.tsx`
 
-Renders `<App />` into `#root`. Standard React 18 `createRoot` entry.
+Renders `<App />` into `#root`. Standard React 19 `createRoot` entry.
 
 ### `App.tsx`
 
