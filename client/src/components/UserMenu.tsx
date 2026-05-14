@@ -18,16 +18,16 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
   const [operationError, setOperationError] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { 
-    user, 
+  const {
+    user,
     isAuthenticated,
     isGuest,
     logout,
     logoutAllDevices,
     deleteAccount,
-    documentList, 
-    currentDocumentId, 
-    deleteDocument 
+    documentList,
+    currentDocumentId,
+    deleteDocument
   } = useAuth();
   const { t } = useTranslation();
 
@@ -157,7 +157,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
 
   return (
     <div className="user-menu" ref={menuRef}>
-      <button 
+      <button
         className="user-menu-trigger"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -165,11 +165,11 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
           {user?.username.charAt(0).toUpperCase()}
         </div>
         <span className="user-name">{user?.username}</span>
-        <svg 
+        <svg
           className={`user-menu-arrow ${isOpen ? 'open' : ''}`}
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
           strokeWidth="2"
         >
           <polyline points="6 9 12 15 18 9" />
@@ -203,7 +203,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
               {t('userMenu.dashboard')}
             </button>
 
-            <button 
+            <button
               className="user-menu-item"
               onClick={() => setShowCvList(!showCvList)}
               aria-expanded={showCvList}
@@ -214,11 +214,11 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
                 <polyline points="14 2 14 8 20 8" />
               </svg>
               {t('userMenu.myCvs')} ({documentList.length})
-              <svg 
+              <svg
                 className={`submenu-arrow ${showCvList ? 'open' : ''}`}
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <polyline points="9 18 15 12 9 6" />
@@ -231,8 +231,8 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
                   <div className="cv-list-empty">{t('userMenu.noCvs')}</div>
                 ) : (
                   documentList.map((doc) => (
-                    <div 
-                      key={doc.id} 
+                    <div
+                      key={doc.id}
                       className={`cv-list-item ${doc.id === currentDocumentId ? 'active' : ''}`}
                       onClick={() => handleLoadDocument(doc.id)}
                     >
@@ -240,7 +240,7 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
                         <span className="cv-title">{doc.title}</span>
                         <span className="cv-date">{formatDate(doc.updated_at ?? '')}</span>
                       </div>
-                      <button 
+                      <button
                         className="cv-delete-btn"
                         onClick={(e) => handleDeleteDocument(e, doc.id)}
                         title={t('dashboard.delete') || 'Delete document'}
@@ -262,8 +262,8 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
           {/* Session Section */}
           <div className="user-menu-section">
             <div className="user-menu-section-label">{t('userMenu.session') || 'Session'}</div>
-            <button 
-              className="user-menu-item logout" 
+            <button
+              className="user-menu-item logout"
               onClick={handleLogout}
               disabled={loggingOut}
               role="menuitem"

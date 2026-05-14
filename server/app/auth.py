@@ -30,18 +30,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its bcrypt hash."""
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"),
-        hashed_password.encode("utf-8"),
+    return bool(
+        bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
     )
 
 
 def get_password_hash(password: str) -> str:
     """Return a bcrypt hash of *password*."""
-    return bcrypt.hashpw(
+    hashed: bytes = bcrypt.hashpw(
         password.encode("utf-8"),
         bcrypt.gensalt(),
-    ).decode("utf-8")
+    )
+    return hashed.decode("utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -96,9 +99,7 @@ def verify_password_reset_token(
     """Verify a password reset token and return user_id if valid."""
     _settings = settings or get_settings()
     try:
-        payload: dict[str, object] = jwt.decode(
-            token, _settings.secret_key, algorithms=[_settings.algorithm]
-        )
+        payload: dict[str, object] = jwt.decode(token, _settings.secret_key, algorithms=[_settings.algorithm])
         if payload.get("type") != "password_reset":
             return None
         user_id = payload.get("sub")
@@ -155,17 +156,14 @@ def verify_refresh_token(
     """
     token_hash = _hash_token(token)
 
-    stored_token: RefreshToken | None = (
-        db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
-    )
+    stored_token: RefreshToken | None = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
     if stored_token is None:
         return None, None
 
     # Token-reuse detection
     if stored_token.used_at is not None:
         logger.warning(
-            "🚨 SECURITY: Refresh token reuse detected for user %s. "
-            "Revoking all tokens (potential token theft).",
+            "🚨 SECURITY: Refresh token reuse detected for user %s. " "Revoking all tokens (potential token theft).",
             stored_token.user_id,
         )
         from app.audit import audit_logger
@@ -176,9 +174,7 @@ def verify_refresh_token(
             ip_address=ip_address or "unknown",
             user_agent=user_agent or "unknown",
         )
-        db.query(RefreshToken).filter(RefreshToken.user_id == stored_token.user_id).update(
-            {"is_revoked": True}
-        )
+        db.query(RefreshToken).filter(RefreshToken.user_id == stored_token.user_id).update({"is_revoked": True})
         db.commit()
         return None, None
 
@@ -217,9 +213,7 @@ def rotate_refresh_token(
 def revoke_refresh_token(token: str, db: Session) -> bool:
     """Revoke a single refresh token. Returns True if found & revoked."""
     token_hash = _hash_token(token)
-    result: int = (
-        db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).update({"is_revoked": True})
-    )
+    result: int = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).update({"is_revoked": True})
     db.commit()
     return result > 0
 
@@ -237,9 +231,7 @@ def revoke_all_user_tokens(user_id: int, db: Session) -> int:
 
 def cleanup_expired_tokens(db: Session) -> int:
     """Remove expired refresh tokens. Should run periodically."""
-    result: int = (
-        db.query(RefreshToken).filter(RefreshToken.expires_at < datetime.now(UTC)).delete()
-    )
+    result: int = db.query(RefreshToken).filter(RefreshToken.expires_at < datetime.now(UTC)).delete()
     db.commit()
     return result
 
@@ -260,9 +252,7 @@ def decode_token(
     """
     _settings = settings or get_settings()
     try:
-        payload: dict[str, object] = jwt.decode(
-            token, _settings.secret_key, algorithms=[_settings.algorithm]
-        )
+        payload: dict[str, object] = jwt.decode(token, _settings.secret_key, algorithms=[_settings.algorithm])
         if payload.get("type") != "access":
             logger.warning("Invalid token type: %s (expected 'access')", payload.get("type"))
             return None

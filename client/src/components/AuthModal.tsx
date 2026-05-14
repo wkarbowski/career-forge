@@ -132,7 +132,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }: AuthMo
     }
 
     setIsSubmitting(true);
-    
+
     let result;
     if (mode === 'login') {
       result = await login(email, password);
@@ -192,9 +192,9 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }: AuthMo
     <div className="auth-modal-overlay" onClick={handleClose} role="presentation">
       <div className="auth-modal" ref={modalRef} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
         <button className="auth-modal-close" onClick={handleClose} aria-label={t('common.cancel') || 'Close'}>×</button>
-        
+
         <h2 id="auth-modal-title">{modeTitle[mode]}</h2>
-        
+
         {displayError && (
           <div className="auth-error">{displayError}</div>
         )}
@@ -295,8 +295,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }: AuthMo
             </div>
           )}
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="auth-submit"
             disabled={isSubmitting}
           >

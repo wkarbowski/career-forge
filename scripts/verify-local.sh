@@ -37,7 +37,15 @@ step() { echo; echo "${CYAN}${BOLD}── $* ──${RESET}"; }
 # ── 1. Pre-commit hooks (lint + type-check) ───────────────────────────────────
 step "Pre-commit hooks (ruff, mypy, tsc)"
 cd "$REPO_ROOT"
-pre-commit run --all-files || fail "Pre-commit hooks failed"
+# Resolve pre-commit: prefer PATH, fall back to the repo venv.
+if command -v pre-commit &>/dev/null; then
+  PRE_COMMIT=pre-commit
+elif [[ -x "$REPO_ROOT/.venv/bin/pre-commit" ]]; then
+  PRE_COMMIT="$REPO_ROOT/.venv/bin/pre-commit"
+else
+  fail "pre-commit not found. Install it with: pip install pre-commit  OR  pip install -r server/requirements-dev.txt"
+fi
+"$PRE_COMMIT" run --all-files || fail "Pre-commit hooks failed"
 pass "Hooks passed"
 
 # ── 2. Backend lint ───────────────────────────────────────────────────────────

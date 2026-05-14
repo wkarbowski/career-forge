@@ -147,19 +147,19 @@
   .global-header {
     padding: 0 16px;
   }
-  
+
   .header-nav .nav-item span {
     display: none;
   }
-  
+
   .header-nav .nav-item {
     padding: 8px;
   }
-  
+
   .header-logo span {
     display: none;
   }
-  
+
   .guest-mode-badge span {
     display: none;
   }

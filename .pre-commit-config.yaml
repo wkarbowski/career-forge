@@ -16,7 +16,7 @@ repos:
           - fastapi>=0.115.0
           - sqlalchemy>=2.0.36
           - types-bleach
-        args: [--config-file=server/pyproject.toml]
+        args: [--config-file=server/pyproject.toml, server/app]
         pass_filenames: false
         files: ^server/
 

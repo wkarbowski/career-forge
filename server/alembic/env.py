@@ -1,18 +1,16 @@
+import os
+import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
-import sys
-import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from app.audit import AuditLog
 from app.config import get_settings
 from app.database import Base
-from app.models import User, Document, DocumentVersion, RefreshToken
-from app.audit import AuditLog
+from app.models import Document, DocumentVersion, RefreshToken, User
 
 settings = get_settings()
 

@@ -10,7 +10,7 @@
  *   if (FEATURES.CLOUD) { ... }
  *
  * Flags default to false when CLOUD_FEATURES is unset.
- *       
+ *
  */
 
 import type { Features } from '../types';

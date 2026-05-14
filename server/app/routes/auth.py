@@ -110,8 +110,7 @@ def _authenticate_user(
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=(
-                "Account temporarily locked due to too many failed attempts. "
-                f"Try again in {minutes + 1} minutes."
+                "Account temporarily locked due to too many failed attempts. " f"Try again in {minutes + 1} minutes."
             ),
             headers={"Retry-After": str(remaining)},
         )
@@ -125,10 +124,7 @@ def _authenticate_user(
 
         detail = "Incorrect email or password"
         if 0 < remaining_attempts <= 3:
-            detail = (
-                f"Incorrect email or password. "
-                f"{remaining_attempts} attempts remaining before lockout."
-            )
+            detail = f"Incorrect email or password. " f"{remaining_attempts} attempts remaining before lockout."
         elif remaining_attempts == 0:
             detail = (
                 "Account locked due to too many failed attempts. "
@@ -324,9 +320,7 @@ async def refresh_tokens(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user, old_token = verify_refresh_token(
-        refresh_token, db, ip_address=ip_address, user_agent=user_agent
-    )
+    user, old_token = verify_refresh_token(refresh_token, db, ip_address=ip_address, user_agent=user_agent)
 
     if not user or not old_token:
         audit_logger.log(

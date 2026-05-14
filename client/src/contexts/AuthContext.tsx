@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [documentList, setDocumentList] = useState<AppDocument[]>([]);
   const [currentDocumentId, setCurrentDocumentId] = useState<number | 'template' | null>(null);
   const [isGuest, setIsGuest] = useState(false);
-  
+
   const { resetToInitial } = useAppState();
 
   useEffect(() => {
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.sessionStorage.removeItem('isTemplate');
     window.sessionStorage.removeItem('selectedTemplateId');
   }, [resetToInitial]);
-  
+
   const logoutAllDevices = useCallback(async () => {
     try {
       await authApi.logoutAllDevices();

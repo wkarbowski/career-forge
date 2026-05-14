@@ -99,9 +99,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(UTC), index=True
-    )
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), index=True)
     event_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     severity: Mapped[str] = mapped_column(String(20), nullable=False, default="info")
 
@@ -169,9 +167,7 @@ class AuditLogger:
         self.logger = logging.getLogger("audit")
         if not self.logger.handlers:
             handler = logging.StreamHandler()
-            handler.setFormatter(
-                logging.Formatter("%(asctime)s - AUDIT - %(levelname)s - %(message)s")
-            )
+            handler.setFormatter(logging.Formatter("%(asctime)s - AUDIT - %(levelname)s - %(message)s"))
             self.logger.addHandler(handler)
             self.logger.setLevel(logging.INFO)
 

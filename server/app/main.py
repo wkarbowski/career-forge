@@ -109,8 +109,7 @@ if settings.cloud_features:
         logger.info("Extended modules loaded")
     except ImportError as exc:
         logger.warning(
-            "CLOUD_FEATURES=true but app.cloud package not found — "
-            "extended routes will not be available. (%s)",
+            "CLOUD_FEATURES=true but app.cloud package not found — " "extended routes will not be available. (%s)",
             exc,
         )
 

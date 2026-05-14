@@ -65,6 +65,8 @@ build:
 # ── Hooks ─────────────────────────────────────────────────────────────────────
 hooks:
 	@echo "$(CYAN)$(BOLD)→ Installing pre-commit hooks$(RESET)"
-	cd server && pip install pre-commit --quiet
-	pre-commit install
+	# Install pre-commit into the repo venv (or globally if already active).
+	pip install pre-commit --quiet 2>/dev/null || pip3 install pre-commit --user --quiet
+	# Use .venv binary as fallback so the command works even without PATH update.
+	$(shell command -v pre-commit 2>/dev/null || echo .venv/bin/pre-commit) install
 	@echo "$(GREEN)✓ Hooks installed — they will run on every git commit$(RESET)"

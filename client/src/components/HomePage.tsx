@@ -30,7 +30,7 @@ const HomePage = ({ onLogin, onGuestStart, onBrowseTemplates, isLoggedIn, isGues
           <ThemeToggle />
         </div>
       )}
-      
+
       <div className="home-content">
         <div className="home-hero">
           <div className="home-icon" aria-hidden="true">

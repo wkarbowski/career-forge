@@ -59,9 +59,7 @@ class TestJWTAccessTokens:
         bad_token = ".".join([parts[0], parts[1], bad_sig])
         assert decode_token(bad_token) is None
 
-    def test_password_reset_token_not_accepted_as_access_token(
-        self, test_user: User
-    ) -> None:
+    def test_password_reset_token_not_accepted_as_access_token(self, test_user: User) -> None:
         """A password_reset JWT must be rejected by decode_token (type mismatch)."""
         reset_token = create_password_reset_token(test_user.id)
         assert decode_token(reset_token) is None
@@ -110,57 +108,42 @@ class TestInputSanitizer:
         assert InputSanitizer.contains_dangerous_content("javascript:void(0)") is True
 
     def test_safe_plain_text_not_flagged(self) -> None:
-        assert (
-            InputSanitizer.contains_dangerous_content(
-                "John Doe — Senior Software Engineer"
-            )
-            is False
-        )
+        assert InputSanitizer.contains_dangerous_content("John Doe — Senior Software Engineer") is False
 
 
 class TestRefreshTokenDB:
     """Refresh-token creation, verification, revocation, and expiry — against the DB."""
 
-    def test_create_stores_hash_not_raw_token(
-        self, test_user: User, db: Session
-    ) -> None:
+    def test_create_stores_hash_not_raw_token(self, test_user: User, db: Session) -> None:
         raw = create_refresh_token(test_user.id, db)
         assert raw  # raw token returned to caller
         stored = db.query(RefreshToken).filter(RefreshToken.user_id == test_user.id).first()
         assert stored is not None
         assert stored.token_hash != raw  # stored value is a hash
 
-    def test_verify_valid_token_returns_user(
-        self, test_user: User, db: Session
-    ) -> None:
+    def test_verify_valid_token_returns_user(self, test_user: User, db: Session) -> None:
         raw = create_refresh_token(test_user.id, db)
         user, record = verify_refresh_token(raw, db)
         assert user is not None
         assert user.id == test_user.id
         assert record is not None
 
-    def test_verify_revoked_token_returns_none(
-        self, test_user: User, db: Session
-    ) -> None:
+    def test_verify_revoked_token_returns_none(self, test_user: User, db: Session) -> None:
         raw = create_refresh_token(test_user.id, db)
         token_hash = hashlib.sha256(raw.encode()).hexdigest()
-        db.query(RefreshToken).filter(
-            RefreshToken.token_hash == token_hash
-        ).update({"is_revoked": True})
+        db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).update({"is_revoked": True})
         db.commit()
 
         user, record = verify_refresh_token(raw, db)
         assert user is None
         assert record is None
 
-    def test_verify_expired_token_returns_none(
-        self, test_user: User, db: Session
-    ) -> None:
+    def test_verify_expired_token_returns_none(self, test_user: User, db: Session) -> None:
         raw = create_refresh_token(test_user.id, db)
         token_hash = hashlib.sha256(raw.encode()).hexdigest()
-        db.query(RefreshToken).filter(
-            RefreshToken.token_hash == token_hash
-        ).update({"expires_at": datetime(2000, 1, 1, tzinfo=UTC)})
+        db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).update(
+            {"expires_at": datetime(2000, 1, 1, tzinfo=UTC)}
+        )
         db.commit()
 
         user, record = verify_refresh_token(raw, db)
@@ -184,10 +167,7 @@ class TestCleanupExpiredTokens:
 
         removed = cleanup_expired_tokens(db)
         assert removed >= 1
-        assert (
-            db.query(RefreshToken).filter(RefreshToken.token_hash == "expired-hash-xyz").first()
-            is None
-        )
+        assert db.query(RefreshToken).filter(RefreshToken.token_hash == "expired-hash-xyz").first() is None
 
     def test_cleanup_preserves_valid_tokens(self, test_user: User, db: Session) -> None:
         from app.auth import cleanup_expired_tokens, create_refresh_token

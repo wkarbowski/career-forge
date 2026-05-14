@@ -20,7 +20,7 @@ from pathlib import Path
 # Add parent directory to path to import app modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -50,7 +50,7 @@ def create_sample_user(db: Session) -> User:
     db.commit()
     db.refresh(user)
     print(f"✓ Created demo user: {user.email}")
-    print(f"  Password: DemoPass123!")
+    print("  Password: DemoPass123!")
     return user
 
 
@@ -137,8 +137,8 @@ def create_professional_resume(db: Session, user: User) -> Document:
         document_type="resume",
         data=data,
         owner_id=user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     db.add(doc)
     db.commit()
@@ -212,8 +212,8 @@ def create_modern_resume(db: Session, user: User) -> Document:
         document_type="resume",
         data=data,
         owner_id=user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     db.add(doc)
     db.commit()
@@ -293,8 +293,8 @@ def create_minimal_resume(db: Session, user: User) -> Document:
         document_type="resume",
         data=data,
         owner_id=user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     db.add(doc)
     db.commit()
@@ -351,8 +351,8 @@ def create_cover_letter_1(db: Session, user: User, linked_resume: Document | Non
         data=data,
         owner_id=user.id,
         linked_resume_id=linked_resume.id if linked_resume else None,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     db.add(doc)
     db.commit()
@@ -407,8 +407,8 @@ def create_cover_letter_2(db: Session, user: User, linked_resume: Document | Non
         data=data,
         owner_id=user.id,
         linked_resume_id=linked_resume.id if linked_resume else None,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     db.add(doc)
     db.commit()
@@ -431,12 +431,12 @@ def create_document_versions(db: Session, document: Document) -> None:
         },
     ]
 
-    for idx, version_data in enumerate(versions):
+    for _, version_data in enumerate(versions):
         version = DocumentVersion(
             document_id=document.id,
             version_name=version_data["version_name"],
             data=document.data,  # Use current document data for simplicity
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         db.add(version)
 
@@ -456,21 +456,21 @@ def main() -> None:
         # Create resumes
         resume1 = create_professional_resume(db, user)
         resume2 = create_modern_resume(db, user)
-        resume3 = create_minimal_resume(db, user)
+        create_minimal_resume(db, user)
 
         # Create cover letters (linked to resumes)
-        cover1 = create_cover_letter_1(db, user, linked_resume=resume1)
-        cover2 = create_cover_letter_2(db, user, linked_resume=resume2)
+        create_cover_letter_1(db, user, linked_resume=resume1)
+        create_cover_letter_2(db, user, linked_resume=resume2)
 
         # Create version history for the first resume
         create_document_versions(db, resume1)
 
         print("\n✅ Sample data created successfully!")
         print("\n📋 Summary:")
-        print(f"   • User: demo@example.com (Password: DemoPass123!)")
-        print(f"   • Resumes: 3 (Professional, Modern, Minimal)")
-        print(f"   • Cover Letters: 2 (linked to resumes)")
-        print(f"   • Document Versions: 3 snapshots for first resume")
+        print("   • User: demo@example.com (Password: DemoPass123!)")
+        print("   • Resumes: 3 (Professional, Modern, Minimal)")
+        print("   • Cover Letters: 2 (linked to resumes)")
+        print("   • Document Versions: 3 snapshots for first resume")
         print("\n🌐 You can now log in at: http://localhost")
         print("   Email: demo@example.com")
         print("   Password: DemoPass123!")

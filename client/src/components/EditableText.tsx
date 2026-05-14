@@ -89,7 +89,7 @@ const EditableText = ({ value, onChange, className = '', tag: Tag = 'span', styl
 
     if (html) {
       const sanitizedHtml = DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
-      
+
       const parser = new DOMParser();
       const doc = parser.parseFromString(sanitizedHtml, 'text/html');
 
