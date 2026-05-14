@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 # Shared password-strength validator (DRY — used by three schemas)
 # ---------------------------------------------------------------------------
 
+
 def _validate_password_strength(v: str) -> str:
     """Validate that a password meets security requirements.
 
@@ -47,9 +48,7 @@ class UserBase(BaseModel):
     @classmethod
     def validate_username(cls, v: str) -> str:
         if not re.match(r"^[a-zA-Z0-9_-]+$", v):
-            raise ValueError(
-                "Username can only contain letters, numbers, underscores, and hyphens"
-            )
+            raise ValueError("Username can only contain letters, numbers, underscores, and hyphens")
         return v
 
 

@@ -30,9 +30,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
-    documents: Mapped[list[Document]] = relationship(
-        "Document", back_populates="owner", cascade="all, delete-orphan"
-    )
+    documents: Mapped[list[Document]] = relationship("Document", back_populates="owner", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
@@ -66,9 +64,7 @@ class Document(Base):
     versions: Mapped[list[DocumentVersion]] = relationship(
         "DocumentVersion", back_populates="document", cascade="all, delete-orphan"
     )
-    linked_resume: Mapped[Document | None] = relationship(
-        "Document", remote_side=[id], foreign_keys=[linked_resume_id]
-    )
+    linked_resume: Mapped[Document | None] = relationship("Document", remote_side=[id], foreign_keys=[linked_resume_id])
 
 
 class DocumentVersion(Base):

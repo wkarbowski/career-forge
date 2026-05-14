@@ -87,11 +87,8 @@ class InMemoryRateLimiter(RateLimiterBackend):
 
         # If still too many keys, remove oldest
         if len(self.requests) > self.max_keys:
-            sorted_keys = sorted(
-                self.requests.keys(),
-                key=lambda k: min(self.requests[k]) if self.requests[k] else 0
-            )
-            for key in sorted_keys[:len(self.requests) - self.max_keys]:
+            sorted_keys = sorted(self.requests.keys(), key=lambda k: min(self.requests[k]) if self.requests[k] else 0)
+            for key in sorted_keys[: len(self.requests) - self.max_keys]:
                 del self.requests[key]
 
     def is_allowed(self, key: str, max_requests: int, window_seconds: int = 60) -> bool:
@@ -113,10 +110,7 @@ class InMemoryRateLimiter(RateLimiterBackend):
         window_start = current_time - window_seconds
 
         # Clean old requests outside the window
-        self.requests[key] = [
-            req_time for req_time in self.requests[key]
-            if req_time > window_start
-        ]
+        self.requests[key] = [req_time for req_time in self.requests[key] if req_time > window_start]
 
         # Check if under limit
         if len(self.requests[key]) >= max_requests:
@@ -131,10 +125,7 @@ class InMemoryRateLimiter(RateLimiterBackend):
         current_time = time.time()
         window_start = current_time - window_seconds
 
-        current_requests = [
-            req_time for req_time in self.requests[key]
-            if req_time > window_start
-        ]
+        current_requests = [req_time for req_time in self.requests[key] if req_time > window_start]
 
         return max(0, max_requests - len(current_requests))
 
@@ -177,14 +168,11 @@ class RedisRateLimiter(RateLimiterBackend):
                     password=self._password,
                     decode_responses=True,
                     socket_connect_timeout=5,
-                    socket_timeout=5
+                    socket_timeout=5,
                 )
             else:
                 self._redis = redis.from_url(
-                    self._redis_url,
-                    decode_responses=True,
-                    socket_connect_timeout=5,
-                    socket_timeout=5
+                    self._redis_url, decode_responses=True, socket_connect_timeout=5, socket_timeout=5
                 )
 
             # Test connection
@@ -346,10 +334,7 @@ def create_rate_limiter() -> RateLimiterBackend:
     """
     if settings.rate_limit_backend == "redis" and settings.redis_url:
         logger.info(f"Initializing Redis rate limiter: {settings.redis_url}")
-        redis_limiter = RedisRateLimiter(
-            redis_url=settings.redis_url,
-            password=settings.redis_password or None
-        )
+        redis_limiter = RedisRateLimiter(redis_url=settings.redis_url, password=settings.redis_password or None)
 
         # Create fallback wrapper
         memory_limiter = InMemoryRateLimiter()
@@ -406,9 +391,7 @@ class InMemoryAccountLockout(AccountLockoutBackend):
 
     def _cleanup_old_failures(self, identifier: str) -> None:
         cutoff = time.time() - self._window
-        self._failures[identifier] = [
-            t for t in self._failures[identifier] if t > cutoff
-        ]
+        self._failures[identifier] = [t for t in self._failures[identifier] if t > cutoff]
 
     def record_failure(self, identifier: str) -> int:
         self._cleanup_old_failures(identifier)
@@ -459,8 +442,9 @@ class RedisAccountLockout(AccountLockoutBackend):
     Suitable for distributed/multi-instance deployments.
     """
 
-    def __init__(self, redis_url: str, password: str | None = None,
-                 max_attempts: int = 10, lockout_duration: int = 15) -> None:
+    def __init__(
+        self, redis_url: str, password: str | None = None, max_attempts: int = 10, lockout_duration: int = 15
+    ) -> None:
         self._redis: Any = None
         self._redis_url = redis_url
         self._password = password
@@ -476,13 +460,10 @@ class RedisAccountLockout(AccountLockoutBackend):
 
             if self._password:
                 self._redis = redis.from_url(
-                    self._redis_url, password=self._password,
-                    decode_responses=True, socket_timeout=5
+                    self._redis_url, password=self._password, decode_responses=True, socket_timeout=5
                 )
             else:
-                self._redis = redis.from_url(
-                    self._redis_url, decode_responses=True, socket_timeout=5
-                )
+                self._redis = redis.from_url(self._redis_url, decode_responses=True, socket_timeout=5)
             self._redis.ping()
             self._connected = True
         except Exception as e:
@@ -529,11 +510,7 @@ class RedisAccountLockout(AccountLockoutBackend):
 
             # Lock if threshold reached
             if count >= self._max_attempts:
-                self._redis.setex(
-                    self._lock_key(identifier),
-                    self._lockout_duration,
-                    "locked"
-                )
+                self._redis.setex(self._lock_key(identifier), self._lockout_duration, "locked")
                 logger.warning(f"Account locked (Redis): {identifier}")
 
             return count
@@ -622,7 +599,7 @@ def create_account_lockout() -> AccountLockoutBackend:
             redis_url=settings.redis_url,
             password=settings.redis_password or None,
             max_attempts=max_attempts,
-            lockout_duration=lockout_duration
+            lockout_duration=lockout_duration,
         )
         memory_lockout = InMemoryAccountLockout(max_attempts, lockout_duration)
         return FallbackAccountLockout(redis_lockout, memory_lockout)
@@ -669,6 +646,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             try:
                 from app.audit import AuditEventType, AuditSeverity, audit_logger
                 from app.database import SessionLocal
+
                 db = SessionLocal()
                 try:
                     audit_logger.log(
@@ -679,7 +657,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                         ip_address=client_ip,
                         user_agent=request.headers.get("User-Agent", "")[:200],
                         endpoint=path,
-                        success=False
+                        success=False,
                     )
                 finally:
                     db.close()
@@ -695,7 +673,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     "X-RateLimit-Remaining": str(remaining),
                     "X-RateLimit-Reset": str(reset_time),
                     "Retry-After": str(reset_time),
-                }
+                },
             )
 
         # Process request
@@ -778,20 +756,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Permissions Policy (formerly Feature-Policy)
         response.headers["Permissions-Policy"] = (
-            "geolocation=(), microphone=(), camera=(), "
-            "payment=(), usb=(), magnetometer=(), gyroscope=()"
+            "geolocation=(), microphone=(), camera=(), " "payment=(), usb=(), magnetometer=(), gyroscope=()"
         )
 
         # Content Security Policy for API
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; frame-ancestors 'none'"
-        )
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
 
         # HSTS (only in production with HTTPS)
         if settings.enforce_https:
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains; preload"
-            )
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
         # Cache control for sensitive endpoints
         if "/api/auth/" in request.url.path:
@@ -808,12 +781,12 @@ class InputSanitizer:
 
     # Patterns that might indicate malicious input
     DANGEROUS_PATTERNS: ClassVar[list[str]] = [
-        r'<script[^>]*>',  # Script tags
-        r'javascript:',     # JavaScript URLs
-        r'on\w+\s*=',       # Event handlers (onclick, onerror, etc.)
-        r'data:text/html',  # Data URLs with HTML
-        r'vbscript:',       # VBScript URLs
-        r'expression\s*\(', # CSS expressions
+        r"<script[^>]*>",  # Script tags
+        r"javascript:",  # JavaScript URLs
+        r"on\w+\s*=",  # Event handlers (onclick, onerror, etc.)
+        r"data:text/html",  # Data URLs with HTML
+        r"vbscript:",  # VBScript URLs
+        r"expression\s*\(",  # CSS expressions
     ]
 
     # Compile patterns for efficiency
@@ -821,21 +794,33 @@ class InputSanitizer:
 
     # Safe HTML tags for document rich text fields
     SAFE_HTML_TAGS: ClassVar[list[str]] = [
-        'b', 'i', 'u', 'strong', 'em', 'br', 'p', 'ul', 'ol', 'li', 'a', 'span', 'div',
+        "b",
+        "i",
+        "u",
+        "strong",
+        "em",
+        "br",
+        "p",
+        "ul",
+        "ol",
+        "li",
+        "a",
+        "span",
+        "div",
     ]
     SAFE_HTML_ATTRS: ClassVar[dict[str, list[str]]] = {
-        'a': ['href', 'title'],
-        'span': ['class', 'style'],
-        'p': ['style'],
-        'div': ['style'],
-        'li': ['style'],
-        'ul': ['style'],
-        'ol': ['style'],
-        'b': ['style'],
-        'i': ['style'],
-        'u': ['style'],
-        'strong': ['style'],
-        'em': ['style'],
+        "a": ["href", "title"],
+        "span": ["class", "style"],
+        "p": ["style"],
+        "div": ["style"],
+        "li": ["style"],
+        "ul": ["style"],
+        "ol": ["style"],
+        "b": ["style"],
+        "i": ["style"],
+        "u": ["style"],
+        "strong": ["style"],
+        "em": ["style"],
     }
 
     @classmethod
@@ -854,8 +839,14 @@ class InputSanitizer:
 
             # CSS properties that the document editor legitimately uses
             allowed_css = [
-                'color', 'background-color', 'font-size', 'font-family',
-                'font-weight', 'font-style', 'text-decoration', 'text-align',
+                "color",
+                "background-color",
+                "font-size",
+                "font-family",
+                "font-weight",
+                "font-style",
+                "text-decoration",
+                "text-align",
             ]
             css_sanitizer = CSSSanitizer(allowed_css_properties=allowed_css)
 
@@ -866,7 +857,7 @@ class InputSanitizer:
                 attributes=cls.SAFE_HTML_ATTRS,
                 css_sanitizer=css_sanitizer,
                 strip=True,
-                strip_comments=True
+                strip_comments=True,
             )
 
             return str(cleaned)
@@ -898,7 +889,7 @@ class InputSanitizer:
             value = html.escape(value)
 
         # Remove null bytes
-        value = value.replace('\x00', '')
+        value = value.replace("\x00", "")
 
         return value
 
@@ -946,9 +937,12 @@ class InputSanitizer:
                 sanitized[key] = cls.sanitize_dict(value, allow_html_fields)
             elif isinstance(value, list):
                 sanitized[key] = [
-                    cls.sanitize_dict(item, allow_html_fields) if isinstance(item, dict)
-                    else cls.sanitize_html(item) if isinstance(item, str) and key in allow_html_fields
-                    else cls.sanitize_string(item) if isinstance(item, str)
+                    cls.sanitize_dict(item, allow_html_fields)
+                    if isinstance(item, dict)
+                    else cls.sanitize_html(item)
+                    if isinstance(item, str) and key in allow_html_fields
+                    else cls.sanitize_string(item)
+                    if isinstance(item, str)
                     else item
                     for item in value
                 ]
@@ -975,7 +969,7 @@ class InputSanitizer:
         filename = filename.replace("/", "_").replace("\\", "_")
 
         # Remove null bytes
-        filename = filename.replace('\x00', '')
+        filename = filename.replace("\x00", "")
 
         # Remove leading dots (hidden files, parent directory traversal)
         filename = filename.lstrip(".")
@@ -1102,7 +1096,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             return Response(
                 content='{"detail": "CSRF validation failed: Invalid origin", "code": "csrf_failed"}',
                 status_code=status.HTTP_403_FORBIDDEN,
-                media_type="application/json"
+                media_type="application/json",
             )
 
         return await call_next(request)
@@ -1111,6 +1105,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 # =============================================================================
 # REQUEST SIZE LIMITING (DoS Prevention)
 # =============================================================================
+
 
 class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
     """
@@ -1128,7 +1123,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
             try:
                 size = int(content_length)
                 if size > self.MAX_SIZE:
-                    host = request.client.host if request.client else 'unknown'
+                    host = request.client.host if request.client else "unknown"
                     logger.warning(f"Request too large: {size} bytes from {host}")
                     return Response(
                         content=(
@@ -1136,7 +1131,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
                             ' "code": "request_too_large"}'
                         ),
                         status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                        media_type="application/json"
+                        media_type="application/json",
                     )
             except ValueError:
                 pass  # Invalid content-length, let it through for other validation
@@ -1147,6 +1142,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
 # =============================================================================
 # CONTENT-TYPE VALIDATION
 # =============================================================================
+
 
 class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
     """
@@ -1201,7 +1197,7 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
             return Response(
                 content='{"detail": "Content-Type must be application/json", "code": "invalid_content_type"}',
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                media_type="application/json"
+                media_type="application/json",
             )
 
         return await call_next(request)
@@ -1210,6 +1206,7 @@ class ContentTypeValidationMiddleware(BaseHTTPMiddleware):
 # =============================================================================
 # MIDDLEWARE SETUP HELPER
 # =============================================================================
+
 
 def setup_security_middleware(app: FastAPI) -> None:
     """Configure all security middleware for the FastAPI application."""
@@ -1235,7 +1232,4 @@ def setup_security_middleware(app: FastAPI) -> None:
 
     # 7. Trusted hosts (prevent host header attacks)
     if settings.trusted_hosts and settings.trusted_hosts_list != ["*"]:
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=settings.trusted_hosts_list
-        )
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_hosts_list)

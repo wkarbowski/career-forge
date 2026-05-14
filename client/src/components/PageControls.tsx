@@ -3,7 +3,7 @@ import { usePages } from '../contexts/PageContext';
 import { useTranslation } from '../i18n';
 
 const PageControls = () => {
-  const { 
+  const {
     currentPageIndex,
     totalPages,
     addPage,
@@ -28,7 +28,7 @@ const PageControls = () => {
       </div>
 
       <div className="page-controls-section page-actions">
-        <button 
+        <button
           className="page-control-btn"
           onClick={() => addPage(currentPageIndex)}
           title={t('pages.add') || 'Add Page'}
@@ -36,8 +36,8 @@ const PageControls = () => {
           <i className="fas fa-plus"></i>
           <span className="btn-label">{t('pages.addPage') || 'Add Page'}</span>
         </button>
-        
-        <button 
+
+        <button
           className="page-control-btn"
           onClick={toggleViewMode}
           title={viewMode === 'pages' ? (t('pages.continuousView') || 'Continuous View') : (t('pages.pagesView') || 'Pages View')}
@@ -45,12 +45,12 @@ const PageControls = () => {
           <i className={`fas ${viewMode === 'pages' ? 'fa-scroll' : 'fa-file'}`}></i>
           <span className="btn-label">{viewMode === 'pages' ? (t('pages.continuousView') || 'Continuous') : (t('pages.pagesView') || 'Pages')}</span>
         </button>
-        
+
 
       </div>
 
       <div className="page-controls-section zoom-controls">
-        <button 
+        <button
           className="page-control-btn"
           onClick={zoomOut}
           disabled={zoom <= 0.5}
@@ -58,16 +58,16 @@ const PageControls = () => {
         >
           <i className="fas fa-search-minus"></i>
         </button>
-        
-        <button 
+
+        <button
           className="zoom-level"
           onClick={resetZoom}
           title={t('pages.resetZoom') || 'Reset Zoom'}
         >
           {Math.round(zoom * 100)}%
         </button>
-        
-        <button 
+
+        <button
           className="page-control-btn"
           onClick={zoomIn}
           disabled={zoom >= 2}

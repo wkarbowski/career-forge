@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 
 from app.models import Document, DocumentVersion, User
 
-
 # ---------------------------------------------------------------------------
 # File-local fixture (complements conftest.test_document with cover-letter)
 # ---------------------------------------------------------------------------
@@ -77,15 +76,11 @@ class TestDocumentDuplicate:
         assert response.status_code == 201
         assert response.json()["share_token"] is None
 
-    def test_duplicate_nonexistent_document_returns_404(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_duplicate_nonexistent_document_returns_404(self, client: TestClient, auth_headers: dict) -> None:
         response = client.post("/api/documents/99999/duplicate", headers=auth_headers, json={})
         assert response.status_code == 404
 
-    def test_duplicate_unauthenticated_returns_401(
-        self, client: TestClient, test_document: Document
-    ) -> None:
+    def test_duplicate_unauthenticated_returns_401(self, client: TestClient, test_document: Document) -> None:
         response = client.post(f"/api/documents/{test_document.id}/duplicate", json={})
         assert response.status_code == 401
 
@@ -129,9 +124,7 @@ class TestDocumentDefault:
         assert response.status_code == 200
         assert response.json()["id"] == doc.id
 
-    def test_get_default_no_documents_returns_404(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_get_default_no_documents_returns_404(self, client: TestClient, auth_headers: dict) -> None:
         response = client.get("/api/documents/default/current", headers=auth_headers)
         assert response.status_code == 404
 
@@ -142,12 +135,8 @@ class TestDocumentDefault:
         test_user: User,
         db: Session,
     ) -> None:
-        doc1 = Document(
-            title="D1", document_type="resume", data={}, owner_id=test_user.id, is_default=True
-        )
-        doc2 = Document(
-            title="D2", document_type="resume", data={}, owner_id=test_user.id, is_default=False
-        )
+        doc1 = Document(title="D1", document_type="resume", data={}, owner_id=test_user.id, is_default=True)
+        doc2 = Document(title="D2", document_type="resume", data={}, owner_id=test_user.id, is_default=False)
         db.add_all([doc1, doc2])
         db.commit()
         db.refresh(doc1)
@@ -201,9 +190,7 @@ class TestDocumentVersions:
             )
         db.commit()
 
-        response = client.get(
-            f"/api/documents/{test_document.id}/versions", headers=auth_headers
-        )
+        response = client.get(f"/api/documents/{test_document.id}/versions", headers=auth_headers)
         assert response.status_code == 200
         assert len(response.json()) == 3
 
@@ -262,9 +249,7 @@ class TestDocumentVersions:
         test_document: Document,
         db: Session,
     ) -> None:
-        version = DocumentVersion(
-            document_id=test_document.id, version_name="to-delete", data={}
-        )
+        version = DocumentVersion(document_id=test_document.id, version_name="to-delete", data={})
         db.add(version)
         db.commit()
         db.refresh(version)
@@ -275,17 +260,12 @@ class TestDocumentVersions:
         )
         assert response.status_code == 204
 
-        assert (
-            db.query(DocumentVersion).filter(DocumentVersion.id == version.id).first()
-            is None
-        )
+        assert db.query(DocumentVersion).filter(DocumentVersion.id == version.id).first() is None
 
     def test_get_nonexistent_version_returns_404(
         self, client: TestClient, auth_headers: dict, test_document: Document
     ) -> None:
-        response = client.get(
-            f"/api/documents/{test_document.id}/versions/99999", headers=auth_headers
-        )
+        response = client.get(f"/api/documents/{test_document.id}/versions/99999", headers=auth_headers)
         assert response.status_code == 404
 
     def test_create_version_on_other_users_doc_returns_404(
@@ -295,9 +275,7 @@ class TestDocumentVersions:
         other_user: User,
         db: Session,
     ) -> None:
-        other_doc = Document(
-            title="Other Doc", document_type="resume", data={}, owner_id=other_user.id
-        )
+        other_doc = Document(title="Other Doc", document_type="resume", data={}, owner_id=other_user.id)
         db.add(other_doc)
         db.commit()
         db.refresh(other_doc)
@@ -342,9 +320,7 @@ class TestDocumentSharing:
     def test_create_share_link_returns_token(
         self, client: TestClient, auth_headers: dict, test_document: Document
     ) -> None:
-        response = client.post(
-            f"/api/documents/{test_document.id}/share", headers=auth_headers, json={}
-        )
+        response = client.post(f"/api/documents/{test_document.id}/share", headers=auth_headers, json={})
         assert response.status_code == 200
         data = response.json()
         assert "share_token" in data
@@ -354,12 +330,8 @@ class TestDocumentSharing:
     def test_create_share_link_is_idempotent(
         self, client: TestClient, auth_headers: dict, test_document: Document
     ) -> None:
-        r1 = client.post(
-            f"/api/documents/{test_document.id}/share", headers=auth_headers, json={}
-        )
-        r2 = client.post(
-            f"/api/documents/{test_document.id}/share", headers=auth_headers, json={}
-        )
+        r1 = client.post(f"/api/documents/{test_document.id}/share", headers=auth_headers, json={})
+        r2 = client.post(f"/api/documents/{test_document.id}/share", headers=auth_headers, json={})
         assert r1.json()["share_token"] == r2.json()["share_token"]
 
     def test_revoke_share_link_clears_token(
@@ -371,17 +343,13 @@ class TestDocumentSharing:
     ) -> None:
         client.post(f"/api/documents/{test_document.id}/share", headers=auth_headers, json={})
 
-        response = client.delete(
-            f"/api/documents/{test_document.id}/share", headers=auth_headers
-        )
+        response = client.delete(f"/api/documents/{test_document.id}/share", headers=auth_headers)
         assert response.status_code == 204
 
         db.refresh(test_document)
         assert test_document.share_token is None
 
-    def test_share_link_unauthenticated_returns_401(
-        self, client: TestClient, test_document: Document
-    ) -> None:
+    def test_share_link_unauthenticated_returns_401(self, client: TestClient, test_document: Document) -> None:
         response = client.post(f"/api/documents/{test_document.id}/share", json={})
         assert response.status_code == 401
 
@@ -409,9 +377,7 @@ class TestDocumentLinkedResume:
         assert response.status_code == 201
         assert response.json()["linked_resume_id"] == test_document.id
 
-    def test_linked_resume_not_found_returns_400(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_linked_resume_not_found_returns_400(self, client: TestClient, auth_headers: dict) -> None:
         response = client.post(
             "/api/documents/",
             headers=auth_headers,
@@ -463,9 +429,7 @@ class TestDocumentExport:
     def test_export_document_returns_all_fields(
         self, client: TestClient, auth_headers: dict, test_document: Document
     ) -> None:
-        response = client.get(
-            f"/api/documents/{test_document.id}/export", headers=auth_headers
-        )
+        response = client.get(f"/api/documents/{test_document.id}/export", headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert data["title"] == test_document.title
@@ -473,9 +437,7 @@ class TestDocumentExport:
         assert data["data"] == test_document.data
         assert "exported_at" in data
 
-    def test_export_nonexistent_document_returns_404(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_export_nonexistent_document_returns_404(self, client: TestClient, auth_headers: dict) -> None:
         response = client.get("/api/documents/99999/export", headers=auth_headers)
         assert response.status_code == 404
 
@@ -500,9 +462,7 @@ class TestDocumentImport:
         assert data["title"] == "Imported Resume"
         assert data["owner_id"] == test_user.id
 
-    def test_import_document_unauthenticated_returns_401(
-        self, client: TestClient
-    ) -> None:
+    def test_import_document_unauthenticated_returns_401(self, client: TestClient) -> None:
         response = client.post(
             "/api/documents/import",
             json={"title": "X", "document_type": "resume", "data": {}},
@@ -518,9 +478,7 @@ class TestDocumentFilter:
     ) -> None:
         db.add_all(
             [
-                Document(
-                    title="R", document_type="resume", data={}, owner_id=test_user.id
-                ),
+                Document(title="R", document_type="resume", data={}, owner_id=test_user.id),
                 Document(
                     title="CL",
                     document_type="cover_letter",
@@ -531,9 +489,7 @@ class TestDocumentFilter:
         )
         db.commit()
 
-        response = client.get(
-            "/api/documents/?document_type=resume", headers=auth_headers
-        )
+        response = client.get("/api/documents/?document_type=resume", headers=auth_headers)
         assert response.status_code == 200
         results = response.json()
         assert len(results) >= 1
@@ -544,9 +500,7 @@ class TestDocumentFilter:
     ) -> None:
         db.add_all(
             [
-                Document(
-                    title="R", document_type="resume", data={}, owner_id=test_user.id
-                ),
+                Document(title="R", document_type="resume", data={}, owner_id=test_user.id),
                 Document(
                     title="CL",
                     document_type="cover_letter",
@@ -557,29 +511,21 @@ class TestDocumentFilter:
         )
         db.commit()
 
-        response = client.get(
-            "/api/documents/?document_type=cover_letter", headers=auth_headers
-        )
+        response = client.get("/api/documents/?document_type=cover_letter", headers=auth_headers)
         assert response.status_code == 200
         results = response.json()
         assert len(results) >= 1
         assert all(d["document_type"] == "cover_letter" for d in results)
 
-    def test_filter_invalid_type_returns_422(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
-        response = client.get(
-            "/api/documents/?document_type=invalid", headers=auth_headers
-        )
+    def test_filter_invalid_type_returns_422(self, client: TestClient, auth_headers: dict) -> None:
+        response = client.get("/api/documents/?document_type=invalid", headers=auth_headers)
         assert response.status_code == 422
 
 
 class TestProfileImage:
     """Tests for POST /upload-image and DELETE /profile-image."""
 
-    def test_upload_svg_is_rejected(
-        self, client: TestClient, auth_headers: dict, test_document: Document
-    ) -> None:
+    def test_upload_svg_is_rejected(self, client: TestClient, auth_headers: dict, test_document: Document) -> None:
         files = {"file": ("evil.svg", b"<svg></svg>", "image/svg+xml")}
         response = client.post(
             f"/api/documents/{test_document.id}/upload-image",
@@ -621,9 +567,7 @@ class TestProfileImage:
         db.refresh(test_document)
         assert test_document.profile_image is None
 
-    def test_upload_image_unauthenticated_returns_401(
-        self, client: TestClient, test_document: Document
-    ) -> None:
+    def test_upload_image_unauthenticated_returns_401(self, client: TestClient, test_document: Document) -> None:
         files = {"file": ("photo.jpg", b"data", "image/jpeg")}
         response = client.post(
             f"/api/documents/{test_document.id}/upload-image",
@@ -638,16 +582,12 @@ class TestDocumentOwnershipGuards:
     def test_export_other_users_document_returns_404(
         self, client: TestClient, auth_headers: dict, other_user: User, db: Session
     ) -> None:
-        other_doc = Document(
-            title="Other Export", document_type="resume", data={}, owner_id=other_user.id
-        )
+        other_doc = Document(title="Other Export", document_type="resume", data={}, owner_id=other_user.id)
         db.add(other_doc)
         db.commit()
         db.refresh(other_doc)
 
-        response = client.get(
-            f"/api/documents/{other_doc.id}/export", headers=auth_headers
-        )
+        response = client.get(f"/api/documents/{other_doc.id}/export", headers=auth_headers)
         assert response.status_code == 404
 
     def test_revoke_share_link_no_token_is_noop(
@@ -655,9 +595,7 @@ class TestDocumentOwnershipGuards:
     ) -> None:
         """DELETE /share on a doc that has no token must still return 204."""
         assert test_document.share_token is None
-        response = client.delete(
-            f"/api/documents/{test_document.id}/share", headers=auth_headers
-        )
+        response = client.delete(f"/api/documents/{test_document.id}/share", headers=auth_headers)
         assert response.status_code == 204
 
     def test_revoke_share_link_other_user_returns_404(
@@ -674,9 +612,7 @@ class TestDocumentOwnershipGuards:
         db.commit()
         db.refresh(other_doc)
 
-        response = client.delete(
-            f"/api/documents/{other_doc.id}/share", headers=auth_headers
-        )
+        response = client.delete(f"/api/documents/{other_doc.id}/share", headers=auth_headers)
         assert response.status_code == 404
 
     def test_remove_profile_image_other_user_returns_404(
@@ -693,18 +629,14 @@ class TestDocumentOwnershipGuards:
         db.commit()
         db.refresh(other_doc)
 
-        response = client.delete(
-            f"/api/documents/{other_doc.id}/profile-image", headers=auth_headers
-        )
+        response = client.delete(f"/api/documents/{other_doc.id}/profile-image", headers=auth_headers)
         assert response.status_code == 404
 
 
 class TestDocumentDataSanitization:
     """sanitize_document_data is called on create/update — verify XSS is stripped."""
 
-    def test_create_strips_script_tag_from_data(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_create_strips_script_tag_from_data(self, client: TestClient, auth_headers: dict) -> None:
         response = client.post(
             "/api/documents/",
             headers=auth_headers,

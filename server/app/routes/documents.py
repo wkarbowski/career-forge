@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import contextlib
@@ -44,6 +43,7 @@ settings = get_settings()
 UPLOAD_DIR: str = settings.upload_dir
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+
 @router.delete("/{document_id}/profile-image", status_code=204)
 async def remove_profile_image(
     document_id: int,
@@ -64,10 +64,12 @@ async def remove_profile_image(
         db.refresh(doc)
     return None
 
+
 # Raster-only allowlist — SVG is excluded because static SVG files served from
 # the same origin can execute embedded JavaScript (XSS).
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+
 
 @router.post("/{document_id}/upload-image", response_model=ImageUploadResponse, status_code=200)
 async def upload_profile_image(
@@ -85,10 +87,7 @@ async def upload_profile_image(
         raise HTTPException(status_code=400, detail="No filename provided")
     ext = os.path.splitext(file.filename)[-1].lower()
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
-        raise HTTPException(
-            status_code=400,
-            detail="Only JPEG, PNG, GIF, and WebP images are allowed"
-        )
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, GIF, and WebP images are allowed")
 
     # Enforce server-side file size limit (defence-in-depth alongside Nginx)
     content = await file.read(MAX_IMAGE_SIZE_BYTES + 1)
@@ -136,31 +135,28 @@ async def create_document(
     """Create a new document for the current user."""
     sanitized_title = InputSanitizer.sanitize_string(document_data.title)
     sanitized_data = (
-        sanitize_document_data(document_data.data)
-        if isinstance(document_data.data, dict)
-        else document_data.data
+        sanitize_document_data(document_data.data) if isinstance(document_data.data, dict) else document_data.data
     )
 
     new_document = Document(
-        title=sanitized_title,
-        document_type=document_data.document_type,
-        data=sanitized_data,
-        owner_id=current_user.id
+        title=sanitized_title, document_type=document_data.document_type, data=sanitized_data, owner_id=current_user.id
     )
 
     # Handle linked_resume_id for cover letters (1:1 linking)
     if document_data.linked_resume_id is not None and document_data.document_type == "cover_letter":
-        resume = db.query(Document).filter(
-            Document.id == document_data.linked_resume_id,
-            Document.owner_id == current_user.id,
-            Document.document_type == "resume"
-        ).first()
+        resume = (
+            db.query(Document)
+            .filter(
+                Document.id == document_data.linked_resume_id,
+                Document.owner_id == current_user.id,
+                Document.document_type == "resume",
+            )
+            .first()
+        )
         if not resume:
             raise HTTPException(status_code=400, detail="Linked resume not found")
         # Enforce 1:1 — check no other cover letter is already linked to this resume
-        existing = db.query(Document).filter(
-            Document.linked_resume_id == document_data.linked_resume_id
-        ).first()
+        existing = db.query(Document).filter(Document.linked_resume_id == document_data.linked_resume_id).first()
         if existing:
             raise HTTPException(status_code=409, detail="Another cover letter is already linked to this resume")
         new_document.linked_resume_id = document_data.linked_resume_id
@@ -185,9 +181,9 @@ async def list_documents(
     results = []
     for doc in docs:
         item = DocumentListResponse.model_validate(doc)
-        if doc.document_type == 'resume' and isinstance(doc.data, dict):
-            item.job_title = doc.data.get('data', {}).get('position') or doc.data.get('position') or None
-            raw_name = doc.data.get('data', {}).get('name') or doc.data.get('name') or None
+        if doc.document_type == "resume" and isinstance(doc.data, dict):
+            item.job_title = doc.data.get("data", {}).get("position") or doc.data.get("position") or None
+            raw_name = doc.data.get("data", {}).get("name") or doc.data.get("name") or None
             item.document_name = raw_name or None
         results.append(item)
     return results
@@ -203,10 +199,7 @@ async def get_document(
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
     if not doc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     return DocumentResponse.model_validate(doc)
 
@@ -222,10 +215,7 @@ async def update_document(
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
     if not doc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     # Update fields if provided (with sanitization)
     if document_update.title is not None:
@@ -244,10 +234,9 @@ async def update_document(
     if document_update.is_default is not None:
         # If setting as default, unset other defaults
         if document_update.is_default:
-            db.query(Document).filter(
-                Document.owner_id == current_user.id,
-                Document.id != document_id
-            ).update({"is_default": False})
+            db.query(Document).filter(Document.owner_id == current_user.id, Document.id != document_id).update(
+                {"is_default": False}
+            )
         doc.is_default = document_update.is_default
 
     # Handle linked_resume_id — only for cover letters, enforce 1:1
@@ -255,17 +244,22 @@ async def update_document(
         if document_update.linked_resume_id is None:
             doc.linked_resume_id = None
         elif doc.document_type == "cover_letter":
-            resume = db.query(Document).filter(
-                Document.id == document_update.linked_resume_id,
-                Document.owner_id == current_user.id,
-                Document.document_type == "resume"
-            ).first()
+            resume = (
+                db.query(Document)
+                .filter(
+                    Document.id == document_update.linked_resume_id,
+                    Document.owner_id == current_user.id,
+                    Document.document_type == "resume",
+                )
+                .first()
+            )
             if not resume:
                 raise HTTPException(status_code=400, detail="Linked resume not found")
-            existing = db.query(Document).filter(
-                Document.linked_resume_id == document_update.linked_resume_id,
-                Document.id != document_id
-            ).first()
+            existing = (
+                db.query(Document)
+                .filter(Document.linked_resume_id == document_update.linked_resume_id, Document.id != document_id)
+                .first()
+            )
             if existing:
                 raise HTTPException(status_code=409, detail="Another cover letter is already linked to this resume")
             doc.linked_resume_id = document_update.linked_resume_id
@@ -285,10 +279,7 @@ async def delete_document(
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
     if not doc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     db.delete(doc)
     db.commit()
@@ -306,16 +297,13 @@ async def export_document(
     doc = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
     if not doc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     return DocumentExport(
         title=doc.title,
         document_type=cast("Literal['resume', 'cover_letter']", doc.document_type),
         data=doc.data,
-        exported_at=datetime.now(UTC)
+        exported_at=datetime.now(UTC),
     )
 
 
@@ -328,16 +316,14 @@ async def import_document(
     """Import a document from JSON data."""
     sanitized_title = InputSanitizer.sanitize_string(document_import.title or "Imported Document")
     sanitized_data = (
-        sanitize_document_data(document_import.data)
-        if isinstance(document_import.data, dict)
-        else document_import.data
+        sanitize_document_data(document_import.data) if isinstance(document_import.data, dict) else document_import.data
     )
 
     new_document = Document(
         title=sanitized_title,
         document_type=document_import.document_type,
         data=sanitized_data,
-        owner_id=current_user.id
+        owner_id=current_user.id,
     )
 
     db.add(new_document)
@@ -356,16 +342,13 @@ async def duplicate_document(
     original = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
 
     if not original:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     new_document = Document(
         title=InputSanitizer.sanitize_string(f"{original.title} (Copy)"),
         document_type=original.document_type,
         data=original.data,
-        owner_id=current_user.id
+        owner_id=current_user.id,
         # linked_resume_id intentionally NOT copied — 1:1 constraint
     )
 
@@ -381,22 +364,16 @@ async def get_default_document(
     current_user: User = Depends(get_current_active_user),
 ) -> DocumentResponse:
     """Get the user's default document, or the most recent one if no default is set."""
-    doc = db.query(Document).filter(
-        Document.owner_id == current_user.id,
-        Document.is_default
-    ).first()
+    doc = db.query(Document).filter(Document.owner_id == current_user.id, Document.is_default).first()
 
     if not doc:
         # Fall back to most recently updated document
-        doc = db.query(Document).filter(
-            Document.owner_id == current_user.id
-        ).order_by(Document.updated_at.desc()).first()
+        doc = (
+            db.query(Document).filter(Document.owner_id == current_user.id).order_by(Document.updated_at.desc()).first()
+        )
 
     if not doc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No documents found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No documents found")
 
     return DocumentResponse.model_validate(doc)
 
@@ -465,10 +442,14 @@ async def get_version(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    version = db.query(DocumentVersion).filter(
-        DocumentVersion.id == version_id,
-        DocumentVersion.document_id == document_id,
-    ).first()
+    version = (
+        db.query(DocumentVersion)
+        .filter(
+            DocumentVersion.id == version_id,
+            DocumentVersion.document_id == document_id,
+        )
+        .first()
+    )
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
     return DocumentVersionDetailResponse.model_validate(version)
@@ -486,10 +467,14 @@ async def restore_version(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    version = db.query(DocumentVersion).filter(
-        DocumentVersion.id == version_id,
-        DocumentVersion.document_id == document_id,
-    ).first()
+    version = (
+        db.query(DocumentVersion)
+        .filter(
+            DocumentVersion.id == version_id,
+            DocumentVersion.document_id == document_id,
+        )
+        .first()
+    )
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
 
@@ -511,10 +496,14 @@ async def delete_version(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    version = db.query(DocumentVersion).filter(
-        DocumentVersion.id == version_id,
-        DocumentVersion.document_id == document_id,
-    ).first()
+    version = (
+        db.query(DocumentVersion)
+        .filter(
+            DocumentVersion.id == version_id,
+            DocumentVersion.document_id == document_id,
+        )
+        .first()
+    )
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
 
@@ -524,6 +513,7 @@ async def delete_version(
 
 
 # ============== Share Links ==============
+
 
 @router.post("/{document_id}/share", response_model=ShareLinkResponse)
 async def create_share_link(

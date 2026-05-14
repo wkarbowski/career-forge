@@ -93,10 +93,7 @@ class Settings(BaseSettings):
             # We cannot access `self.environment` here because Pydantic
             # field validators run before the model is fully constructed.
             # Production environment check is done in `_reject_insecure_production`.
-            logger.warning(
-                "⚠️  SECRET_KEY not set! Using auto-generated key. "
-                "Set SECRET_KEY in .env for production!"
-            )
+            logger.warning("⚠️  SECRET_KEY not set! Using auto-generated key. " "Set SECRET_KEY in .env for production!")
             return secrets.token_hex(32)
         if len(v) < 32:
             raise ValueError("SECRET_KEY must be at least 32 characters")
@@ -108,18 +105,15 @@ class Settings(BaseSettings):
         if self.is_production:
             if self.debug:
                 raise ValueError(
-                    "Cannot run with DEBUG=true when ENVIRONMENT=production. "
-                    "Set DEBUG=false in your .env file."
+                    "Cannot run with DEBUG=true when ENVIRONMENT=production. " "Set DEBUG=false in your .env file."
                 )
             if "password@" in self.database_url:
                 raise ValueError(
-                    "Default database password detected in production. "
-                    "Set a strong DATABASE_URL in your .env file."
+                    "Default database password detected in production. " "Set a strong DATABASE_URL in your .env file."
                 )
             if not self.cookie_secure:
                 raise ValueError(
-                    "COOKIE_SECURE must be True in production. "
-                    "Set COOKIE_SECURE=true in your .env file."
+                    "COOKIE_SECURE must be True in production. " "Set COOKIE_SECURE=true in your .env file."
                 )
         return self
 
@@ -150,4 +144,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return the cached, validated application settings."""
     return Settings()
-

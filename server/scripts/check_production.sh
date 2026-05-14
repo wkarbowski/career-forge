@@ -163,4 +163,3 @@ echo "3. Set up Redis for distributed rate limiting"
 echo "4. Configure regular database backups (see scripts/backup_database.sh)"
 echo "5. Set up monitoring and alerting (Sentry, Prometheus, Grafana)"
 echo "6. Use a process manager to supervise containers (Docker Compose, systemd)"
-

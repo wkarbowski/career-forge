@@ -43,8 +43,8 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
     <>
       <header className="global-header">
         <div className="header-left">
-          <button 
-            className="header-logo" 
+          <button
+            className="header-logo"
             onClick={() => navigate('/')}
           >
             <i className="fas fa-hammer"></i>
@@ -53,7 +53,7 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
 
           {(isAuthenticated || isGuest) && (
             <nav className="header-nav">
-              <button 
+              <button
                 className={`nav-item ${isEditor ? 'active' : ''}`}
                 onClick={() => {
                   if (currentDocumentId && currentDocumentId !== 'template') {
@@ -66,7 +66,7 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
                 <i className="fas fa-edit"></i>
                 <span>{t('nav.editor')}</span>
               </button>
-              <button 
+              <button
                 className={`nav-item ${isTemplates ? 'active' : ''}`}
                 onClick={() => navigate('/templates')}
               >
@@ -74,7 +74,7 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
                 <span>{t('nav.templates')}</span>
               </button>
               {isAuthenticated && (
-                <button 
+                <button
                   className={`nav-item ${isDashboard ? 'active' : ''}`}
                   onClick={() => navigate('/dashboard')}
                 >
@@ -93,7 +93,7 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
               <span>{t('toolbar.guestMode')}</span>
             </span>
           )}
-          
+
           {isAuthenticated && saveStatus && (
             <span className={`save-status ${saveStatus}`}>
               {saveStatus === 'saving' && <><i className="fas fa-spinner fa-spin"></i> {t('saveStatus.saving')}</>}
@@ -104,18 +104,18 @@ const GlobalHeader = ({ onLoadDocument, saveStatus }: GlobalHeaderProps) => {
 
           <LanguageSwitcher />
           <ThemeToggle />
-          
-          <UserMenu 
-            onLogin={() => setShowAuthModal(true)} 
+
+          <UserMenu
+            onLogin={() => setShowAuthModal(true)}
             onLoadDocument={onLoadDocument ?? (() => {})}
             onExitGuest={handleExitGuest}
           />
         </div>
       </header>
 
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
       />
 

@@ -52,18 +52,18 @@ const TextToolbar = ({ position, onClose }: TextToolbarProps) => {
     const detectCurrentStyles = () => {
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) return;
-      
+
       // Use the focus node (end of selection) for better accuracy when
       // dragging a selection across text with different styles
       let node: Node | null = selection.focusNode || selection.anchorNode;
       if (node && node.nodeType === 3) {
         node = (node as Text).parentElement;
       }
-      
+
       if (node && node.nodeType === 1) {
         try {
           const computed = window.getComputedStyle(node as Element);
-          
+
                   const findInlineFontSize = (el: Node | null): string | null => {
                     let cur = el;
                     while (cur && cur.nodeType === 1) {
@@ -84,7 +84,7 @@ const TextToolbar = ({ position, onClose }: TextToolbarProps) => {
                       if (!isNaN(sizeNum)) setFontSize(String(sizeNum));
                     }
                   }
-          
+
           const currentFamily = computed.fontFamily;
           if (currentFamily) {
             const firstFamily = currentFamily.split(',')[0].replace(/['"]/g, '').trim();
@@ -94,7 +94,7 @@ const TextToolbar = ({ position, onClose }: TextToolbarProps) => {
         }
       }
     };
-    
+
     // Skip detection while user interacts with toolbar itself
     const handleSelectionChange = () => {
       if (toolbarRef.current && toolbarRef.current.contains(document.activeElement)) return;
@@ -257,7 +257,7 @@ const TextToolbar = ({ position, onClose }: TextToolbarProps) => {
       newRange.collapse(true);
       selection.removeAllRanges();
       selection.addRange(newRange);
-      
+
       let editableEl: HTMLElement | null = span;
       while (editableEl && editableEl.contentEditable !== 'true') {
         editableEl = editableEl.parentElement;

@@ -106,7 +106,6 @@ app.include_router(documents.router, prefix="/api")
         setup_cloud_routes(app)
     except ImportError as exc:
         logger.warning(
-            "extended routes will not be available. (%s)",
             exc,
         )
 

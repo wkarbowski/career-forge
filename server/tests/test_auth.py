@@ -33,9 +33,7 @@ class TestRegistration:
         assert user is not None
         assert user.is_active is True
 
-    def test_register_duplicate_email(
-        self, client: TestClient, test_user: User
-    ) -> None:
+    def test_register_duplicate_email(self, client: TestClient, test_user: User) -> None:
         """Test registration with existing email fails."""
         response = client.post(
             "/api/auth/register",
@@ -105,7 +103,10 @@ class TestLogin:
             },
         )
         assert response.status_code == 401
-        assert "invalid credentials" in response.json()["detail"].lower() or "incorrect" in response.json()["detail"].lower()
+        assert (
+            "invalid credentials" in response.json()["detail"].lower()
+            or "incorrect" in response.json()["detail"].lower()
+        )
 
     def test_login_nonexistent_user(self, client: TestClient) -> None:
         """Test login with non-existent email fails."""
@@ -117,7 +118,10 @@ class TestLogin:
             },
         )
         assert response.status_code == 401
-        assert "invalid credentials" in response.json()["detail"].lower() or "incorrect" in response.json()["detail"].lower()
+        assert (
+            "invalid credentials" in response.json()["detail"].lower()
+            or "incorrect" in response.json()["detail"].lower()
+        )
 
     def test_login_inactive_user(self, client: TestClient, db: Session) -> None:
         """Test login with inactive account fails."""
@@ -147,9 +151,7 @@ class TestLogin:
 class TestTokenRefresh:
     """Test token refresh functionality."""
 
-    def test_refresh_token_success(
-        self, client: TestClient, test_user: User
-    ) -> None:
+    def test_refresh_token_success(self, client: TestClient, test_user: User) -> None:
         """Test successful token refresh."""
         # First login to get refresh token
         login_response = client.post(
@@ -193,9 +195,7 @@ class TestLogout:
 class TestGetCurrentUser:
     """Test getting current user information."""
 
-    def test_get_me_success(
-        self, client: TestClient, auth_headers: dict, test_user: User
-    ) -> None:
+    def test_get_me_success(self, client: TestClient, auth_headers: dict, test_user: User) -> None:
         """Test getting current user info."""
         response = client.get("/api/auth/me", headers=auth_headers)
         assert response.status_code == 200
@@ -225,9 +225,7 @@ class TestPasswordValidation:
             ("AnotherGood1@", True),  # Valid
         ],
     )
-    def test_password_strength(
-        self, client: TestClient, password: str, should_pass: bool
-    ) -> None:
+    def test_password_strength(self, client: TestClient, password: str, should_pass: bool) -> None:
         """Test password strength validation."""
         safe = "".join(c for c in password if c.isalnum())
         response = client.post(

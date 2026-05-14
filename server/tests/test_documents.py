@@ -11,9 +11,7 @@ from app.models import Document, User
 class TestDocumentCreation:
     """Test document creation."""
 
-    def test_create_document_authenticated(
-        self, client: TestClient, auth_headers: dict, test_user: User
-    ) -> None:
+    def test_create_document_authenticated(self, client: TestClient, auth_headers: dict, test_user: User) -> None:
         """Test creating a document as authenticated user."""
         response = client.post(
             "/api/documents/",
@@ -100,9 +98,7 @@ class TestDocumentRetrieval:
         assert data["id"] == doc.id
         assert data["title"] == "Test Doc"
 
-    def test_get_nonexistent_document(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_get_nonexistent_document(self, client: TestClient, auth_headers: dict) -> None:
         """Test getting a non-existent document returns 404."""
         response = client.get("/api/documents/99999", headers=auth_headers)
         assert response.status_code == 404

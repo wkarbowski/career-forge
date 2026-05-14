@@ -5,26 +5,31 @@ Revises: 6104f6581867
 Create Date: 2026-03-08 00:00:00.000000
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+from typing import Union
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = 'e3a1f92b8c04'
-down_revision: Union[str, Sequence[str], None] = '6104f6581867'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "e3a1f92b8c04"
+down_revision: str | Sequence[str] | None = "6104f6581867"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     # 1. Add document_type column with default so existing rows get 'resume'
-    op.add_column('cvs', sa.Column(
-        'document_type',
-        sa.String(length=20),
-        nullable=False,
-        server_default='resume',
-    ))
+    op.add_column(
+        "cvs",
+        sa.Column(
+            "document_type",
+            sa.String(length=20),
+            nullable=False,
+            server_default="resume",
+        ),
+    )
 
     # 2. Backfill document_type from the JSON blob for rows that already exist.
     #    Rows whose data contained "documentType": "cover-letter" become cover_letter;
@@ -50,4 +55,4 @@ def downgrade() -> None:
         ALTER COLUMN data TYPE TEXT USING data::text
     """)
 
-    op.drop_column('cvs', 'document_type')
+    op.drop_column("cvs", "document_type")

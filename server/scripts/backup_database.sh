@@ -66,24 +66,24 @@ detect_database_type() {
 parse_postgres_url() {
     # postgresql://user:password@host:port/database
     local url="${DATABASE_URL#postgresql://}"
-    
+
     # Extract user:password
     local userpass="${url%%@*}"
     PGUSER="${userpass%%:*}"
     PGPASSWORD="${userpass#*:}"
-    
+
     # Extract host:port/database
     local hostdb="${url#*@}"
     local hostport="${hostdb%%/*}"
     PGHOST="${hostport%%:*}"
     PGPORT="${hostport#*:}"
     PGDATABASE="${hostdb#*/}"
-    
+
     # Default port if not specified
     if [ "$PGPORT" = "$PGHOST" ]; then
         PGPORT="5432"
     fi
-    
+
     export PGUSER PGPASSWORD PGHOST PGPORT PGDATABASE
 }
 
@@ -91,13 +91,13 @@ parse_postgres_url() {
 backup_postgresql() {
     local backup_file="$BACKUP_DIR/careerforge_pg_${TIMESTAMP}.sql"
     local backup_file_gz="${backup_file}.gz"
-    
+
     log_info "Backing up PostgreSQL database..."
     parse_postgres_url
-    
+
     # Create backup directory
     mkdir -p "$BACKUP_DIR"
-    
+
     # Run pg_dump
     PGPASSWORD="$PGPASSWORD" pg_dump \
         -h "$PGHOST" \
@@ -108,10 +108,10 @@ backup_postgresql() {
         --no-owner \
         --no-privileges \
         > "$backup_file"
-    
+
     # Compress backup
     gzip "$backup_file"
-    
+
     log_info "Backup created: $backup_file_gz"
     log_info "Size: $(du -h "$backup_file_gz" | cut -f1)"
 }
@@ -120,31 +120,31 @@ backup_postgresql() {
 backup_sqlite() {
     local db_path="${DATABASE_URL#sqlite:///}"
     db_path="${db_path#./}"
-    
+
     # Handle relative paths
     if [[ ! "$db_path" = /* ]]; then
         db_path="$(dirname "$0")/../$db_path"
     fi
-    
+
     if [ ! -f "$db_path" ]; then
         log_error "SQLite database not found: $db_path"
         exit 1
     fi
-    
+
     local backup_file="$BACKUP_DIR/careerforge_sqlite_${TIMESTAMP}.db"
     local backup_file_gz="${backup_file}.gz"
-    
+
     log_info "Backing up SQLite database..."
-    
+
     # Create backup directory
     mkdir -p "$BACKUP_DIR"
-    
+
     # Use SQLite backup command for consistency
     sqlite3 "$db_path" ".backup '$backup_file'"
-    
+
     # Compress backup
     gzip "$backup_file"
-    
+
     log_info "Backup created: $backup_file_gz"
     log_info "Size: $(du -h "$backup_file_gz" | cut -f1)"
 }
@@ -152,33 +152,33 @@ backup_sqlite() {
 # Restore PostgreSQL
 restore_postgresql() {
     local backup_file="$1"
-    
+
     log_warn "This will REPLACE all data in the database!"
     read -p "Are you sure you want to continue? (yes/no): " confirm
-    
+
     if [ "$confirm" != "yes" ]; then
         log_info "Restore cancelled."
         exit 0
     fi
-    
+
     parse_postgres_url
-    
+
     # Decompress if needed
     if [[ "$backup_file" == *.gz ]]; then
         log_info "Decompressing backup..."
         gunzip -k "$backup_file"
         backup_file="${backup_file%.gz}"
     fi
-    
+
     log_info "Restoring PostgreSQL database..."
-    
+
     PGPASSWORD="$PGPASSWORD" psql \
         -h "$PGHOST" \
         -p "$PGPORT" \
         -U "$PGUSER" \
         -d "$PGDATABASE" \
         < "$backup_file"
-    
+
     log_info "Database restored successfully!"
 }
 
@@ -187,47 +187,47 @@ restore_sqlite() {
     local backup_file="$1"
     local db_path="${DATABASE_URL#sqlite:///}"
     db_path="${db_path#./}"
-    
+
     # Handle relative paths
     if [[ ! "$db_path" = /* ]]; then
         db_path="$(dirname "$0")/../$db_path"
     fi
-    
+
     log_warn "This will REPLACE all data in the database!"
     read -p "Are you sure you want to continue? (yes/no): " confirm
-    
+
     if [ "$confirm" != "yes" ]; then
         log_info "Restore cancelled."
         exit 0
     fi
-    
+
     # Decompress if needed
     if [[ "$backup_file" == *.gz ]]; then
         log_info "Decompressing backup..."
         gunzip -k "$backup_file"
         backup_file="${backup_file%.gz}"
     fi
-    
+
     log_info "Restoring SQLite database..."
-    
+
     # Create backup of current database
     if [ -f "$db_path" ]; then
         mv "$db_path" "${db_path}.before_restore"
         log_info "Old database backed up to: ${db_path}.before_restore"
     fi
-    
+
     # Copy backup to database location
     cp "$backup_file" "$db_path"
-    
+
     log_info "Database restored successfully!"
 }
 
 # Clean old backups
 cleanup_old_backups() {
     log_info "Cleaning backups older than $RETENTION_DAYS days..."
-    
+
         find "$BACKUP_DIR" -name "careerforge_*.gz" -type f -mtime +$RETENTION_DAYS -delete 2>/dev/null || true
-    
+
     local count=$(ls -1 "$BACKUP_DIR"/careerforge_*.gz 2>/dev/null | wc -l || echo "0")
     log_info "Remaining backups: $count"
 }
@@ -236,7 +236,7 @@ cleanup_old_backups() {
 list_backups() {
     log_info "Available backups:"
     echo ""
-    
+
     if [ -d "$BACKUP_DIR" ]; then
         ls -lh "$BACKUP_DIR"/careerforge_*.gz 2>/dev/null || log_warn "No backups found in $BACKUP_DIR"
     else
@@ -247,14 +247,14 @@ list_backups() {
 # Main script
 main() {
     local db_type=$(detect_database_type)
-    
+
     case "$1" in
         --restore)
             if [ -z "$2" ]; then
                 log_error "Please specify backup file to restore"
                 exit 1
             fi
-            
+
             case "$db_type" in
                 postgresql)
                     restore_postgresql "$2"

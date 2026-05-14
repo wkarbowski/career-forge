@@ -103,12 +103,12 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
       }
       const panelRect = panelRef.current.getBoundingClientRect();
       let adjustedTop = rect.top;
-      
+
       if (adjustedTop + panelRect.height > window.innerHeight - 8) {
         adjustedTop = Math.max(8, window.innerHeight - panelRect.height - 8);
       }
       if (adjustedTop < 8) adjustedTop = 8;
-      
+
       setPanelPos({ left, top: adjustedTop });
     }, 0);
 

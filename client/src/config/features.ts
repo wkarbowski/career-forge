@@ -8,7 +8,7 @@
  *   import { FEATURES } from '../config/features';
  *   if (FEATURES.CLOUD) { ... }
  *
- *       
+ *
  */
 
 import type { Features } from '../types';

@@ -70,7 +70,7 @@ const refreshAccessToken = async (): Promise<string> => {
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
   }
-  
+
   isRefreshing = true;
   refreshPromise = (async (): Promise<string> => {
     try {
@@ -80,12 +80,12 @@ const refreshAccessToken = async (): Promise<string> => {
         credentials: 'include',
         body: JSON.stringify({}),
       });
-      
+
       if (!response.ok) {
         removeTokens();
         throw new Error('Session expired. Please log in again.');
       }
-      
+
       const data: LoginResponse = await response.json();
       setTokens(data.access_token, null, data.expires_in ?? null);
       return data.access_token;
@@ -94,7 +94,7 @@ const refreshAccessToken = async (): Promise<string> => {
       refreshPromise = null;
     }
   })();
-  
+
   return refreshPromise;
 };
 
@@ -274,7 +274,7 @@ export const authApi = {
     // Token expiry is handled automatically by authenticatedFetch
     return !!getAccessToken();
   },
-  
+
   // Manual token refresh (usually handled automatically)
   async refreshToken(): Promise<string> {
     return refreshAccessToken();

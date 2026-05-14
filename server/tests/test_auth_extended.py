@@ -16,9 +16,7 @@ from app.models import RefreshToken, User
 class TestChangePassword:
     """Tests for POST /api/auth/change-password."""
 
-    def test_change_password_success(
-        self, client: TestClient, auth_headers: dict, test_user: User
-    ) -> None:
+    def test_change_password_success(self, client: TestClient, auth_headers: dict, test_user: User) -> None:
         response = client.post(
             "/api/auth/change-password",
             headers=auth_headers,
@@ -34,9 +32,7 @@ class TestChangePassword:
         )
         assert login.status_code == 200
 
-    def test_change_password_wrong_current_returns_400(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_change_password_wrong_current_returns_400(self, client: TestClient, auth_headers: dict) -> None:
         response = client.post(
             "/api/auth/change-password",
             headers=auth_headers,
@@ -52,9 +48,7 @@ class TestChangePassword:
         )
         assert response.status_code == 401
 
-    def test_change_password_weak_new_password_returns_422(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_change_password_weak_new_password_returns_422(self, client: TestClient, auth_headers: dict) -> None:
         response = client.post(
             "/api/auth/change-password",
             headers=auth_headers,
@@ -66,9 +60,7 @@ class TestChangePassword:
 class TestForgotPassword:
     """Tests for POST /api/auth/forgot-password."""
 
-    def test_forgot_password_existing_email_returns_token(
-        self, client: TestClient, test_user: User
-    ) -> None:
+    def test_forgot_password_existing_email_returns_token(self, client: TestClient, test_user: User) -> None:
         response = client.post(
             "/api/auth/forgot-password",
             json={"email": "test@example.com"},
@@ -79,9 +71,7 @@ class TestForgotPassword:
         assert "reset_token" in data
         assert data["reset_token"] is not None
 
-    def test_forgot_password_nonexistent_email_returns_same_response(
-        self, client: TestClient
-    ) -> None:
+    def test_forgot_password_nonexistent_email_returns_same_response(self, client: TestClient) -> None:
         """Anti-enumeration: same 200 response even if email doesn't exist."""
         response = client.post(
             "/api/auth/forgot-password",
@@ -104,9 +94,7 @@ class TestForgotPassword:
 class TestResetPassword:
     """Tests for POST /api/auth/reset-password."""
 
-    def test_reset_password_with_valid_token_succeeds(
-        self, client: TestClient, test_user: User
-    ) -> None:
+    def test_reset_password_with_valid_token_succeeds(self, client: TestClient, test_user: User) -> None:
         r = client.post(
             "/api/auth/forgot-password",
             json={"email": "test@example.com"},
@@ -158,15 +146,11 @@ class TestLogoutAllDevices:
 
         # All tokens for this user must be revoked in the DB
         active_tokens = (
-            db.query(RefreshToken)
-            .filter(RefreshToken.user_id == test_user.id, ~RefreshToken.is_revoked)
-            .count()
+            db.query(RefreshToken).filter(RefreshToken.user_id == test_user.id, ~RefreshToken.is_revoked).count()
         )
         assert active_tokens == 0
 
-    def test_logout_all_devices_unauthenticated_returns_401(
-        self, client: TestClient
-    ) -> None:
+    def test_logout_all_devices_unauthenticated_returns_401(self, client: TestClient) -> None:
         response = client.post("/api/auth/logout/all", json={})
         assert response.status_code == 401
 
@@ -206,18 +190,14 @@ class TestDeleteAccount:
         response = client.delete("/api/auth/me", headers=auth_headers)
         assert response.status_code == 204
 
-        remaining = (
-            db.query(Document).filter(Document.owner_id == user_id).count()
-        )
+        remaining = db.query(Document).filter(Document.owner_id == user_id).count()
         assert remaining == 0
 
 
 class TestUserPreferences:
     """Tests for PATCH /api/auth/preferences."""
 
-    def test_update_theme_to_dark(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_update_theme_to_dark(self, client: TestClient, auth_headers: dict) -> None:
         response = client.patch(
             "/api/auth/preferences",
             headers=auth_headers,
@@ -226,9 +206,7 @@ class TestUserPreferences:
         assert response.status_code == 200
         assert response.json()["theme"] == "dark"
 
-    def test_update_theme_to_light(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_update_theme_to_light(self, client: TestClient, auth_headers: dict) -> None:
         response = client.patch(
             "/api/auth/preferences",
             headers=auth_headers,
@@ -237,9 +215,7 @@ class TestUserPreferences:
         assert response.status_code == 200
         assert response.json()["theme"] == "light"
 
-    def test_update_language(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_update_language(self, client: TestClient, auth_headers: dict) -> None:
         response = client.patch(
             "/api/auth/preferences",
             headers=auth_headers,
@@ -248,9 +224,7 @@ class TestUserPreferences:
         assert response.status_code == 200
         assert response.json()["language"] == "pl"
 
-    def test_update_invalid_theme_returns_422(
-        self, client: TestClient, auth_headers: dict
-    ) -> None:
+    def test_update_invalid_theme_returns_422(self, client: TestClient, auth_headers: dict) -> None:
         response = client.patch(
             "/api/auth/preferences",
             headers=auth_headers,
@@ -258,9 +232,7 @@ class TestUserPreferences:
         )
         assert response.status_code == 422
 
-    def test_update_preferences_unauthenticated_returns_401(
-        self, client: TestClient
-    ) -> None:
+    def test_update_preferences_unauthenticated_returns_401(self, client: TestClient) -> None:
         response = client.patch("/api/auth/preferences", json={"theme": "dark"})
         assert response.status_code == 401
 
@@ -268,9 +240,7 @@ class TestUserPreferences:
 class TestUsernameCollision:
     """Duplicate username registration must be rejected."""
 
-    def test_register_duplicate_username_returns_400(
-        self, client: TestClient, test_user: User
-    ) -> None:
+    def test_register_duplicate_username_returns_400(self, client: TestClient, test_user: User) -> None:
         response = client.post(
             "/api/auth/register",
             json={
@@ -287,9 +257,7 @@ class TestUsernameCollision:
 class TestRefreshTokenRotation:
     """Token rotation and theft-detection (reuse) tests."""
 
-    def test_rotation_issues_new_access_token(
-        self, client: TestClient, test_user: User
-    ) -> None:
+    def test_rotation_issues_new_access_token(self, client: TestClient, test_user: User) -> None:
         login_r = client.post(
             "/api/auth/login/json",
             json={"email": "test@example.com", "password": "TestPassword123!"},
@@ -300,9 +268,7 @@ class TestRefreshTokenRotation:
         assert refresh_r.status_code == 200
         assert "access_token" in refresh_r.json()
 
-    def test_reuse_detection_revokes_all_tokens(
-        self, client: TestClient, test_user: User, db: Session
-    ) -> None:
+    def test_reuse_detection_revokes_all_tokens(self, client: TestClient, test_user: User, db: Session) -> None:
         """Presenting a consumed refresh token triggers theft detection."""
         login_r = client.post(
             "/api/auth/login/json",
@@ -324,11 +290,7 @@ class TestRefreshTokenRotation:
         assert r2.status_code == 401
 
         # Every refresh token for this user must be revoked
-        active = (
-            db.query(RefreshToken)
-            .filter(RefreshToken.user_id == test_user.id, ~RefreshToken.is_revoked)
-            .count()
-        )
+        active = db.query(RefreshToken).filter(RefreshToken.user_id == test_user.id, ~RefreshToken.is_revoked).count()
         assert active == 0
 
 

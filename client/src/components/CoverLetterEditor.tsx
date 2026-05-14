@@ -69,7 +69,7 @@ const CoverLetterEditor = () => {
       y: (clientY - rect.top) * scaleY,
     };
   };
-  
+
   const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
@@ -514,4 +514,3 @@ const CoverLetterEditor = () => {
 };
 
 export default CoverLetterEditor;
-

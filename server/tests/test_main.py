@@ -29,9 +29,7 @@ class TestRootEndpoints:
 class TestSharedDocument:
     """Tests for GET /api/shared/{share_token} (public, no auth required)."""
 
-    def test_view_shared_document_with_valid_token(
-        self, client: TestClient, test_user: User, db: Session
-    ) -> None:
+    def test_view_shared_document_with_valid_token(self, client: TestClient, test_user: User, db: Session) -> None:
         doc = Document(
             title="My Shared Resume",
             document_type="resume",
@@ -51,9 +49,7 @@ class TestSharedDocument:
         # Owner info must NOT be present in the public response
         assert "owner_id" not in data
 
-    def test_view_shared_document_nonexistent_token_returns_404(
-        self, client: TestClient
-    ) -> None:
+    def test_view_shared_document_nonexistent_token_returns_404(self, client: TestClient) -> None:
         response = client.get("/api/shared/no-such-token")
         assert response.status_code == 404
 

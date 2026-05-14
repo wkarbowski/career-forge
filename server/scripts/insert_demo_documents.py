@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Insert one fully-filled resume and one cover letter for the demo user."""
+
 from __future__ import annotations
+
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.database import SessionLocal
 from app.models import Document, User
@@ -131,8 +134,16 @@ RESUME_DATA = {
             {"id": 3, "name": "French", "level": "b1", "proficiency": "Intermediate (B1)"},
         ],
         "achievements": [
-            {"id": 1, "title": "Speaker — TechConf Europe 2023", "description": "Talk: Async Patterns in FastAPI at Scale (400+ attendees)."},
-            {"id": 2, "title": "Open Source Contributor", "description": "12 merged PRs across open-source backend libraries."},
+            {
+                "id": 1,
+                "title": "Speaker — TechConf Europe 2023",
+                "description": "Talk: Async Patterns in FastAPI at Scale (400+ attendees).",
+            },
+            {
+                "id": 2,
+                "title": "Open Source Contributor",
+                "description": "12 merged PRs across open-source backend libraries.",
+            },
         ],
         "customSections": [],
     },
@@ -280,7 +291,7 @@ def main() -> None:
         # Delete any previous demo documents to keep things clean
         db.query(Document).filter(
             Document.owner_id == user.id,
-            Document.title.in_(["Demo Resume – Alex Novak", "Demo Cover Letter – Apex Financial"])
+            Document.title.in_(["Demo Resume – Alex Novak", "Demo Cover Letter – Apex Financial"]),
         ).delete(synchronize_session=False)
         db.commit()
 
@@ -305,7 +316,7 @@ def main() -> None:
         db.commit()
         print(f"✓ Resume inserted  (id={resume.id})")
         print(f"✓ Cover letter inserted  (id={cover.id})")
-    except Exception as e:
+    except Exception:
         db.rollback()
         raise
     finally:

@@ -94,10 +94,10 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
       const rect = el.getBoundingClientRect();
       const contentRect = contentRef.current!.getBoundingClientRect();
       const relativeTop = rect.top - contentRect.top;
-      
+
       const startPage = Math.floor(relativeTop / pageHeight);
       const pageEndY = (startPage + 1) * pageHeight - marginBottom;
-      
+
       const elementBottom = relativeTop + rect.height;
       if (elementBottom > pageEndY && relativeTop < pageEndY) {
         const pushPadding = pageEndY - relativeTop + marginTop;
@@ -401,12 +401,12 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
           )}
         </div>
       )}
-      <div 
+      <div
         className="cv-pages-editor-canvas"
         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
       >
         {/* Hidden content measurer */}
-        <div 
+        <div
           ref={contentRef}
           className={`cv-content-measurer ${layoutClass}`}
           style={{
@@ -435,7 +435,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
             )}
-            <div 
+            <div
               ref={(el) => registerPageRef(pageIndex, el)}
               className={`cv-page ${layoutClass} ${pageIndex === 0 ? 'cv-page-active' : ''}`}
               data-page-index={pageIndex}
@@ -451,7 +451,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
             </div>
 
             {/* Clipped viewport - clips content to this page's portion */}
-            <div 
+            <div
               className="cv-page-viewport"
               style={{
                 overflow: 'hidden',
@@ -460,7 +460,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
               }}
             >
               {/* Content offset - shifts content up so this page's portion is visible */}
-              <div 
+              <div
                 className="cv-page-content-offset"
                 style={{
                   transform: `translateY(-${pageIndex * PAGE_CONFIG.height}px)`,
