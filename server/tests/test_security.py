@@ -59,7 +59,7 @@ class TestJWTAccessTokens:
         # The last base64url char of a 32-byte HMAC encodes only 4 meaningful
         # bits, so A↔B swaps there don't change the decoded bytes.
         mid = len(sig) // 2
-        bad_sig = sig[:mid] + ("A" if sig[mid] != "A" else "B") + sig[mid + 1:]
+        bad_sig = sig[:mid] + ("A" if sig[mid] != "A" else "B") + sig[mid + 1 :]
         bad_token = ".".join([parts[0], parts[1], bad_sig])
         assert decode_token(bad_token) is None
 
