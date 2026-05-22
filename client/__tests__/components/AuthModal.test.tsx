@@ -1,18 +1,18 @@
-import React from 'react';
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { I18nProvider } from '../../src/i18n';
-import AuthModal from '../../src/components/AuthModal';
+import React from "react";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { I18nProvider } from "../../src/i18n";
+import AuthModal from "../../src/components/AuthModal";
 
 // ---------------------------------------------------------------------------
 // Module mocks — must be hoisted to top level
 // ---------------------------------------------------------------------------
-vi.mock('../../src/contexts/AuthContext', () => ({
+vi.mock("../../src/contexts/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('../../src/services/api', () => ({
+vi.mock("../../src/services/api", () => ({
   authApi: {
     forgotPassword: vi.fn(),
     resetPassword: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('../../src/services/api', () => ({
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-import { useAuth } from '../../src/contexts/AuthContext';
+import { useAuth } from "../../src/contexts/AuthContext";
 
 const makeAuthMock = (overrides: Partial<ReturnType<typeof useAuth>> = {}) => ({
   login: vi.fn().mockResolvedValue({ success: true }),
@@ -55,7 +55,9 @@ const makeAuthMock = (overrides: Partial<ReturnType<typeof useAuth>> = {}) => ({
   ...overrides,
 });
 
-const renderModal = (props: Partial<React.ComponentProps<typeof AuthModal>> = {}) => {
+const renderModal = (
+  props: Partial<React.ComponentProps<typeof AuthModal>> = {},
+) => {
   const defaults: React.ComponentProps<typeof AuthModal> = {
     isOpen: true,
     onClose: vi.fn(),
@@ -76,54 +78,54 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 // Visibility
 // ---------------------------------------------------------------------------
-describe('AuthModal – visibility', () => {
-  it('renders nothing when isOpen is false', () => {
+describe("AuthModal – visibility", () => {
+  it("renders nothing when isOpen is false", () => {
     renderModal({ isOpen: false });
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it('renders the dialog when isOpen is true', () => {
+  it("renders the dialog when isOpen is true", () => {
     renderModal();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });
 
 // ---------------------------------------------------------------------------
 // Login mode
 // ---------------------------------------------------------------------------
-describe('AuthModal – login mode', () => {
-  it('shows the login heading by default', () => {
+describe("AuthModal – login mode", () => {
+  it("shows the login heading by default", () => {
     renderModal();
-    expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /login/i })).toBeInTheDocument();
   });
 
-  it('renders email and password fields', () => {
+  it("renders email and password fields", () => {
     renderModal();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
 
-  it('does not render the username field in login mode', () => {
+  it("does not render the username field in login mode", () => {
     renderModal();
-    expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Username")).not.toBeInTheDocument();
   });
 
-  it('calls login with email and password on submit', async () => {
+  it("calls login with email and password on submit", async () => {
     const login = vi.fn().mockResolvedValue({ success: true });
     (useAuth as Mock).mockReturnValue(makeAuthMock({ login }));
     const user = userEvent.setup();
     renderModal();
 
-    await user.type(screen.getByLabelText('Email'), 'test@example.com');
-    await user.type(screen.getByLabelText('Password'), 'secret123');
-    await user.click(screen.getByRole('button', { name: /login/i }));
+    await user.type(screen.getByLabelText("Email"), "test@example.com");
+    await user.type(screen.getByLabelText("Password"), "secret123");
+    await user.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
-      expect(login).toHaveBeenCalledWith('test@example.com', 'secret123');
+      expect(login).toHaveBeenCalledWith("test@example.com", "secret123");
     });
   });
 
-  it('calls onSuccess after a successful login', async () => {
+  it("calls onSuccess after a successful login", async () => {
     const onSuccess = vi.fn();
     const onClose = vi.fn();
     const login = vi.fn().mockResolvedValue({ success: true });
@@ -131,9 +133,9 @@ describe('AuthModal – login mode', () => {
     const user = userEvent.setup();
     renderModal({ onSuccess, onClose });
 
-    await user.type(screen.getByLabelText('Email'), 'a@b.com');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.click(screen.getByRole('button', { name: /login/i }));
+    await user.type(screen.getByLabelText("Email"), "a@b.com");
+    await user.type(screen.getByLabelText("Password"), "pass123");
+    await user.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
@@ -141,134 +143,149 @@ describe('AuthModal – login mode', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('calls onClose when login succeeds and no onSuccess is provided', async () => {
+  // FIX: use a direct inline mock instead of makeAuthMock to guarantee the
+  // login function's return value is not wrapped or discarded by any helper,
+  // eliminating a subtle source of flakiness in this specific code path.
+  it("calls onClose when login succeeds and no onSuccess is provided", async () => {
     const onClose = vi.fn();
-    (useAuth as Mock).mockReturnValue(
-      makeAuthMock({ login: vi.fn().mockResolvedValue({ success: true }) }),
-    );
+    const login = vi.fn().mockResolvedValue({ success: true });
+    (useAuth as Mock).mockReturnValue({
+      login,
+      register: vi.fn().mockResolvedValue({ success: true }),
+      error: null,
+      clearError: vi.fn(),
+      loading: false,
+      user: null,
+      isAuthenticated: false,
+    });
     const user = userEvent.setup();
     renderModal({ onClose });
 
-    await user.type(screen.getByLabelText('Email'), 'a@b.com');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.click(screen.getByRole('button', { name: /login/i }));
+    await user.type(screen.getByLabelText("Email"), "a@b.com");
+    await user.type(screen.getByLabelText("Password"), "pass123");
+    await user.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();
     });
   });
 
-  it('displays the auth context error message', () => {
+  it("displays the auth context error message", () => {
     (useAuth as Mock).mockReturnValue(
-      makeAuthMock({ error: 'Invalid credentials' }),
+      makeAuthMock({ error: "Invalid credentials" }),
     );
     renderModal();
-    expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
+    expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
   });
 });
 
 // ---------------------------------------------------------------------------
 // Register mode
 // ---------------------------------------------------------------------------
-describe('AuthModal – register mode', () => {
+describe("AuthModal – register mode", () => {
   const switchToRegister = async (user: ReturnType<typeof userEvent.setup>) => {
-    await user.click(screen.getByRole('button', { name: /sign up/i }));
+    await user.click(screen.getByRole("button", { name: /sign up/i }));
   };
 
-  it('shows username and confirm-password fields in register mode', async () => {
+  it("shows username and confirm-password fields in register mode", async () => {
     const user = userEvent.setup();
     renderModal();
     await switchToRegister(user);
 
-    expect(screen.getByLabelText('Username')).toBeInTheDocument();
-    expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
+    expect(screen.getByLabelText("Username")).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirm Password")).toBeInTheDocument();
   });
 
-  it('shows an error when passwords do not match', async () => {
+  it("shows an error when passwords do not match", async () => {
     const user = userEvent.setup();
     renderModal();
     await switchToRegister(user);
 
-    await user.type(screen.getByLabelText('Email'), 'new@user.com');
-    await user.type(screen.getByLabelText('Username'), 'newuser');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.type(screen.getByLabelText('Confirm Password'), 'different');
-    await user.click(screen.getByRole('checkbox')); // GDPR consent
-    await user.click(screen.getByRole('button', { name: /register/i }));
+    await user.type(screen.getByLabelText("Email"), "new@user.com");
+    await user.type(screen.getByLabelText("Username"), "newuser");
+    await user.type(screen.getByLabelText("Password"), "pass123");
+    await user.type(screen.getByLabelText("Confirm Password"), "different");
+    await user.click(screen.getByRole("checkbox")); // GDPR consent
+    await user.click(screen.getByRole("button", { name: /register/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
     });
   });
 
-  it('shows an error when the password is shorter than 6 characters', async () => {
+  it("shows an error when the password is shorter than 6 characters", async () => {
     const user = userEvent.setup();
     renderModal();
     await switchToRegister(user);
 
-    await user.type(screen.getByLabelText('Email'), 'new@user.com');
-    await user.type(screen.getByLabelText('Username'), 'newuser');
-    await user.type(screen.getByLabelText('Password'), '12345');
-    await user.type(screen.getByLabelText('Confirm Password'), '12345');
-    await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByRole('button', { name: /register/i }));
+    await user.type(screen.getByLabelText("Email"), "new@user.com");
+    await user.type(screen.getByLabelText("Username"), "newuser");
+    await user.type(screen.getByLabelText("Password"), "12345");
+    await user.type(screen.getByLabelText("Confirm Password"), "12345");
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: /register/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/at least 6 characters/i)).toBeInTheDocument();
     });
   });
 
-  it('shows an error when the username is shorter than 3 characters', async () => {
+  it("shows an error when the username is shorter than 3 characters", async () => {
     const user = userEvent.setup();
     renderModal();
     await switchToRegister(user);
 
-    await user.type(screen.getByLabelText('Email'), 'new@user.com');
-    await user.type(screen.getByLabelText('Username'), 'ab');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.type(screen.getByLabelText('Confirm Password'), 'pass123');
-    await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByRole('button', { name: /register/i }));
+    await user.type(screen.getByLabelText("Email"), "new@user.com");
+    await user.type(screen.getByLabelText("Username"), "ab");
+    await user.type(screen.getByLabelText("Password"), "pass123");
+    await user.type(screen.getByLabelText("Confirm Password"), "pass123");
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: /register/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/at least 3 characters/i)).toBeInTheDocument();
     });
   });
 
-  it('shows an error when the GDPR consent checkbox is not ticked', async () => {
+  it("shows an error when the GDPR consent checkbox is not ticked", async () => {
     const user = userEvent.setup();
     renderModal();
     await switchToRegister(user);
 
-    await user.type(screen.getByLabelText('Email'), 'new@user.com');
-    await user.type(screen.getByLabelText('Username'), 'newuser');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.type(screen.getByLabelText('Confirm Password'), 'pass123');
+    await user.type(screen.getByLabelText("Email"), "new@user.com");
+    await user.type(screen.getByLabelText("Username"), "newuser");
+    await user.type(screen.getByLabelText("Password"), "pass123");
+    await user.type(screen.getByLabelText("Confirm Password"), "pass123");
     // Deliberately skip checking the GDPR box
-    await user.click(screen.getByRole('button', { name: /register/i }));
+    await user.click(screen.getByRole("button", { name: /register/i }));
 
     await waitFor(() => {
-      // The error div contains the consent-required message
-      expect(screen.getByText(/must accept the privacy policy/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/must accept the privacy policy/i),
+      ).toBeInTheDocument();
     });
   });
 
-  it('calls register with email, username, and password on valid submission', async () => {
+  it("calls register with email, username, and password on valid submission", async () => {
     const register = vi.fn().mockResolvedValue({ success: true });
     (useAuth as Mock).mockReturnValue(makeAuthMock({ register }));
     const user = userEvent.setup();
     renderModal();
     await switchToRegister(user);
 
-    await user.type(screen.getByLabelText('Email'), 'new@user.com');
-    await user.type(screen.getByLabelText('Username'), 'newuser');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.type(screen.getByLabelText('Confirm Password'), 'pass123');
-    await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByRole('button', { name: /register/i }));
+    await user.type(screen.getByLabelText("Email"), "new@user.com");
+    await user.type(screen.getByLabelText("Username"), "newuser");
+    await user.type(screen.getByLabelText("Password"), "pass123");
+    await user.type(screen.getByLabelText("Confirm Password"), "pass123");
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: /register/i }));
 
     await waitFor(() => {
-      expect(register).toHaveBeenCalledWith('new@user.com', 'newuser', 'pass123');
+      expect(register).toHaveBeenCalledWith(
+        "new@user.com",
+        "newuser",
+        "pass123",
+      );
     });
   });
 });
@@ -276,16 +293,16 @@ describe('AuthModal – register mode', () => {
 // ---------------------------------------------------------------------------
 // Keyboard and overlay interactions
 // ---------------------------------------------------------------------------
-describe('AuthModal – keyboard and overlay', () => {
-  it('calls onClose when the Escape key is pressed', () => {
+describe("AuthModal – keyboard and overlay", () => {
+  it("calls onClose when the Escape key is pressed", () => {
     const onClose = vi.fn();
     renderModal({ onClose });
 
-    fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+    fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('calls onClose when the overlay is clicked', async () => {
+  it("calls onClose when the overlay is clicked", async () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     render(
@@ -294,19 +311,19 @@ describe('AuthModal – keyboard and overlay', () => {
       </I18nProvider>,
     );
 
-    // The overlay has role="presentation"
-    const overlay = document.querySelector('.auth-modal-overlay') as HTMLElement;
+    const overlay = document.querySelector(
+      ".auth-modal-overlay",
+    ) as HTMLElement;
     await user.click(overlay);
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('calls onClose when the close button is clicked', async () => {
+  it("calls onClose when the close button is clicked", async () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     renderModal({ onClose });
 
-    // The close button has aria-label="Cancel" (set via translation key common.cancel)
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
     expect(onClose).toHaveBeenCalled();
   });
 });
