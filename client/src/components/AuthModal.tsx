@@ -133,22 +133,25 @@ const AuthModal = ({ isOpen, onClose, onSuccess, extraProviders = null }: AuthMo
 
     setIsSubmitting(true);
 
-    let result;
-    if (mode === 'login') {
-      result = await login(email, password);
-    } else {
-      result = await register(email, username, password);
-    }
+    try {
+      const result =
+        mode === 'login'
+          ? await login(email, password)
+          : await register(email, username, password);
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (result.success) {
-      resetForm();
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        onClose();
+      if (result?.success) {
+        resetForm();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          onClose();
+        }
       }
+    } catch (err) {
+      setIsSubmitting(false);
+      setLocalError((err as Error).message || t('auth.unknownError'));
     }
   };
 
