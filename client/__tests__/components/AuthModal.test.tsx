@@ -128,12 +128,15 @@ describe('AuthModal – login mode', () => {
     const onClose = vi.fn();
     const login = vi.fn().mockResolvedValue({ success: true });
     (useAuth as Mock).mockReturnValue(makeAuthMock({ login }));
-    const user = userEvent.setup();
     renderModal({ onSuccess, onClose });
 
-    await user.type(screen.getByLabelText('Email'), 'a@b.com');
-    await user.type(screen.getByLabelText('Password'), 'pass123');
-    await user.click(screen.getByRole('button', { name: /login/i }));
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'a@b.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'pass123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
@@ -143,9 +146,16 @@ describe('AuthModal – login mode', () => {
 
   it('calls onClose when login succeeds and no onSuccess is provided', async () => {
     const onClose = vi.fn();
-    (useAuth as Mock).mockReturnValue(
-      makeAuthMock({ login: vi.fn().mockResolvedValue({ success: true }) }),
-    );
+    const login = vi.fn().mockResolvedValue({ success: true });
+    (useAuth as Mock).mockReturnValue({
+      login,
+      register: vi.fn().mockResolvedValue({ success: true }),
+      error: null,
+      clearError: vi.fn(),
+      loading: false,
+      user: null,
+      isAuthenticated: false,
+    });
     const user = userEvent.setup();
     renderModal({ onClose });
 
