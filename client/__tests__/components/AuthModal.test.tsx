@@ -130,12 +130,15 @@ describe("AuthModal – login mode", () => {
     const onClose = vi.fn();
     const login = vi.fn().mockResolvedValue({ success: true });
     (useAuth as Mock).mockReturnValue(makeAuthMock({ login }));
-    const user = userEvent.setup();
     renderModal({ onSuccess, onClose });
 
-    await user.type(screen.getByLabelText("Email"), "a@b.com");
-    await user.type(screen.getByLabelText("Password"), "pass123");
-    await user.click(screen.getByRole("button", { name: /login/i }));
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "a@b.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "pass123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
@@ -143,9 +146,6 @@ describe("AuthModal – login mode", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  // FIX: use a direct inline mock instead of makeAuthMock to guarantee the
-  // login function's return value is not wrapped or discarded by any helper,
-  // eliminating a subtle source of flakiness in this specific code path.
   it("calls onClose when login succeeds and no onSuccess is provided", async () => {
     const onClose = vi.fn();
     const login = vi.fn().mockResolvedValue({ success: true });
