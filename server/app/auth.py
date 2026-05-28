@@ -13,10 +13,13 @@ from jose import JWTError, jwt
 
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.models import RefreshToken, User
+from app.repositories import refresh_tokens as refresh_token_repo
+from app.repositories import users as user_repo
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
+    from app.models import RefreshToken, User
 
 logger = logging.getLogger(__name__)
 
@@ -131,14 +134,13 @@ def create_refresh_token(
     token_hash = _hash_token(raw_token)
     expires_at = datetime.now(UTC) + timedelta(days=_settings.refresh_token_expire_days)
 
-    refresh_token = RefreshToken(
+    refresh_token_repo.create_refresh_token_record(
+        db,
         token_hash=token_hash,
         user_id=user_id,
         device_info=device_info,
         expires_at=expires_at,
     )
-    db.add(refresh_token)
-    db.commit()
     return raw_token
 
 
@@ -156,7 +158,7 @@ def verify_refresh_token(
     """
     token_hash = _hash_token(token)
 
-    stored_token: RefreshToken | None = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
+    stored_token = refresh_token_repo.get_refresh_token_by_hash(db, token_hash)
     if stored_token is None:
         return None, None
 
@@ -174,8 +176,7 @@ def verify_refresh_token(
             ip_address=ip_address or "unknown",
             user_agent=user_agent or "unknown",
         )
-        db.query(RefreshToken).filter(RefreshToken.user_id == stored_token.user_id).update({"is_revoked": True})
-        db.commit()
+        refresh_token_repo.revoke_user_refresh_tokens(db, stored_token.user_id)
         return None, None
 
     if stored_token.is_revoked:
@@ -188,7 +189,7 @@ def verify_refresh_token(
     if datetime.now(UTC) > expires:
         return None, None
 
-    user: User | None = db.query(User).filter(User.id == stored_token.user_id).first()
+    user = user_repo.get_user_by_id(db, stored_token.user_id)
     if user is None or not user.is_active:
         return None, None
 
@@ -201,8 +202,7 @@ def rotate_refresh_token(
     device_info: str | None = None,
 ) -> str:
     """Mark *old_token* as used and issue a new refresh token."""
-    old_token.used_at = datetime.now(UTC)
-    db.commit()
+    refresh_token_repo.mark_refresh_token_used(db, old_token, datetime.now(UTC))
     return create_refresh_token(
         user_id=old_token.user_id,
         db=db,
@@ -213,27 +213,18 @@ def rotate_refresh_token(
 def revoke_refresh_token(token: str, db: Session) -> bool:
     """Revoke a single refresh token. Returns True if found & revoked."""
     token_hash = _hash_token(token)
-    result: int = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).update({"is_revoked": True})
-    db.commit()
+    result = refresh_token_repo.revoke_refresh_token_by_hash(db, token_hash)
     return result > 0
 
 
 def revoke_all_user_tokens(user_id: int, db: Session) -> int:
     """Revoke all active refresh tokens for a user. Returns count revoked."""
-    result: int = (
-        db.query(RefreshToken)
-        .filter(RefreshToken.user_id == user_id, ~RefreshToken.is_revoked)
-        .update({"is_revoked": True})
-    )
-    db.commit()
-    return result
+    return refresh_token_repo.revoke_user_refresh_tokens(db, user_id, active_only=True)
 
 
 def cleanup_expired_tokens(db: Session) -> int:
     """Remove expired refresh tokens. Should run periodically."""
-    result: int = db.query(RefreshToken).filter(RefreshToken.expires_at < datetime.now(UTC)).delete()
-    db.commit()
-    return result
+    return refresh_token_repo.delete_expired_refresh_tokens(db, datetime.now(UTC))
 
 
 # ---------------------------------------------------------------------------
@@ -284,7 +275,7 @@ async def get_current_user(
     if user_id is None:
         raise credentials_exception
 
-    user: User | None = db.query(User).filter(User.id == user_id).first()
+    user = user_repo.get_user_by_id(db, user_id)
     if user is None:
         raise credentials_exception
 
