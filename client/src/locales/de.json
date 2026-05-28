@@ -139,9 +139,12 @@
     "forgotPassword": "Passwort vergessen",
     "forgotPasswordLink": "Passwort vergessen?",
     "backToLogin": "Zurück zur Anmeldung",
+    "resetPassword": "Passwort zurücksetzen",
+    "resetTokenMissing": "Dem Link fehlt ein Token. Bitte fordern Sie eine neue Passwort-Zurücksetzung an.",
     "resetRequestRecorded": "Falls ein Konto mit dieser E-Mail existiert, wurde eine Anfrage zum Zurücksetzen des Passworts erfasst.",
     "resetRequestFailed": "Fehler beim Zurücksetzen des Passworts. Bitte versuchen Sie es erneut.",
-    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt! Weiterleitung zur Anmeldung..."
+    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt. Sie können sich jetzt anmelden.",
+    "passwordResetFailed": "Passwort konnte nicht zurückgesetzt werden. Bitte fordern Sie einen neuen Link an."
   },
   "userMenu": {
     "myCvs": "Meine Dokumente",

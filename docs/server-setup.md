@@ -130,8 +130,19 @@ TRUSTED_HOSTS=
 | `COOKIE_DOMAIN`               | —                                                                            | Cookie domain scope                             |
 | `ENFORCE_HTTPS`               | `false`                                                                      | Force HTTPS redirect                            |
 | `TRUSTED_HOSTS`               | —                                                                            | Allowed host headers                            |
+| `APP_BASE_URL`                | `http://localhost:3000`                                                       | Public frontend URL for password reset links    |
+| `SMTP_HOST`                   | —                                                                            | Optional SMTP host for password reset emails    |
+| `SMTP_PORT`                   | `587`                                                                        | SMTP port                                       |
+| `SMTP_USERNAME`               | —                                                                            | Optional SMTP username                          |
+| `SMTP_PASSWORD`               | —                                                                            | Optional SMTP password                          |
+| `SMTP_FROM_EMAIL`             | —                                                                            | Sender address; enables reset email with host   |
+| `SMTP_USE_TLS`                | `true`                                                                       | Use STARTTLS for SMTP                           |
 
 > **Important:** In development, if `SECRET_KEY` is not set, one is auto-generated with a warning. In production, always set a strong `SECRET_KEY` (64+ chars). `DEBUG=true` is **fatal** in production environment.
+
+Password reset email is disabled until `SMTP_HOST` and `SMTP_FROM_EMAIL` are set.
+When disabled, the API keeps the same generic response and records the request
+for operator follow-up.
 
 ---
 

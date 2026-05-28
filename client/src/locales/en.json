@@ -139,9 +139,12 @@
     "forgotPassword": "Forgot Password",
     "forgotPasswordLink": "Forgot your password?",
     "backToLogin": "Back to login",
+    "resetPassword": "Reset Password",
+    "resetTokenMissing": "Reset link is missing a token. Please request a new password reset.",
     "resetRequestRecorded": "If an account with that email exists, a password reset request has been recorded.",
     "resetRequestFailed": "Failed to request password reset. Please try again.",
-    "passwordResetSuccess": "Password reset successfully! Redirecting to login..."
+    "passwordResetSuccess": "Password reset successfully. You can now log in.",
+    "passwordResetFailed": "Failed to reset password. Please request a new reset link."
   },
   "userMenu": {
     "myCvs": "My Documents",

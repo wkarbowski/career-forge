@@ -303,7 +303,7 @@ Change password for the authenticated user. Requires the current password.
 
 ### `POST /api/auth/forgot-password`
 
-Record a password reset request for the given email.
+Request a password reset for the given email. If SMTP is configured, Career Forge sends a reset link to the account email. If SMTP is not configured, the request is recorded in the audit log for operator follow-up.
 
 **Request Body** (no auth required)
 
@@ -327,7 +327,7 @@ Always returns `200` regardless of whether the email exists (prevents user enume
 
 ### `POST /api/auth/reset-password`
 
-Reset a user's password using a valid reset token issued through a secure out-of-band workflow.
+Reset a user's password using a valid reset token from the password reset link.
 
 **Request Body** (no auth required)
 

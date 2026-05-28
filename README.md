@@ -164,6 +164,8 @@ Create a `.env` file in the project root and set at minimum:
 | `SECRET_KEY`        | **Yes**  | JWT signing key — `openssl rand -hex 32`      |
 | `POSTGRES_PASSWORD` | Prod     | PostgreSQL password                           |
 | `REDIS_PASSWORD`    | Prod     | Redis password (if using Redis rate limiting) |
+| `APP_BASE_URL`      | Prod     | Public frontend URL for password reset links  |
+| `SMTP_HOST`         | Optional | SMTP host for password reset emails           |
 
 See [docs/deployment.md](docs/deployment.md) for the full list of variables.
 

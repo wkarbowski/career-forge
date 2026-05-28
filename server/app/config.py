@@ -75,6 +75,18 @@ class Settings(BaseSettings):
     # ── File uploads ─────────────────────────────────────────────────────
     upload_dir: str = "uploads/profile_images"
 
+    # ── Email / password reset ───────────────────────────────────────────
+    # Optional and vendor-neutral. Configure with any SMTP provider or a
+    # self-hosted relay. When unset, password reset requests are only logged.
+    app_base_url: str = "http://localhost:3000"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_use_tls: bool = True
+    smtp_timeout_seconds: int = 10
+
     # ── Validators ───────────────────────────────────────────────────────
 
     @field_validator("secret_key")
@@ -132,6 +144,10 @@ class Settings(BaseSettings):
             # that forgot to set the variable.
             return ["localhost", "127.0.0.1"]
         return [h.strip() for h in self.trusted_hosts.split(",") if h.strip()]
+
+    @property
+    def password_reset_email_enabled(self) -> bool:
+        return bool(self.smtp_host and self.smtp_from_email)
 
     @property
     def is_production(self) -> bool:

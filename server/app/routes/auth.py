@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import os
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
@@ -11,6 +12,7 @@ from fastapi.security import OAuth2PasswordRequestForm  # noqa: TC002 — FastAP
 from app.audit import AuditEventType, audit_logger, get_client_ip, get_user_agent
 from app.auth import (
     create_access_token,
+    create_password_reset_token,
     create_refresh_token,
     get_current_active_user,
     get_password_hash,
@@ -23,6 +25,7 @@ from app.auth import (
 )
 from app.config import get_settings
 from app.database import get_db
+from app.email import build_password_reset_url, send_password_reset_email
 from app.models import User
 
 if TYPE_CHECKING:
@@ -51,6 +54,7 @@ _error_responses: dict[int | str, dict[str, Any]] = {
 
 router = APIRouter(prefix="/auth", tags=["Authentication"], responses=_error_responses)
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -488,6 +492,14 @@ async def forgot_password(
         endpoint="/api/auth/forgot-password",
         success=True,
     )
+
+    reset_token = create_password_reset_token(user.id)
+    reset_url = build_password_reset_url(reset_token, settings)
+    try:
+        if not send_password_reset_email(recipient=user.email, reset_url=reset_url, settings=settings):
+            logger.info("Password reset requested for %s, but SMTP is not configured", user.email)
+    except Exception:
+        logger.exception("Failed to send password reset email for %s", user.email)
 
     return PasswordResetResponse(
         message="If an account with that email exists, a password reset request has been recorded.",

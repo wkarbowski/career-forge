@@ -96,7 +96,7 @@ curl -X POST "http://localhost:8000/api/auth/register" \
 ```bash
 curl -X POST "http://localhost:8000/api/auth/login/json" \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "secret123"}'
+  -d '{"email": "user@example.com", "password": "SecureP@ss1"}'
 ```
 
 ### Create a CV (with token)
@@ -126,3 +126,4 @@ The application requires PostgreSQL (uses JSONB columns). Configure `DATABASE_UR
 - Passwords are hashed using bcrypt
 - Passwords must be 8+ chars including uppercase, lowercase, digit, and special character
 - Access tokens expire after 15 minutes; refresh tokens expire after 7 days
+- Password reset emails are optional and use SMTP when configured

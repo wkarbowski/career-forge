@@ -257,11 +257,18 @@ sudo certbot renew --dry-run
 | `DATABASE_URL`    | PostgreSQL URL           | Production-grade database                        |
 | `CORS_ORIGINS`    | `https://yourdomain.com` | No localhost                                     |
 | `TRUSTED_HOSTS`   | `yourdomain.com`         | Host header validation                           |
+| `APP_BASE_URL`    | `https://yourdomain.com` | Public frontend URL for password reset links     |
+| `SMTP_HOST`       | SMTP server hostname     | Optional password reset email delivery           |
+| `SMTP_FROM_EMAIL` | Sender email address     | Required only when SMTP is enabled               |
 
 For Docker Compose, set `CAREER_FORGE_DEBUG=false` and
 `CAREER_FORGE_ENVIRONMENT=production` in the root `.env` file. Compose maps
 those project-scoped variables to the backend's `DEBUG` and `ENVIRONMENT`
 settings.
+
+Password reset email is intentionally provider-neutral. Use a self-hosted SMTP
+relay or any SMTP service. If SMTP is left unset, reset requests still return a
+generic success response and are recorded in the audit log.
 
 ---
 

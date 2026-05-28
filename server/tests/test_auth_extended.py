@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import create_password_reset_token
 from app.models import RefreshToken, User
+from app.routes import auth as auth_routes
 
 
 class TestChangePassword:
@@ -61,7 +62,7 @@ class TestChangePassword:
 class TestForgotPassword:
     """Tests for POST /api/auth/forgot-password."""
 
-    def test_forgot_password_existing_email_returns_token(self, client: TestClient, test_user: User) -> None:
+    def test_forgot_password_existing_email_returns_generic_response(self, client: TestClient, test_user: User) -> None:
         response = client.post(
             "/api/auth/forgot-password",
             json={"email": "test@example.com"},
@@ -70,6 +71,33 @@ class TestForgotPassword:
         data = response.json()
         assert "message" in data
         assert "reset_token" not in data
+
+    def test_forgot_password_sends_email_when_smtp_configured(
+        self,
+        client: TestClient,
+        test_user: User,
+        monkeypatch,
+    ) -> None:
+        sent_email: dict[str, str] = {}
+
+        def fake_send_password_reset_email(*, recipient: str, reset_url: str, settings) -> bool:
+            sent_email["recipient"] = recipient
+            sent_email["reset_url"] = reset_url
+            return True
+
+        monkeypatch.setattr(auth_routes.settings, "app_base_url", "https://example.test")
+        monkeypatch.setattr(auth_routes.settings, "smtp_host", "smtp.example.test")
+        monkeypatch.setattr(auth_routes.settings, "smtp_from_email", "noreply@example.test")
+        monkeypatch.setattr(auth_routes, "send_password_reset_email", fake_send_password_reset_email)
+
+        response = client.post(
+            "/api/auth/forgot-password",
+            json={"email": "test@example.com"},
+        )
+
+        assert response.status_code == 200
+        assert sent_email["recipient"] == test_user.email
+        assert sent_email["reset_url"].startswith("https://example.test/reset-password?token=")
 
     def test_forgot_password_nonexistent_email_returns_same_response(self, client: TestClient) -> None:
         """Anti-enumeration: same 200 response even if email doesn't exist."""
