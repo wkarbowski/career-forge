@@ -1,13 +1,14 @@
 version: 2
 updates:
-  # Enable version updates for npm (client)
+  # === Frontend (npm) ===
   - package-ecosystem: "npm"
     directory: "/client"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 5
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 3
     reviewers:
       - "wkarbowski"
     labels:
@@ -16,15 +17,28 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    versioning-strategy: "increase"
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
 
-  # Enable version updates for pip (server)
+  # === Backend (pip) ===
   - package-ecosystem: "pip"
     directory: "/server"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 5
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 3
     reviewers:
       - "wkarbowski"
     labels:
@@ -33,14 +47,26 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
 
-  # Enable version updates for GitHub Actions
+  # === GitHub Actions ===
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Berlin"
     open-pull-requests-limit: 3
     reviewers:
       - "wkarbowski"
@@ -49,3 +75,7 @@ updates:
       - "ci"
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
