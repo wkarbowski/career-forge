@@ -273,10 +273,8 @@ class LogoutAllResponse(MessageResponse):
     sessions_revoked: int
 
 
-class PasswordResetTokenResponse(MessageResponse):
-    """Returned by the forgot-password endpoint (token in body)."""
-
-    reset_token: str | None = None
+class PasswordResetResponse(MessageResponse):
+    """Returned by the forgot-password endpoint."""
 
 
 class ImageUploadResponse(BaseModel):

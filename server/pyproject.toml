@@ -28,7 +28,7 @@ show_error_codes = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["jose.*", "bleach.*", "tinycss2.*"]
+module = ["jose.*", "bleach.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

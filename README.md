@@ -61,8 +61,9 @@
                   │ HTTP (JSON + HttpOnly cookies)
 ┌─────────────────┴───────────────────────────┐
 │           Server (FastAPI + Python)         │
-│  SQLAlchemy ORM · Alembic migrations           │
-│  PostgreSQL · Redis                            │
+│      7-layer middleware · Auth · Documents   │
+│  SQLAlchemy ORM · Alembic migrations         │
+│  PostgreSQL · Redis                          │
 └─────────────────────────────────────────────┘
 ```
 
@@ -74,7 +75,7 @@
 | Fonts                 | 16× @fontsource/\* (self-hosted)  |
 | Icons                 | Font Awesome Free 7 (self-hosted) |
 | Sanitization          | DOMPurify 3                       |
-| Backend               | FastAPI 0.115+, Python 3.12+      |
+| Backend               | FastAPI 0.136+, Python 3.12+      |
 | ORM / Migrations      | SQLAlchemy 2, Alembic             |
 | Database              | PostgreSQL 16                     |
 | Cache / Rate Limiting | Redis 7                           |

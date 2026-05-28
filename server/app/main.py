@@ -100,15 +100,6 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 
-    try:
-        from app.cloud import setup_cloud_routes  # type: ignore[import-not-found]
-
-        setup_cloud_routes(app)
-    except ImportError as exc:
-        logger.warning(
-            exc,
-        )
-
 
 @app.get("/", response_model=RootInfoResponse)
 async def root() -> RootInfoResponse:

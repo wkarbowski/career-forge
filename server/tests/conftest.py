@@ -84,7 +84,6 @@ def test_user(db: Session) -> User:
         username="testuser",
         hashed_password=get_password_hash("TestPassword123!"),
         is_active=True,
-        is_other user=False,
         language="en",
         theme="light",
     )
@@ -96,13 +95,12 @@ def test_user(db: Session) -> User:
 
 @pytest.fixture(scope="function")
 def other_user(db: Session) -> User:
-    """Create an other user user in the database."""
+    """Create a second user in the database."""
     user = User(
-        email="other user@example.com",
+        email="other@example.com",
         username="otheruser",
         hashed_password=get_password_hash("OtherPassword123!"),
         is_active=True,
-        is_other user=True,
         language="en",
         theme="light",
     )
@@ -118,18 +116,6 @@ def auth_headers(client: TestClient, test_user: User) -> dict[str, str]:
     response = client.post(
         "/api/auth/login/json",
         json={"email": "test@example.com", "password": "TestPassword123!"},
-    )
-    assert response.status_code == 200
-    data = response.json()
-    return {"Authorization": f"Bearer {data['access_token']}"}
-
-
-@pytest.fixture(scope="function")
-def other_headers(client: TestClient, other_user: User) -> dict[str, str]:
-    """Get authentication headers for an other user user."""
-    response = client.post(
-        "/api/auth/login/json",
-        json={"email": "other user@example.com", "password": "OtherPassword123!"},
     )
     assert response.status_code == 200
     data = response.json()

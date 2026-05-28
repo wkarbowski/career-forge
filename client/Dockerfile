@@ -18,9 +18,11 @@ RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
 # Copy source files
 COPY . .
 
-# Build argument for API URL — baked into the static bundle at build time
+# Build arguments — baked into the static bundle at build time
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_GDPR=false
+ENV VITE_GDPR=$VITE_GDPR
 
 RUN npm run build
 
@@ -47,6 +49,6 @@ EXPOSE 80
 
 # Healthcheck using /index.html
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget -qO- http://localhost:80/index.html || exit 1
+    CMD wget -qO- http://127.0.0.1:80/index.html || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -137,17 +137,11 @@
     "privacyPolicy": "Privacy Policy",
     "consentTextEnd": " and consent to the processing of my data as described therein.",
     "forgotPassword": "Forgot Password",
-    "resetPassword": "Reset Password",
     "forgotPasswordLink": "Forgot your password?",
     "backToLogin": "Back to login",
-    "resetTokenGenerated": "A reset token has been generated. Use it below to set your new password.",
-    "resetEmailSent": "If an account with that email exists, a reset link has been sent.",
+    "resetRequestRecorded": "If an account with that email exists, a password reset request has been recorded.",
     "resetRequestFailed": "Failed to request password reset. Please try again.",
-    "passwordResetSuccess": "Password reset successfully! Redirecting to login...",
-    "resetFailed": "Failed to reset password. The token may be expired or invalid.",
-    "resetToken": "Reset Token",
-    "resetTokenPlaceholder": "Paste your reset token here",
-    "newPassword": "New Password"
+    "passwordResetSuccess": "Password reset successfully! Redirecting to login..."
   },
   "userMenu": {
     "myCvs": "My Documents",

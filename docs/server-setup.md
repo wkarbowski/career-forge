@@ -234,19 +234,6 @@ Supports PostgreSQL (`pg_dump`/`psql`).
 
 ---
 
-
-
-```bash
-cd server
-source venv/bin/activate
-
-
-
-```
-
-
----
-
 ## API Documentation
 
 When `DEBUG=true`, interactive API documentation is available:

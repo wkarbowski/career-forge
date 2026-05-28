@@ -10,7 +10,6 @@ dist/
 
 # Environment variables
 .env
-.env.cloud
 .env.local
 .env.development.local
 .env.test.local
@@ -87,6 +86,3 @@ server/uploads/*
 !server/uploads/.gitkeep
 !server/uploads/profile_images/.gitkeep
 client/build/
-
-# NOTE: server/app/cloud/ and client/src/cloud/ stub directories ARE tracked
-# in this repo — they define the extension interface contract.

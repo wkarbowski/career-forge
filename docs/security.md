@@ -332,6 +332,7 @@ Brute-force protection via account lockout after repeated failed login attempts.
 
 Events are logged to both:
 
+1. **Database** (`audit_logs` table) — For querying, compliance, and incident review
 2. **Stdout / File** — For real-time monitoring, log aggregation, and SIEM integration
 
 ### Event Types (25 total)
@@ -355,7 +356,6 @@ Events are logged to both:
 |             | `suspicious_activity`                  | **ALERT**        |
 | **Data**    | `document_created`, `document_deleted` | INFO             |
 |             | `document_exported`, `data_exported`   | INFO             |
-|             | `settings_changed`                     | WARNING          |
 
 ### Severity Levels
 
@@ -385,16 +385,6 @@ INFO → WARNING → ALERT → CRITICAL
 | `user_agent`  | Browser/client identifier      |
 | `endpoint`    | API endpoint path              |
 | `success`     | "true", "false", or null       |
-
-
-
-- Filter by event type, severity, user, IP, date range
-- Security statistics (login counts, failures, lockouts)
-- Recent alerts (warning+ severity)
-- Per-user audit trail
-- Per-IP event history
-
----
 
 ## Security Headers
 

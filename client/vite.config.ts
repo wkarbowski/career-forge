@@ -27,17 +27,6 @@ export default defineConfig({
       },
     },
   },
-  // Bridge REACT_APP_* env vars so existing source code doesn't need changes.
-  // process.env is available here because vite.config runs in Node context.
-  define: {
-    "process.env.REACT_APP_API_URL": JSON.stringify(
-      process.env.REACT_APP_API_URL ?? "",
-    ),
-    ),
-    "process.env.REACT_APP_GDPR": JSON.stringify(
-      process.env.REACT_APP_GDPR ?? "",
-    ),
-  },
   test: {
     environment: "jsdom",
     globals: true,

@@ -1334,7 +1334,7 @@ function AppContentInner() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      {/* GDPR banner: opt-in via REACT_APP_GDPR=true */}
+      {/* GDPR banner: opt-in via VITE_GDPR=true */}
       {FEATURES.GDPR_BANNER && <GdprBanner />}
     </>
   );

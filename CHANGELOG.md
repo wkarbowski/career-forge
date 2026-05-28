@@ -39,6 +39,7 @@ versioning follows [Semantic Versioning](https://semver.org/).
 - Dev Container configuration for VS Code
 - CI pipeline (GitHub Actions): ruff lint, pyright type-check, pytest with coverage, TypeScript build and Vitest test suite
 - Dependabot configured for automated dependency updates
+- Configurable privacy banner toggle for deployments that need explicit consent UI
 - MIT licensed
 
 ---

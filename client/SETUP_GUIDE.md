@@ -62,27 +62,28 @@ npm install
 
 This installs:
 
-- `react` 18.2
-- `react-dom` 18.2
+- `react` 19
+- `react-dom` 19
 - `react-router-dom` 7
-- `vite` 6 (dev dependency)
+- `vite` 8 (dev dependency)
 - `dompurify` 3
 
 ### 3. Configure environment variables
 
-The only build-time variable is the backend API URL. Create a `.env` file in the `client/` directory:
+Create a `.env` file in the `client/` directory for build-time settings:
 
 ```env
-REACT_APP_API_URL=http://localhost:8000/api
+VITE_API_URL=http://localhost:8000/api
+VITE_GDPR=false
 ```
 
 If this variable is not set, the application falls back to `http://localhost:8000/api` at runtime.
 
-> **Note:** This value is resolved at build time by Vite via the `define` config in `vite.config.ts`. Changing it after `npm run build` requires a rebuild.
+> **Note:** These values are exposed to the browser bundle through Vite's `import.meta.env`. Changing them after `npm run build` requires a rebuild.
 
 ### 4. Ensure the backend is running
 
-The client expects the FastAPI backend to be available at the URL defined in `REACT_APP_API_URL`. Start it separately or use Docker Compose (see below).
+The client expects the FastAPI backend to be available at the URL defined in `VITE_API_URL`. Start it separately or use Docker Compose (see below).
 
 ### 5. Start the development server
 
@@ -105,13 +106,13 @@ docker compose up --build
 
 The client container performs a multi-stage build:
 
-1. **Build stage** — Node 20 Alpine compiles the React bundle. `REACT_APP_API_URL` defaults to `/api` (relative path, resolved by Nginx).
+1. **Build stage** — Node 20 Alpine compiles the React bundle. `VITE_API_URL` defaults to `/api` (relative path, resolved by Nginx).
 2. **Production stage** — Nginx 1.27 Alpine serves the static bundle on port 80, proxies `/api/*` and `/uploads/*` to the backend container, and applies security headers.
 
 To override the API URL at Docker build time:
 
 ```bash
-docker compose build --build-arg REACT_APP_API_URL=https://api.example.com/api client
+docker compose build --build-arg VITE_API_URL=https://api.example.com/api client
 ```
 
 ---
@@ -277,7 +278,7 @@ node --version
 
 ### API requests fail (CORS or network errors)
 
-- Ensure the backend is running and accessible at the URL in `REACT_APP_API_URL`.
+- Ensure the backend is running and accessible at the URL in `VITE_API_URL`.
 - In development, the backend must allow `http://localhost:3000` as a CORS origin. See the server setup guide for backend CORS configuration.
 
 ### Changes to `.env` are not reflected
@@ -300,10 +301,10 @@ Ensure the server is configured to serve `index.html` for all non-asset routes (
 ### Static hosting (Netlify, Vercel, GitHub Pages, S3)
 
 ```bash
-REACT_APP_API_URL=https://api.example.com/api npm run build
+VITE_API_URL=https://api.example.com/api npm run build
 ```
 
-The `REACT_APP_API_URL` variable is resolved at build time via the `define` config in `vite.config.ts`.
+The `VITE_API_URL` variable is exposed to the app at build time through `import.meta.env`.
 
 Deploy the contents of the `build/` directory to your hosting provider. Configure the host to return `index.html` for all 404 responses to support deep linking.
 

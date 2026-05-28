@@ -111,7 +111,7 @@ class TestDocumentRetrieval:
         db: Session,
     ) -> None:
         """Test that users cannot access other users' documents."""
-        # Create a document owned by other user
+        # Create a document owned by another user.
         other_doc = Document(
             title="Other User Document",
             document_type="resume",
