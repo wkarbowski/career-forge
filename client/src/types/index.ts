@@ -331,10 +331,6 @@ export interface LogoutAllResponse extends MessageResponse {
   sessions_revoked: number;
 }
 
-export interface PasswordResetResponse extends MessageResponse {
-  reset_token?: string | null;
-}
-
 export interface DocumentExportResponse {
   title: string;
   document_type: string;
@@ -366,12 +362,7 @@ export interface ApiErrorResponse {
 // ── Feature Flags ─────────────────────────────────────────────
 
 export interface Features {
-  CLOUD: boolean;
-  AUTH_OAUTH: boolean;
   GDPR_BANNER: boolean;
-  PDF_EXPORT: boolean;
-  SHARING: boolean;
-  CV_LIMITS: boolean;
 }
 
 // ── I18n ──────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ FastAPI backend for the Career Forge resume and cover letter builder.
 - Document version history (named snapshots)
 - Shareable public links for documents
 - Profile image upload
+- Security audit logging
 
 ## Setup
 
@@ -39,7 +40,7 @@ DEBUG=true
 # WARNING: replace <your-strong-password> with a real password — do not use verbatim
 DATABASE_URL="postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge"
 SECRET_KEY="your-secret-key-change-in-production"
-CORS_ORIGINS=["http://localhost:3000"]
+CORS_ORIGINS=http://localhost:3000
 ```
 
 ### 4. Run the server
@@ -113,6 +114,7 @@ The application requires PostgreSQL (uses JSONB columns). Configure `DATABASE_UR
 
 ### Models
 
+- **User**: id, email, username, hashed_password, is_active, theme, language, created_at, updated_at
 - **Document**: id, title, document_type, data (JSONB), owner_id, is_default, profile_image, share_token, linked_resume_id, created_at, updated_at
 - **DocumentVersion**: id, document_id (FK), version_name, data (JSONB), created_at
 - **RefreshToken**: id, token_hash, user_id, device_info, is_revoked, used_at, expires_at, created_at

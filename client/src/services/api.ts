@@ -4,8 +4,6 @@
  * API client
  * ──────────────────
  * This file covers all endpoints: auth, document CRUD, profile image upload.
- *
- * from this file to share the same base URL config.
  */
 
 import type {

@@ -119,8 +119,6 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
 
     const measured = Math.max(1, Math.ceil((rawHeight - 0.5) / pageHeight));
 
-    console.debug('[CVPagesEditor] calculatePages', { rawHeight, pageHeight, measured });
-
     setMinPages(measured);
 
     // Only ever grow pages — but respect explicit user deletions.

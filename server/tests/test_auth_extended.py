@@ -10,6 +10,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.auth import create_password_reset_token
 from app.models import RefreshToken, User
 
 
@@ -68,8 +69,7 @@ class TestForgotPassword:
         assert response.status_code == 200
         data = response.json()
         assert "message" in data
-        assert "reset_token" in data
-        assert data["reset_token"] is not None
+        assert "reset_token" not in data
 
     def test_forgot_password_nonexistent_email_returns_same_response(self, client: TestClient) -> None:
         """Anti-enumeration: same 200 response even if email doesn't exist."""
@@ -95,13 +95,7 @@ class TestResetPassword:
     """Tests for POST /api/auth/reset-password."""
 
     def test_reset_password_with_valid_token_succeeds(self, client: TestClient, test_user: User) -> None:
-        r = client.post(
-            "/api/auth/forgot-password",
-            json={"email": "test@example.com"},
-        )
-        assert r.status_code == 200
-        reset_token = r.json().get("reset_token")
-        assert reset_token is not None
+        reset_token = create_password_reset_token(test_user.id)
 
         response = client.post(
             "/api/auth/reset-password",

@@ -25,10 +25,10 @@ The React-based frontend for **Career Forge**, a full-featured resume and cover 
 
 | Dependency       | Version       | Purpose                                   |
 | ---------------- | ------------- | ----------------------------------------- |
-| React            | 18.2          | UI framework                              |
-| react-router-dom | 7             | Client-side routing                       |
-| Vite             | 6             | Build tooling                             |
-| DOMPurify        | 3             | HTML sanitisation                         |
+| React            | 19            | UI framework                              |
+| react-router-dom | 7.15          | Client-side routing                       |
+| Vite             | 8             | Build tooling                             |
+| DOMPurify        | 3.4           | HTML sanitisation                         |
 | Nginx            | 1.27 (Alpine) | Production static file server + API proxy |
 
 ---
@@ -109,15 +109,17 @@ client/
 
 | Variable            | Default                     | Description                                               |
 | ------------------- | --------------------------- | --------------------------------------------------------- |
-| `REACT_APP_API_URL` | `http://localhost:8000/api` | Backend API base URL, baked into the bundle at build time |
+| `VITE_API_URL`      | `http://localhost:8000/api` | Backend API base URL, baked into the bundle at build time |
+| `VITE_GDPR`         | `false`                     | Enables the privacy acknowledgement banner                |
 
 Create a `.env` file in the `client/` directory for local overrides:
 
 ```env
-REACT_APP_API_URL=http://localhost:8000/api
+VITE_API_URL=http://localhost:8000/api
+VITE_GDPR=false
 ```
 
-In Docker the value is injected as a build argument (`ARG REACT_APP_API_URL=/api`).
+In Docker the value is injected as a build argument (`ARG VITE_API_URL=/api`).
 
 ---
 
@@ -138,7 +140,7 @@ npm run lint       # Type-check all TypeScript files (tsc --noEmit)
 
 The recommended way to run Career Forge is via Docker Compose from the repository root. The client image performs a multi-stage build:
 
-1. **Stage 1** — Node 20 Alpine builds the React bundle, injecting `REACT_APP_API_URL` as a build arg.
+1. **Stage 1** — Node 20 Alpine builds the React bundle, injecting `VITE_API_URL` as a build arg.
 2. **Stage 2** — Nginx 1.27 Alpine serves the static bundle on port 80, proxies `/api/*` to the backend container, and sets security headers.
 
 See the root `docker-compose.yml` for the full service definition.
@@ -146,10 +148,10 @@ See the root `docker-compose.yml` for the full service definition.
 ### Manual / static hosting
 
 ```bash
-REACT_APP_API_URL=https://api.example.com/api npm run build
+VITE_API_URL=https://api.example.com/api npm run build
 ```
 
-The `REACT_APP_API_URL` variable is resolved at build time by Vite via the `define` config.
+The `VITE_API_URL` variable is exposed to the app at build time through `import.meta.env`.
 
 Deploy the generated `build/` directory to any static hosting provider (Netlify, Vercel, GitHub Pages, S3, etc.). Ensure the host is configured to serve `index.html` for all routes to support client-side routing.
 

@@ -83,7 +83,7 @@ def create_professional_resume(db: Session, user: User) -> Document:
                 "startDate": "2018-01",
                 "endDate": "2020-02",
                 "current": False,
-                "description": "<ul><li>Built customer-facing SaaS platform from scratch (React + Django)</li><li>Integrated payment processing  and email automation</li><li>Achieved 99.9% uptime through monitoring and alerting</li></ul>",
+                "description": "<ul><li>Built customer-facing SaaS platform from scratch (React + Django)</li><li>Integrated payment processing and email automation</li><li>Achieved 99.9% uptime through monitoring and alerting</li></ul>",
             },
             {
                 "company": "Digital Agency Co.",

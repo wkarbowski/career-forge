@@ -303,7 +303,7 @@ Change password for the authenticated user. Requires the current password.
 
 ### `POST /api/auth/forgot-password`
 
-Request a password reset token for the given email.
+Record a password reset request for the given email.
 
 **Request Body** (no auth required)
 
@@ -317,12 +317,9 @@ Request a password reset token for the given email.
 
 ```json
 {
-  "message": "If that email exists, a reset token has been generated",
-  "reset_token": "<jwt-token>"
+  "message": "If an account with that email exists, a password reset request has been recorded."
 }
 ```
-
-> **Note:** The token is returned directly in the API response.
 
 Always returns `200` regardless of whether the email exists (prevents user enumeration).
 
@@ -330,7 +327,7 @@ Always returns `200` regardless of whether the email exists (prevents user enume
 
 ### `POST /api/auth/reset-password`
 
-Reset a user's password using a reset token.
+Reset a user's password using a valid reset token issued through a secure out-of-band workflow.
 
 **Request Body** (no auth required)
 
@@ -725,127 +722,6 @@ Public endpoint — view a shared document (no authentication required).
 ```
 
 **Errors:** `404` (invalid share token)
-
----
-
-
-
-
-Query audit logs with filtering and pagination.
-
-**Query Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `event_type` | string | Filter by event type |
-| `severity` | string | Filter by severity (info/warning/alert/critical) |
-| `user_id` | integer | Filter by user ID |
-| `user_email` | string | Filter by user email (partial match) |
-| `ip_address` | string | Filter by IP address |
-| `success` | string | Filter by success status (true/false) |
-| `start_date` | datetime | Filter from date |
-| `end_date` | datetime | Filter to date |
-| `skip` | integer | Pagination offset (default: 0) |
-| `limit` | integer | Page size (default: 50, max: 100) |
-
-**Response** `200 OK`
-
-```json
-{
-  "logs": [...],
-  "total": 1250,
-  "skip": 0,
-  "limit": 50
-}
-```
-
----
-
-
-Security statistics dashboard.
-
-**Response** `200 OK`
-
-```json
-{
-  "total_events": 1250,
-  "today_logins": 45,
-  "today_failures": 3,
-  "lockouts": 1,
-  "token_reuse_events": 0,
-  "critical_events": 0
-}
-```
-
----
-
-
-List all available event types and severity levels.
-
-**Response** `200 OK`
-
-```json
-{
-  "event_types": ["login_success", "login_failure", ...],
-  "severity_levels": ["info", "warning", "alert", "critical"]
-}
-```
-
----
-
-
-Recent warning-and-above events.
-
-**Query Parameters:**
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `hours` | integer | 24 | Lookback period (max: 168) |
-
-**Response** `200 OK`
-
-```json
-{
-  "alerts": [...],
-  "period_hours": 24,
-  "total": 5
-}
-```
-
----
-
-
-Complete audit trail for a specific user.
-
-**Query Parameters:** `skip`, `limit`
-
-**Response** `200 OK`
-
-```json
-{
-  "user_id": 1,
-  "logs": [...],
-  "total": 89
-}
-```
-
----
-
-
-All events from a specific IP address.
-
-**Query Parameters:** `skip`, `limit`
-
-**Response** `200 OK`
-
-```json
-{
-  "ip_address": "192.168.1.1",
-  "logs": [...],
-  "total": 42,
-  "unique_users": 2
-}
-```
-
----
 
 ## Static Files
 

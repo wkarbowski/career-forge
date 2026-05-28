@@ -75,8 +75,6 @@ class Settings(BaseSettings):
     # ── File uploads ─────────────────────────────────────────────────────
     upload_dir: str = "uploads/profile_images"
 
-    # ── Feature boundaries ───────────────────────────────────────────────
-
     # ── Validators ───────────────────────────────────────────────────────
 
     @field_validator("secret_key")

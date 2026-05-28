@@ -9,7 +9,6 @@ This file:
   • AuditLogger service        (write path — called by auth/document routes)
   • get_client_ip / get_user_agent helpers
 
-
 The Audit events are written on every security-relevant action.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """

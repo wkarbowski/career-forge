@@ -137,17 +137,11 @@
     "privacyPolicy": "Datenschutzerklärung",
     "consentTextEnd": " gelesen und akzeptiert und stimme der dort beschriebenen Verarbeitung meiner Daten zu.",
     "forgotPassword": "Passwort vergessen",
-    "resetPassword": "Passwort zurücksetzen",
     "forgotPasswordLink": "Passwort vergessen?",
     "backToLogin": "Zurück zur Anmeldung",
-    "resetTokenGenerated": "Ein Reset-Token wurde generiert. Verwenden Sie ihn unten, um Ihr neues Passwort festzulegen.",
-    "resetEmailSent": "Falls ein Konto mit dieser E-Mail existiert, wurde ein Reset-Link gesendet.",
+    "resetRequestRecorded": "Falls ein Konto mit dieser E-Mail existiert, wurde eine Anfrage zum Zurücksetzen des Passworts erfasst.",
     "resetRequestFailed": "Fehler beim Zurücksetzen des Passworts. Bitte versuchen Sie es erneut.",
-    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt! Weiterleitung zur Anmeldung...",
-    "resetFailed": "Passwort konnte nicht zurückgesetzt werden. Der Token ist möglicherweise abgelaufen oder ungültig.",
-    "resetToken": "Reset-Token",
-    "resetTokenPlaceholder": "Fügen Sie hier Ihren Reset-Token ein",
-    "newPassword": "Neues Passwort"
+    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt! Weiterleitung zur Anmeldung..."
   },
   "userMenu": {
     "myCvs": "Meine Dokumente",

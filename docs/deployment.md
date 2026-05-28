@@ -20,8 +20,8 @@
 
 ## Pre-Deployment Checklist
 
-- [ ] `DEBUG=false`
-- [ ] `ENVIRONMENT=production`
+- [ ] `DEBUG=false` (`CAREER_FORGE_DEBUG=false` when using Docker Compose)
+- [ ] `ENVIRONMENT=production` (`CAREER_FORGE_ENVIRONMENT=production` when using Docker Compose)
 - [ ] `SECRET_KEY` set to a strong random value (64+ characters)
 - [ ] `ENFORCE_HTTPS=true`
 - [ ] `COOKIE_SECURE=true`
@@ -139,7 +139,7 @@ sudo systemctl start career-forge-api
 cd client
 
 # Set the API URL for production
-REACT_APP_API_URL=https://yourdomain.com/api npm run build
+VITE_API_URL=https://yourdomain.com/api npm run build
 ```
 
 ### 2. Deploy Static Files
@@ -258,6 +258,11 @@ sudo certbot renew --dry-run
 | `CORS_ORIGINS`    | `https://yourdomain.com` | No localhost                                     |
 | `TRUSTED_HOSTS`   | `yourdomain.com`         | Host header validation                           |
 
+For Docker Compose, set `CAREER_FORGE_DEBUG=false` and
+`CAREER_FORGE_ENVIRONMENT=production` in the root `.env` file. Compose maps
+those project-scoped variables to the backend's `DEBUG` and `ENVIRONMENT`
+settings.
+
 ---
 
 ## Monitoring
@@ -266,7 +271,9 @@ sudo certbot renew --dry-run
 
 The built-in audit system logs to both the database and stdout. Audit logs can be:
 
+- Reviewed directly in the `audit_logs` table
 - Piped to log aggregation (ELK, Loki, etc.) via stdout
+- Monitored for warning, alert, and critical severity events
 
 ### Health Check
 
@@ -274,12 +281,6 @@ The built-in audit system logs to both the database and stdout. Audit logs can b
 curl https://yourdomain.com/api/health
 # Expected: {"status": "healthy", "environment": "production"}
 ```
-
-### Security Stats
-
-
-
----
 
 ## Backup Strategy
 
@@ -322,8 +323,8 @@ cd server
 
 This validates:
 
-- `DEBUG=false`
-- `ENVIRONMENT=production`
+- `DEBUG=false` (`CAREER_FORGE_DEBUG=false` for Docker Compose)
+- `ENVIRONMENT=production` (`CAREER_FORGE_ENVIRONMENT=production` for Docker Compose)
 - `SECRET_KEY` length ≥ 64
 - `ENFORCE_HTTPS=true`
 - `COOKIE_SECURE=true`

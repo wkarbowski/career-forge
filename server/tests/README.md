@@ -69,9 +69,8 @@ start htmlcov/index.html  # Windows
 - `db` - Fresh database session for each test
 - `client` - FastAPI TestClient with database override
 - `test_user` - Regular user account
-- `other_user` - Other User user account
+- `other_user` - Second user account
 - `auth_headers` - Authorization headers for test_user
-- `other_headers` - Authorization headers for other_user
 
 ### Example Test
 

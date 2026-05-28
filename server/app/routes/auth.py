@@ -11,7 +11,6 @@ from fastapi.security import OAuth2PasswordRequestForm  # noqa: TC002 — FastAP
 from app.audit import AuditEventType, audit_logger, get_client_ip, get_user_agent
 from app.auth import (
     create_access_token,
-    create_password_reset_token,
     create_refresh_token,
     get_current_active_user,
     get_password_hash,
@@ -36,7 +35,7 @@ from app.schemas import (
     PasswordChange,
     PasswordResetConfirm,
     PasswordResetRequest,
-    PasswordResetTokenResponse,
+    PasswordResetResponse,
     RefreshTokenRequest,
     UserCreate,
     UserLogin,
@@ -448,13 +447,13 @@ async def update_preferences(
     return UserResponse.model_validate(current_user)
 
 
-@router.post("/forgot-password", response_model=PasswordResetTokenResponse)
+@router.post("/forgot-password", response_model=PasswordResetResponse)
 async def forgot_password(
     request: Request,
     reset_request: PasswordResetRequest,
     db: Session = Depends(get_db),
-) -> PasswordResetTokenResponse:
-    """Request a password reset token.
+) -> PasswordResetResponse:
+    """Record a password reset request.
 
     Always returns 200 to prevent email enumeration.
     """
@@ -474,16 +473,14 @@ async def forgot_password(
             endpoint="/api/auth/forgot-password",
             success=False,
         )
-        return PasswordResetTokenResponse(
-            message="If an account with that email exists, a reset token has been generated.",
+        return PasswordResetResponse(
+            message="If an account with that email exists, a password reset request has been recorded.",
         )
-
-    reset_token = create_password_reset_token(user.id)
 
     audit_logger.log(
         db=db,
         event_type=AuditEventType.PASSWORD_RESET_REQUESTED,
-        description="Password reset token generated",
+        description="Password reset requested",
         user_id=user.id,
         user_email=user.email,
         ip_address=ip_address,
@@ -492,13 +489,8 @@ async def forgot_password(
         success=True,
     )
 
-        return PasswordResetTokenResponse(
-            message="If an account with that email exists, a reset token has been generated.",
-            reset_token=reset_token,
-        )
-
-    return PasswordResetTokenResponse(
-        message="If an account with that email exists, a reset link has been sent.",
+    return PasswordResetResponse(
+        message="If an account with that email exists, a password reset request has been recorded.",
     )
 
 

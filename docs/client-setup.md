@@ -55,10 +55,10 @@ npm install
 
 | Package                         | Version | Purpose                              |
 | ------------------------------- | ------- | ------------------------------------ |
-| `react`                         | ^18.2.0 | UI library                           |
-| `react-dom`                     | ^18.2.0 | DOM rendering                        |
-| `react-router-dom`              | ^7.13.0 | Client-side routing                  |
-| `dompurify`                     | ^3.0.0  | HTML sanitization for inline editing |
+| `react`                         | ^19.0.0 | UI library                           |
+| `react-dom`                     | ^19.0.0 | DOM rendering                        |
+| `react-router-dom`              | ^7.15.1 | Client-side routing                  |
+| `dompurify`                     | ^3.4.5  | HTML sanitization for inline editing |
 | `react-easy-crop`               | ^5.5.7  | Profile image cropper                |
 | `html2canvas`                   | ^1.4.1  | Canvas rendering utility             |
 | `@fontsource/*`                 | 5.2.x   | 16 self-hosted font families         |
@@ -68,10 +68,10 @@ npm install
 
 | Package                | Version | Purpose                            |
 | ---------------------- | ------- | ---------------------------------- |
-| `vite`                 | ^6.3.3  | Build tool and dev server          |
-| `@vitejs/plugin-react` | ^4.5.0  | React fast-refresh plugin for Vite |
-| `typescript`           | ^6.0.2  | TypeScript compiler                |
-| `vitest`               | ^3.1.2  | Unit test runner                   |
+| `vite`                 | ^8.0.14 | Build tool and dev server          |
+| `@vitejs/plugin-react` | ^6.0.2  | React fast-refresh plugin for Vite |
+| `typescript`           | ^6.0.3  | TypeScript compiler                |
+| `vitest`               | ^4.1.7  | Unit test runner                   |
 
 ---
 
@@ -89,10 +89,13 @@ Create a `.env` file in the `client/` directory (optional):
 
 ```env
 # API server URL (defaults to http://localhost:8000/api)
-REACT_APP_API_URL=http://localhost:8000/api
+VITE_API_URL=http://localhost:8000/api
+
+# Optional privacy acknowledgement banner
+VITE_GDPR=false
 ```
 
-> The `REACT_APP_*` prefix is bridged into Vite builds via `vite.config.ts`'s `define` block. You do not need to rename variables to `VITE_*`.
+> Vite exposes `VITE_*` variables to the browser bundle through `import.meta.env`.
 
 ### Proxy Setup
 
@@ -162,10 +165,10 @@ The API service layer (`src/services/api.ts`) uses:
 
 ```typescript
 const API_BASE: string =
-  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 ```
 
-Set `REACT_APP_API_URL` in `client/.env` or at build time for production.
+Set `VITE_API_URL` in `client/.env` or at build time for production.
 
 ### Bundled Resources
 
