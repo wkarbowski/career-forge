@@ -456,7 +456,7 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 
 - **Dark theme**: Deep backgrounds (#0a0a0b), indigo accent, cyan secondary, glassmorphism effects
 - **Light theme**: Clean white backgrounds, deeper indigo, refined subtle shadows
-- **Fonts**: 16 self-hosted font families via `@fontsource/*` npm packages
+- **Fonts**: 16 self-hosted font families via bundled `@fontsource/*` packages
 - **Icons**: Font Awesome 7 self-hosted via `@fortawesome/fontawesome-free`
 
 ---

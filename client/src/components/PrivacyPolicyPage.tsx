@@ -43,7 +43,7 @@ const PrivacyPolicyPage = () => {
           <h2>3. {t('gdpr.s3Title') || 'Third-Party Services'}</h2>
           <p>
             {t('gdpr.s3None') ||
-              'Career Forge does not use any third-party services that receive your personal data. All web fonts are self-hosted via npm packages bundled with the application. All UI icons (Font Awesome) are self-hosted via npm. No analytics, advertising, tracking, or telemetry services are used. No data is sent to Google, Cloudflare, Meta, or any other external party.'}
+              'Career Forge does not use any third-party services that receive your personal data. All web fonts are self-hosted from dependencies bundled with the application. All UI icons (Font Awesome) are bundled locally. No analytics, advertising, tracking, or telemetry services are used. No data is sent to Google, Cloudflare, Meta, or any other external party.'}
           </p>
         </section>
 

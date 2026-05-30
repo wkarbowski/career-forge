@@ -139,7 +139,7 @@ sudo systemctl start career-forge-api
 cd client
 
 # Set the API URL for production
-VITE_API_URL=https://yourdomain.com/api npm run build
+VITE_API_URL=https://yourdomain.com/api pnpm run build
 ```
 
 ### 2. Deploy Static Files
@@ -159,8 +159,7 @@ Drag the `build/` folder to Netlify's deploy page.
 **Option C: GitHub Pages**
 
 ```bash
-npm install -g gh-pages
-gh-pages -d build
+pnpm dlx gh-pages -d build
 ```
 
 ---

@@ -9,7 +9,7 @@ This guide covers everything needed to run the Career Forge frontend locally, in
 | Tool           | Minimum version | Notes                            |
 | -------------- | --------------- | -------------------------------- |
 | Node.js        | 20 LTS          | Required for local development   |
-| npm            | 9+              | Bundled with Node.js             |
+| pnpm           | 11.5.0          | Managed by Corepack              |
 | Docker         | 24+             | Required for containerised setup |
 | Docker Compose | 2.20+           | Used in the repository root      |
 
@@ -18,9 +18,10 @@ This guide covers everything needed to run the Career Forge frontend locally, in
 **Fedora / RHEL:**
 
 ```bash
-sudo dnf install nodejs npm -y
+sudo dnf install nodejs -y
+corepack enable
 node --version   # should print v20.x.x
-npm --version    # should print 10.x.x
+pnpm --version   # should print 11.5.0
 ```
 
 **Ubuntu / Debian:**
@@ -28,18 +29,21 @@ npm --version    # should print 10.x.x
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
+corepack enable
 ```
 
 **macOS (via Homebrew):**
 
 ```bash
 brew install node
+corepack enable
 ```
 
 **Windows (via winget):**
 
 ```bash
 winget install OpenJS.NodeJS.LTS
+corepack enable
 ```
 
 ---
@@ -57,7 +61,7 @@ cd career-forge
 
 ```bash
 cd client
-npm install
+pnpm install --frozen-lockfile
 ```
 
 This installs:
@@ -79,7 +83,7 @@ VITE_GDPR=false
 
 If this variable is not set, the application falls back to `http://localhost:8000/api` at runtime.
 
-> **Note:** These values are exposed to the browser bundle through Vite's `import.meta.env`. Changing them after `npm run build` requires a rebuild.
+> **Note:** These values are exposed to the browser bundle through Vite's `import.meta.env`. Changing them after `pnpm run build` requires a rebuild.
 
 ### 4. Ensure the backend is running
 
@@ -88,7 +92,7 @@ The client expects the FastAPI backend to be available at the URL defined in `VI
 ### 5. Start the development server
 
 ```bash
-npm start
+pnpm start
 ```
 
 The app opens automatically at `http://localhost:3000`. Hot reloading is enabled — changes to source files refresh the browser instantly.
@@ -167,6 +171,7 @@ client/
 ├── Dockerfile                      # Multi-stage Docker build
 ├── nginx.conf                      # Nginx: SPA routing + /api reverse proxy
 ├── package.json
+├── pnpm-lock.yaml
 └── tsconfig.json                   # TypeScript compiler config (type-check only)
 ```
 
@@ -176,16 +181,16 @@ client/
 
 ```bash
 # Start Vite development server with HMR on http://localhost:3000
-npm start
+pnpm start
 
 # Create an optimised production build in build/
-npm run build
+pnpm run build
 
 # Serve the production build locally for inspection
-npm run preview
+pnpm run preview
 
 # Type-check all TypeScript files without emitting output
-npm run lint
+pnpm run lint
 ```
 
 ---
@@ -259,15 +264,15 @@ Edit `src/data/initialData.ts` to change the placeholder text shown when a new d
 ### Port 3000 is already in use
 
 ```bash
-npm start -- --port 3001
+pnpm start -- --port 3001
 ```
 
-### `npm install` fails or produces errors
+### `pnpm install` fails or produces errors
 
 ```bash
-# Remove existing node_modules and lock file, then reinstall
-rm -rf node_modules package-lock.json
-npm install
+# Remove existing node_modules, then reinstall from the lockfile
+rm -rf node_modules
+pnpm install --frozen-lockfile
 ```
 
 If the error is a Node.js version mismatch, ensure you are running Node.js 20:
@@ -287,7 +292,7 @@ Environment variables are resolved at build time by Vite. After changing `.env`,
 
 ```bash
 # Stop with Ctrl+C, then:
-npm start
+pnpm start
 ```
 
 ### Production build shows a blank page
@@ -301,7 +306,7 @@ Ensure the server is configured to serve `index.html` for all non-asset routes (
 ### Static hosting (Netlify, Vercel, GitHub Pages, S3)
 
 ```bash
-VITE_API_URL=https://api.example.com/api npm run build
+VITE_API_URL=https://api.example.com/api pnpm run build
 ```
 
 The `VITE_API_URL` variable is exposed to the app at build time through `import.meta.env`.

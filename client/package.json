@@ -8,6 +8,7 @@
     "url": "https://github.com/wkarbowski/career-forge.git"
   },
   "private": true,
+  "packageManager": "pnpm@11.5.0",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
@@ -37,6 +38,14 @@
     "react-router-dom": "^7.15.1"
   },
   "scripts": {
+    "preinstall": "node scripts/require-pnpm.cjs",
+    "prestart": "node scripts/require-pnpm.cjs",
+    "prebuild": "node scripts/require-pnpm.cjs",
+    "prelint": "node scripts/require-pnpm.cjs",
+    "prepreview": "node scripts/require-pnpm.cjs",
+    "pretest": "node scripts/require-pnpm.cjs",
+    "pretest:watch": "node scripts/require-pnpm.cjs",
+    "pretest:coverage": "node scripts/require-pnpm.cjs",
     "start": "vite",
     "build": "vite build",
     "lint": "tsc --noEmit",

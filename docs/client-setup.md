@@ -19,19 +19,21 @@
 
 ## Prerequisites
 
-- **Node.js** ≥ 18.x
-- **npm** ≥ 8.x
+- **Node.js** ≥ 20.x
+- **pnpm** 11.5.0 via Corepack
 
 ### Install on Fedora
 
 ```bash
-sudo dnf install nodejs npm
+sudo dnf install nodejs
+corepack enable
 ```
 
 ### Install on Ubuntu/Debian
 
 ```bash
-sudo apt install nodejs npm
+sudo apt install nodejs
+corepack enable
 ```
 
 ### Install via nvm (recommended)
@@ -40,6 +42,7 @@ sudo apt install nodejs npm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install 20
 nvm use 20
+corepack enable
 ```
 
 ---
@@ -48,7 +51,7 @@ nvm use 20
 
 ```bash
 cd client
-npm install
+pnpm install --frozen-lockfile
 ```
 
 ### Dependencies
@@ -78,7 +81,7 @@ npm install
 ## Development
 
 ```bash
-npm start
+pnpm start
 ```
 
 Opens `http://localhost:3000` with hot module replacement (HMR). The dev server proxies `/api` requests to `http://localhost:8000` automatically (configured in `vite.config.ts`).
@@ -111,7 +114,7 @@ uvicorn app.main:app --reload --port 8000
 **Terminal 2 (Frontend):**
 
 ```bash
-cd client && npm start
+cd client && pnpm start
 ```
 
 ---
@@ -119,7 +122,7 @@ cd client && npm start
 ## Build
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 Creates an optimized production build in `client/build/`.
@@ -134,7 +137,7 @@ The build folder contains:
 ### Serve Build Locally
 
 ```bash
-npx serve -s build -l 3000
+pnpm dlx serve -s build -l 3000
 ```
 
 ---
@@ -142,17 +145,17 @@ npx serve -s build -l 3000
 ## Testing
 
 ```bash
-npm test
+pnpm test
 ```
 
 Runs Vitest in watch mode.
 
 ```bash
 # Run tests once (CI mode)
-npm run test -- --run
+pnpm run test -- --run
 
 # Run with coverage report
-npm run test -- --run --coverage
+pnpm run test -- --run --coverage
 ```
 
 ---
@@ -172,7 +175,7 @@ Set `VITE_API_URL` in `client/.env` or at build time for production.
 
 ### Bundled Resources
 
-All fonts and icons are **self-hosted** via npm packages — no external CDN requests are made.
+All fonts and icons are **self-hosted** from bundled dependencies — no external CDN requests are made.
 
 | Resource         | Package                         | Purpose                           |
 | ---------------- | ------------------------------- | --------------------------------- |
@@ -255,7 +258,7 @@ Add new templates in `src/data/templates.ts`:
 ```bash
 # Vite reads server.port from vite.config.ts (default 3000).
 # Override at runtime:
-npx vite --port 3001
+pnpm exec vite --port 3001
 ```
 
 **Blank page after build:**
@@ -268,19 +271,19 @@ npx vite --port 3001
 - Ensure the backend `CORS_ORIGINS` includes `http://localhost:3000`
 - Check that the API URL is correct in `.env`
 
-**npm install failures:**
+**pnpm install failures:**
 
 ```bash
-rm -rf node_modules package-lock.json
-npm cache clean --force
-npm install
+rm -rf node_modules
+pnpm store prune
+pnpm install --frozen-lockfile
 ```
 
 **Hot reload not working:**
 
 ```bash
 # Stop the dev server (Ctrl+C) and restart
-npm start
+pnpm start
 ```
 
 **Print layout issues:**

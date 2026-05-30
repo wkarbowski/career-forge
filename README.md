@@ -107,8 +107,8 @@ uvicorn app.main:app --reload --port 8000
 
 # Frontend (new terminal)
 cd client
-npm install
-npm start
+pnpm install --frozen-lockfile
+pnpm start
 # → http://localhost:3000
 ```
 
@@ -149,8 +149,8 @@ open htmlcov/index.html  # or xdg-open on Linux
 
 ```bash
 cd client
-npm install
-npm test
+pnpm install --frozen-lockfile
+pnpm test
 ```
 
 ---

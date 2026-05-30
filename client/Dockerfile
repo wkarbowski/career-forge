@@ -8,12 +8,10 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # Copy dependency manifests first (layer caching)
-COPY package.json package-lock.json* yarn.lock* ./
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    else npm install; fi
+RUN corepack enable && pnpm install --frozen-lockfile
 
 # Copy source files
 COPY . .
@@ -24,7 +22,7 @@ ENV VITE_API_URL=$VITE_API_URL
 ARG VITE_GDPR=false
 ENV VITE_GDPR=$VITE_GDPR
 
-RUN npm run build
+RUN pnpm run build
 
 # --------------- Stage 2: Production (Nginx) ---------------
 FROM nginx:1.27-alpine AS production

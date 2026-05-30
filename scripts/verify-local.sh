@@ -14,7 +14,7 @@
 #       DATABASE_URL=postgresql://careerforge:devpassword@localhost:15432/careerforge_dev \
 #         ./scripts/verify-local.sh
 #   - pre-commit installed: pip install pre-commit
-#   - npm dependencies installed: cd client && npm ci
+#   - pnpm dependencies installed: cd client && pnpm install --frozen-lockfile
 
 set -euo pipefail
 
@@ -60,7 +60,7 @@ pass "ruff passed"
 # ── 3. Frontend type-check ────────────────────────────────────────────────────
 step "Frontend type-check (tsc --noEmit)"
 cd "$REPO_ROOT/client"
-npm run lint || fail "TypeScript type-check failed"
+pnpm run lint || fail "TypeScript type-check failed"
 pass "tsc passed"
 
 # ── 4. Frontend tests (Vitest) ───────────────────────────────────────────────
@@ -69,7 +69,7 @@ if [[ "$SKIP_TESTS" == true ]]; then
 else
   step "Frontend tests (vitest)"
   cd "$REPO_ROOT/client"
-  npm test || fail "Frontend tests failed"
+  pnpm test || fail "Frontend tests failed"
   pass "Frontend tests passed"
 fi
 
@@ -114,7 +114,7 @@ fi
 # ── 6. Frontend production build ──────────────────────────────────────────────
 step "Frontend build (vite)"
 cd "$REPO_ROOT/client"
-VITE_API_URL=/api npm run build || fail "Frontend build failed"
+VITE_API_URL=/api pnpm run build || fail "Frontend build failed"
 pass "Build passed"
 
 # ── Done ──────────────────────────────────────────────────────────────────────

@@ -144,10 +144,10 @@ In Docker the value is injected as a build argument (`ARG VITE_API_URL=/api`).
 ## Available Scripts
 
 ```bash
-npm start          # Start the Vite development server on http://localhost:3000
-npm run build      # Create an optimised production build in build/
-npm run preview    # Serve the production build locally for inspection
-npm run lint       # Type-check all TypeScript files (tsc --noEmit)
+pnpm start          # Start the Vite development server on http://localhost:3000
+pnpm run build      # Create an optimised production build in build/
+pnpm run preview    # Serve the production build locally for inspection
+pnpm run lint       # Type-check all TypeScript files (tsc --noEmit)
 ```
 
 ---
@@ -166,7 +166,7 @@ See the root `docker-compose.yml` for the full service definition.
 ### Manual / static hosting
 
 ```bash
-VITE_API_URL=https://api.example.com/api npm run build
+VITE_API_URL=https://api.example.com/api pnpm run build
 ```
 
 The `VITE_API_URL` variable is exposed to the app at build time through `import.meta.env`.

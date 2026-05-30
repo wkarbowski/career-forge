@@ -124,7 +124,7 @@ career-forge/
 
 ### Prerequisites
 
-- **Node.js** ≥ 18.x and npm
+- **Node.js** ≥ 18.x and pnpm
 - **Python** ≥ 3.12 with pip
 - PostgreSQL
 - Redis (optional for development; recommended for production rate limiting)
@@ -143,8 +143,8 @@ uvicorn app.main:app --reload --port 8000
 
 # 3. Start the frontend (new terminal)
 cd client
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm start
 # → Opens http://localhost:3000
 ```
 

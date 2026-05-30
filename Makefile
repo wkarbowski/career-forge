@@ -33,7 +33,7 @@ lint-backend:
 
 lint-frontend:
 	@echo "$(CYAN)$(BOLD)→ Frontend: tsc --noEmit$(RESET)"
-	cd client && npm run lint
+	cd client && pnpm run lint
 
 # ── Format ───────────────────────────────────────────────────────────────────
 fmt:
@@ -60,7 +60,7 @@ endif
 # ── Build ─────────────────────────────────────────────────────────────────────
 build:
 	@echo "$(CYAN)$(BOLD)→ Frontend: vite build$(RESET)"
-	cd client && VITE_API_URL=/api npm run build
+	cd client && VITE_API_URL=/api pnpm run build
 
 # ── Hooks ─────────────────────────────────────────────────────────────────────
 hooks:

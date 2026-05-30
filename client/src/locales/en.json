@@ -252,7 +252,7 @@
     "s2LocalStorage": "Editor state",
     "s2IpLogs": "Security logs",
     "s3Title": "Third-Party Services",
-    "s3None": "Career Forge does not use any third-party services that receive your personal data. All web fonts are self-hosted via npm packages bundled with the application. All UI icons (Font Awesome) are self-hosted via npm. No analytics, advertising, tracking, or telemetry services are used. No data is sent to Google, Cloudflare, Meta, or any other external party.",
+    "s3None": "Career Forge does not use any third-party services that receive your personal data. All web fonts are self-hosted from dependencies bundled with the application. All UI icons (Font Awesome) are bundled locally. No analytics, advertising, tracking, or telemetry services are used. No data is sent to Google, Cloudflare, Meta, or any other external party.",
     "s4Title": "Data Retention",
     "s4Body": "Your account and CVs are retained as long as your account exists. Security logs are retained for up to 90 days. You may delete your account at any time.",
     "s5Title": "Your Rights (GDPR Arts. 15–22)",

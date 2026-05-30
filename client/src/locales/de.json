@@ -252,7 +252,7 @@
     "s2LocalStorage": "Editor-Zustand",
     "s2IpLogs": "Sicherheitsprotokolle",
     "s3Title": "Drittanbieter-Dienste",
-    "s3None": "Career Forge verwendet keine Drittanbieter-Dienste, die Ihre personenbezogenen Daten erhalten. Alle Schriftarten sind über npm-Pakete lokal eingebettet. Alle UI-Icons (Font Awesome) sind lokal eingebettet. Es werden keine Analyse-, Werbe-, Tracking- oder Telemetriedienste verwendet. Es werden keine Daten an Google, Cloudflare, Meta oder andere externe Parteien übermittelt.",
+    "s3None": "Career Forge verwendet keine Drittanbieter-Dienste, die Ihre personenbezogenen Daten erhalten. Alle Schriftarten werden aus gebündelten Abhängigkeiten lokal eingebettet. Alle UI-Icons (Font Awesome) sind lokal eingebettet. Es werden keine Analyse-, Werbe-, Tracking- oder Telemetriedienste verwendet. Es werden keine Daten an Google, Cloudflare, Meta oder andere externe Parteien übermittelt.",
     "s4Title": "Datenspeicherung",
     "s4Body": "Ihre Kontodaten und Lebensläufe werden so lange gespeichert, wie Ihr Konto besteht. Sicherheitsprotokolle werden maximal 90 Tage aufbewahrt.",
     "s5Title": "Ihre Rechte (DSGVO Art. 15–22)",
