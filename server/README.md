@@ -14,6 +14,31 @@ FastAPI backend for the Career Forge resume and cover letter builder.
 - Profile image upload
 - Security audit logging
 
+## Architecture
+
+The server uses a layered FastAPI structure while keeping `app.main:app` as the
+stable ASGI import target for Uvicorn, Gunicorn, Docker, and tests.
+
+```
+app/
+├── main.py                 # Thin compatibility entrypoint
+├── bootstrap.py            # create_app(), middleware, CORS, routers, static mounts
+├── lifecycle.py            # Startup/shutdown lifecycle and token cleanup task
+├── routes/                 # HTTP adapters only
+│   ├── auth.py
+│   ├── documents.py
+│   └── public.py
+├── services/               # Auth, account, document, version, share, image workflows
+├── repositories/           # SQLAlchemy query/update helpers
+├── security.py             # Compatibility facade for security exports
+└── security_layers/        # Rate limiting, lockout, middleware, CSRF, sanitization
+```
+
+Route handlers validate HTTP inputs, manage cookies/files where needed, and
+delegate business rules to services. Services coordinate repositories, token
+helpers, audit logging, sanitization, and storage helpers. Repositories keep
+database access explicit and close to SQLAlchemy models.
+
 ## Setup
 
 ### 1. Create virtual environment
@@ -60,26 +85,43 @@ The API will be available at `http://localhost:8000`
 
 ### Authentication
 
-| Method | Endpoint               | Description           |
-| ------ | ---------------------- | --------------------- |
-| POST   | `/api/auth/register`   | Register a new user   |
-| POST   | `/api/auth/login`      | Login (form-data)     |
-| POST   | `/api/auth/login/json` | Login (JSON body)     |
-| GET    | `/api/auth/me`         | Get current user info |
+| Method | Endpoint                    | Description             |
+| ------ | --------------------------- | ----------------------- |
+| POST   | `/api/auth/register`        | Register a new user     |
+| POST   | `/api/auth/login`           | Login (form-data)       |
+| POST   | `/api/auth/login/json`      | Login (JSON body)       |
+| POST   | `/api/auth/refresh`         | Rotate refresh token    |
+| POST   | `/api/auth/logout`          | Revoke current session  |
+| POST   | `/api/auth/logout/all`      | Revoke all sessions     |
+| GET    | `/api/auth/me`              | Get current user info   |
+| PATCH  | `/api/auth/preferences`     | Update preferences      |
+| POST   | `/api/auth/forgot-password` | Request password reset  |
+| POST   | `/api/auth/reset-password`  | Complete password reset |
+| POST   | `/api/auth/change-password` | Change password         |
+| DELETE | `/api/auth/me`              | Delete account          |
 
 ### Documents
 
-| Method | Endpoint                         | Description                 |
-| ------ | -------------------------------- | --------------------------- |
-| GET    | `/api/documents/`                | List all user's documents   |
-| POST   | `/api/documents/`                | Create a new document       |
-| GET    | `/api/documents/{id}`            | Get a specific document     |
-| PUT    | `/api/documents/{id}`            | Update a document           |
-| DELETE | `/api/documents/{id}`            | Delete a document           |
-| GET    | `/api/documents/{id}/export`     | Export document as JSON     |
-| POST   | `/api/documents/import`          | Import document from JSON   |
-| POST   | `/api/documents/{id}/duplicate`  | Duplicate a document        |
-| GET    | `/api/documents/default/current` | Get default/latest document |
+| Method | Endpoint                                              | Description                 |
+| ------ | ----------------------------------------------------- | --------------------------- |
+| GET    | `/api/documents/`                                     | List all user's documents   |
+| POST   | `/api/documents/`                                     | Create a new document       |
+| GET    | `/api/documents/{id}`                                 | Get a specific document     |
+| PUT    | `/api/documents/{id}`                                 | Update a document           |
+| DELETE | `/api/documents/{id}`                                 | Delete a document           |
+| GET    | `/api/documents/{id}/export`                          | Export document as JSON     |
+| POST   | `/api/documents/import`                               | Import document from JSON   |
+| POST   | `/api/documents/{id}/duplicate`                       | Duplicate a document        |
+| GET    | `/api/documents/default/current`                      | Get default/latest document |
+| POST   | `/api/documents/{id}/versions`                        | Create a named version      |
+| GET    | `/api/documents/{id}/versions`                        | List versions               |
+| GET    | `/api/documents/{id}/versions/{version_id}`           | Get version detail          |
+| POST   | `/api/documents/{id}/versions/{version_id}/restore`   | Restore version             |
+| DELETE | `/api/documents/{id}/versions/{version_id}`           | Delete version              |
+| POST   | `/api/documents/{id}/share`                           | Create share link           |
+| DELETE | `/api/documents/{id}/share`                           | Revoke share link           |
+| POST   | `/api/documents/{id}/upload-image`                    | Upload profile image        |
+| DELETE | `/api/documents/{id}/profile-image`                   | Remove profile image        |
 
 ## Example Usage
 

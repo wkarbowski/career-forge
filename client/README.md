@@ -40,9 +40,14 @@ client/
 ├── public/
 │   └── index.html                  # HTML shell (Font Awesome CDN included)
 ├── src/
-│   ├── App.tsx                     # Root component: routing, auth guards, auto-save
+│   ├── App.tsx                     # Compatibility re-export for src/app/App
 │   ├── App.css                     # Global CV and layout styles
 │   ├── i18n.tsx                    # Lightweight i18n context (en / de)
+│   ├── app/
+│   │   ├── App.tsx                 # Bootstrap shell
+│   │   ├── AppProviders.tsx        # Router, theme, i18n, app, page, auth, undo providers
+│   │   ├── AppRoutes.tsx           # Route table, shared layout, save status
+│   │   └── routeGuards.tsx         # ProtectedRoute and EditorRoute
 │   ├── components/
 │   │   ├── GlobalHeader.tsx        # Persistent top navigation bar
 │   │   ├── HomePage.tsx            # Landing page with login / guest entry points
@@ -73,6 +78,16 @@ client/
 │   │   ├── PageContext.tsx         # Multi-page state management
 │   │   ├── UndoContext.tsx         # Undo / redo state management
 │   │   └── ThemeContext.tsx        # Theme state
+│   ├── features/
+│   │   └── editor/
+│   │       ├── CVEditor.tsx        # Editor orchestration
+│   │       └── hooks/              # Document lifecycle, import/export, title, image handlers
+│   ├── pages/
+│   │   ├── DashboardWrapper.tsx    # Dashboard route adapter
+│   │   ├── HomePageWrapper.tsx     # Home route adapter
+│   │   ├── PasswordResetPage.tsx   # Password reset flow
+│   │   ├── SharedDocumentViewer.tsx
+│   │   └── TemplatesGalleryWrapper.tsx
 │   ├── data/
 │   │   ├── initialData.ts          # Default CV data structure
 │   │   └── templates.ts            # Template definitions (colours, sections, layout)
@@ -81,7 +96,9 @@ client/
 │   │   └── de.json                 # German translations
 │   ├── services/
 │   │   └── api.ts                  # Fetch wrappers (auth, document CRUD, uploads)
-│   └── types/                      # Shared TypeScript type definitions
+│   ├── types/                      # Shared TypeScript type definitions
+│   └── utils/
+│       └── decodeData.ts           # Document payload decoding helpers
 ├── Dockerfile                      # Multi-stage build → Nginx production image
 ├── nginx.conf                      # Nginx config: SPA routing + /api proxy to backend
 ├── package.json
@@ -97,9 +114,10 @@ client/
 | `/`                   | `HomePage`             | Public                 |
 | `/templates`          | `TemplatesGallery`     | Public                 |
 | `/privacy`            | `PrivacyPolicyPage`    | Public                 |
+| `/reset-password`     | `PasswordResetPage`    | Public                 |
 | `/shared/:shareToken` | `SharedDocumentViewer` | Public                 |
-| `/editor`             | `CVPagesEditor`        | Guest or authenticated |
-| `/editor/:cvId`       | `CVPagesEditor`        | Guest or authenticated |
+| `/editor`             | `CVEditor`             | Guest or authenticated |
+| `/editor/:cvId`       | `CVEditor`             | Guest or authenticated |
 | `/dashboard`          | `DocumentDashboard`    | Authenticated only     |
 | `/account`            | `AccountSettings`      | Authenticated only     |
 

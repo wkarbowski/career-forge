@@ -25,14 +25,54 @@
 
 Renders `<App />` into `#root`. Standard React 19 `createRoot` entry.
 
-### `App.tsx`
+### `src/App.tsx`
 
-The root component that:
+Compatibility re-export:
 
-1. Wraps the app in 6 nested context providers
-2. Defines all routes with guards (`ProtectedRoute`, `EditorRoute`)
-3. Contains the `CVEditor` component (the core editing interface)
-4. Implements wrapper components for route pages that connect contexts to components
+```ts
+export { default } from "./app/App";
+```
+
+Tests and older imports can continue importing `../src/App`.
+
+### `src/app/App.tsx`
+
+Small bootstrap shell that imports global CSS, wraps the route table in
+`AppProviders`, and renders `AppRoutes`.
+
+### `src/app/AppProviders.tsx`
+
+Owns provider wiring only:
+
+1. `BrowserRouter`
+2. `ThemeProvider`
+3. `I18nProvider`
+4. `AppStateProvider`
+5. `PageProvider`
+6. `AuthProvider`
+7. `UndoProvider`
+
+### `src/app/AppRoutes.tsx`
+
+Owns route definitions and shared layout:
+
+- skip link
+- `GlobalHeader`
+- `main#main-content`
+- all public, protected, and editor routes
+- save status passed into the editor and header
+- optional GDPR banner
+
+### `src/features/editor/CVEditor.tsx`
+
+The editor feature entrypoint. It composes editor UI components and delegates
+focused behavior into hooks:
+
+- `useEditorDocumentLifecycle` — document loading, template application, autosave, unload flush
+- `useDocumentTitle` — title edit state and persistence
+- `useImportExport` — JSON import/export and print export
+- `useProfileImageHandlers` — upload, crop, remove
+- `useResumeText` — keyword matcher source text
 
 ---
 
@@ -207,12 +247,13 @@ Undo/redo history for document edits.
 
 ### Page Components
 
-| Component            | Route        | Description                                                                                                                       |
-| -------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| **HomePage**         | `/`          | Landing page with hero, feature cards, and login/register or guest entry options. Contains the `AuthModal`.                       |
-| **AuthModal**        | —            | Modal dialog toggling between login and register forms. Validates password length (≥6), username (≥3), and password confirmation. |
-| **TemplatesGallery** | `/templates` | Filterable grid of template cards. Filters by document type and category. Templates show CSS-rendered mini previews.              |
-| **CVDashboard**      | `/dashboard` | Document management: create, search, sort, duplicate, share, delete, version history.                                             |
+| Component             | Route             | Description                                                                                                                       |
+| --------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **HomePage**          | `/`               | Landing page with hero, feature cards, and login/register or guest entry options. Contains the `AuthModal`.                       |
+| **AuthModal**         | —                 | Modal dialog toggling between login and register forms. Validates password length (≥6), username (≥3), and password confirmation. |
+| **TemplatesGallery**  | `/templates`      | Filterable grid of template cards. Filters by document type and category. Templates show CSS-rendered mini previews.              |
+| **PasswordResetPage** | `/reset-password` | Completes password reset from an emailed token.                                                                                   |
+| **DocumentDashboard** | `/dashboard`      | Document management: create, search, sort, duplicate, share, delete, version history.                                             |
 
 ### CV Editor Components
 
@@ -422,7 +463,7 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 
 ## API Service Layer
 
-**File:** `src/services/api.js`
+**File:** `src/services/api.ts`
 
 ### Token Management
 
@@ -434,7 +475,7 @@ Themes are implemented via CSS custom properties on `[data-theme]`:
 
 ### Available APIs
 
-```javascript
+```typescript
 import { authApi, documentApi } from "./services/api";
 
 // Auth

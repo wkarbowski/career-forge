@@ -55,14 +55,14 @@
 ```
 ┌─────────────────────────────────────────────┐
 │              Client (React 19)              │
-│  Router v7 · 25+ Components · 6 Contexts   │
-│          API Service (fetch + JWT)          │
+│ App bootstrap · Router v7 · 6 providers     │
+│ Editor feature hooks · API service layer     │
 └─────────────────┬───────────────────────────┘
                   │ HTTP (JSON + HttpOnly cookies)
 ┌─────────────────┴───────────────────────────┐
 │           Server (FastAPI + Python)         │
-│      7-layer middleware · Auth · Documents   │
-│  SQLAlchemy ORM · Alembic migrations         │
+│ App factory · Routes · Services · Repos      │
+│ Security middleware · SQLAlchemy · Alembic   │
 │  PostgreSQL · Redis                          │
 └─────────────────────────────────────────────┘
 ```

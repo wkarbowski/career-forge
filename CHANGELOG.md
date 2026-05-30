@@ -8,6 +8,12 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored the client bootstrap into dedicated app, provider, route, page-wrapper, and editor feature modules without changing routes or user-facing behavior.
+- Refactored the FastAPI backend into app bootstrap, lifecycle, route adapter, service, repository, and focused security modules while preserving public API contracts.
+- Updated developer documentation to describe the current frontend and backend architecture.
+
 ---
 
 ## [1.0.0] — 2026-05-13

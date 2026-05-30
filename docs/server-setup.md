@@ -61,6 +61,24 @@ pip install -r requirements.txt
 
 ---
 
+## Application Structure
+
+The backend keeps `app.main:app` as the stable ASGI entrypoint, but the
+implementation is bootstrapped through `create_app()` in `app/bootstrap.py`.
+
+| Layer              | Location                | Purpose                                      |
+| ------------------ | ----------------------- | -------------------------------------------- |
+| Entry point        | `app/main.py`           | Compatibility export for Uvicorn/Gunicorn    |
+| Bootstrap          | `app/bootstrap.py`      | FastAPI app construction, middleware, routers |
+| Lifecycle          | `app/lifecycle.py`      | Startup/shutdown tasks                       |
+| Routes             | `app/routes/`           | Thin HTTP adapters                           |
+| Services           | `app/services/`         | Auth, account, document, image workflows     |
+| Repositories       | `app/repositories/`     | SQLAlchemy query/update helpers              |
+| Security facade    | `app/security.py`       | Stable public security imports               |
+| Security internals | `app/security_layers/`  | Rate limits, lockout, CSRF, middleware       |
+
+---
+
 ## Configuration
 
 Create a `.env` file in the `server/` directory:

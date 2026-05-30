@@ -41,6 +41,15 @@ Career Forge follows a **client-server architecture** with a clear separation be
 
 ### Context Provider Hierarchy
 
+The app bootstrap is split under `src/app/`:
+
+- `App.tsx` — small shell that wires providers and routes
+- `AppProviders.tsx` — `BrowserRouter`, theme, i18n, app state, page, auth, and undo providers
+- `AppRoutes.tsx` — shared layout, route table, save status, and route-level adapters
+- `routeGuards.tsx` — `ProtectedRoute` and `EditorRoute`
+
+`src/App.tsx` remains a compatibility re-export for tests and older imports.
+
 The app uses 6 React Context providers nested in this order:
 
 ```
@@ -51,52 +60,58 @@ The app uses 6 React Context providers nested in this order:
               └─ <PageProvider>  — multi-page pagination & zoom
                   └─ <AuthProvider>  — user auth, document list, auto-save
                       └─ <UndoProvider>  — undo/redo history
-                          └─ <AppContentInner>  — routes & layout
+                          └─ <AppRoutes>  — routes & layout
 ```
 
 ### Component Tree (Simplified)
 
 ```
 App
-├─ GlobalHeader
-│  ├─ Logo + Navigation Links
-│  ├─ SaveStatus Indicator
-│  ├─ LanguageSwitcher
-│  ├─ ThemeToggle
-│  └─ UserMenu
-│
-├─ HomePage (route: /)
-│  └─ AuthModal (login/register dialog)
-│
-├─ TemplatesGallery (route: /templates)
-│  ├─ Filter Controls (type, category)
-│  └─ TemplateCard[] (with CSS previews)
-│
-├─ DocumentDashboard (route: /dashboard)
-│  ├─ Search + Sort Controls
-│  ├─ Bulk Actions (multi-select, delete)
-│  └─ DocumentRow[] (rename, edit, duplicate, delete, share)
-│
-├─ AccountSettings (route: /account)
-│
-├─ PrivacyPolicyPage (route: /privacy)
-│
-├─ SharedDocumentViewer (route: /shared/:shareToken)
-│
-└─ CVEditor (route: /editor, /editor/:cvId)
-   ├─ Editor Toolbar (title, export JSON/PDF, import, versions, keywords)
-   ├─ CentralToolbar (resume: colors, font controls)
-   ├─ CLToolbar       (cover letter: layout, font controls)
-   ├─ VerticalMenu (section toggles, color settings)
-   ├─ CVPagesEditor (resume mode)
-   │  ├─ PageControls (navigation, zoom, view mode)
-   │  └─ Page[] (A4 clipped views)
-   │     ├─ Sidebar
-   │     └─ MainContent
-   ├─ CoverLetterEditor (cover letter mode)
-   ├─ VersionHistory side panel
-   └─ KeywordMatcher side panel
+└─ AppProviders
+   └─ AppRoutes
+      ├─ GlobalHeader
+      │  ├─ Logo + Navigation Links
+      │  ├─ SaveStatus Indicator
+      │  ├─ LanguageSwitcher
+      │  ├─ ThemeToggle
+      │  └─ UserMenu
+      │
+      ├─ HomePage (route: /)
+      │  └─ AuthModal (login/register dialog)
+      │
+      ├─ TemplatesGallery (route: /templates)
+      │  ├─ Filter Controls (type, category)
+      │  └─ TemplateCard[] (with CSS previews)
+      │
+      ├─ DocumentDashboard (route: /dashboard)
+      │  ├─ Search + Sort Controls
+      │  ├─ Bulk Actions (multi-select, delete)
+      │  └─ DocumentRow[] (rename, edit, duplicate, delete, share)
+      │
+      ├─ AccountSettings (route: /account)
+      ├─ PrivacyPolicyPage (route: /privacy)
+      ├─ PasswordResetPage (route: /reset-password)
+      ├─ SharedDocumentViewer (route: /shared/:shareToken)
+      │
+      └─ CVEditor (route: /editor, /editor/:cvId)
+         ├─ Editor Toolbar (title, export JSON/PDF, import, versions, keywords)
+         ├─ CentralToolbar (resume: colors, font controls)
+         ├─ CLToolbar       (cover letter: layout, font controls)
+         ├─ VerticalMenu (section toggles, color settings)
+         ├─ CVPagesEditor (resume mode)
+         │  ├─ PageControls (navigation, zoom, view mode)
+         │  └─ Page[] (A4 clipped views)
+         │     ├─ Sidebar
+         │     └─ MainContent
+         ├─ CoverLetterEditor (cover letter mode)
+         ├─ VersionHistory side panel
+         └─ KeywordMatcher side panel
 ```
+
+`CVEditor` lives in `src/features/editor/CVEditor.tsx`. Document loading,
+template application, autosave, import/export, title editing, profile image
+handling, and resume text extraction are split into editor hooks under
+`src/features/editor/hooks/`.
 
 ### Routing
 
@@ -105,6 +120,7 @@ App
 | `/`                   | `HomePageWrapper`         | None             | Landing page                   |
 | `/templates`          | `TemplatesGalleryWrapper` | None             | Browse templates               |
 | `/privacy`            | `PrivacyPolicyPage`       | None             | Privacy policy                 |
+| `/reset-password`     | `PasswordResetPage`       | None             | Complete password reset        |
 | `/shared/:shareToken` | `SharedDocumentViewer`    | None             | Public read-only document view |
 | `/account`            | `AccountSettings`         | `ProtectedRoute` | Account management             |
 | `/dashboard`          | `DocumentDashboard`       | `ProtectedRoute` | Document management            |
@@ -140,20 +156,21 @@ Incoming Request
 └────────┬────────────────┘
          ▼
 ┌─────────────────────────┐
-│   Route Handlers        │
-│  /api/auth/*            │
-│  /api/documents/*       │
+│   Routes                │
+│  Thin HTTP adapters     │
 └────────┬────────────────┘
          │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐ ┌──────────┐
-│  Auth  │ │  Audit   │
-│ Module │ │  Logger  │
-│(JWT/PW)│ │ (DB+File)│
-└───┬────┘ └────┬─────┘
-    │           │
-    ▼           ▼
+         ▼
+┌─────────────────────────┐
+│   Services              │
+│ Auth, documents, images │
+└────────┬────────────────┘
+         ▼
+┌─────────────────────────┐
+│   Repositories          │
+│ SQLAlchemy query/update │
+└────────┬────────────────┘
+         ▼
 ┌─────────────────────────┐
 │   SQLAlchemy ORM        │
 │   Models & Session      │
@@ -169,16 +186,20 @@ Incoming Request
 
 | Module              | File                  | Responsibility                                                                  |
 | ------------------- | --------------------- | ------------------------------------------------------------------------------- |
-| **Entry Point**     | `main.py`             | App factory, middleware registration, CORS, health check                        |
+| **Entry Point**     | `main.py`             | Thin `app.main:app` compatibility export                                        |
+| **Bootstrap**       | `bootstrap.py`        | `create_app()`, logging, middleware, CORS, routers, static uploads              |
+| **Lifecycle**       | `lifecycle.py`        | Startup/shutdown lifespan and refresh-token cleanup task                        |
 | **Models**          | `models.py`           | SQLAlchemy ORM models (User, Document, DocumentVersion, RefreshToken, AuditLog) |
 | **Schemas**         | `schemas.py`          | Pydantic request/response validation                                            |
 | **Auth**            | `auth.py`             | Password hashing, JWT creation/validation, token rotation                       |
-| **Security**        | `security.py`         | 7 middleware classes, rate limiting, input sanitization                         |
+| **Security Facade** | `security.py`         | Stable exports for middleware, rate limiting, lockout, sanitization             |
+| **Security Layers** | `security_layers/`    | Focused rate limiting, lockout, middleware, CSRF, sanitization modules          |
 | **Audit**           | `audit.py`            | Event logging (25 event types), DB + file dual output                           |
 | **Config**          | `config.py`           | Environment-based settings via pydantic-settings                                |
 | **Database**        | `database.py`         | Engine, session factory, connection pooling                                     |
-| **Auth Routes**     | `routes/auth.py`      | Register, login, refresh, logout, preferences                                   |
-| **Document Routes** | `routes/documents.py` | CRUD, export, import, duplicate, image upload                                   |
+| **Routes**          | `routes/`             | Thin HTTP adapters for auth, documents, public endpoints                        |
+| **Services**        | `services/`           | Auth/account/document/version/share/profile-image workflows                     |
+| **Repositories**    | `repositories/`       | SQLAlchemy query/update helpers                                                 |
 
 ---
 
@@ -325,6 +346,7 @@ After middleware, the request reaches the appropriate route handler which may:
 
 - Authenticate via `get_current_user` (JWT Bearer dependency)
 - Validate request body via Pydantic schema
-- Perform database operations via SQLAlchemy session
-- Log events via the audit system
-- Return a Pydantic response model
+- Manage HTTP-specific concerns such as cookies, uploads, and response models
+- Delegate business rules to service modules
+- Use repositories for SQLAlchemy query/update work
+- Log events through the audit system

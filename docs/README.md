@@ -40,14 +40,14 @@
 ```
 ┌─────────────────────────────────────────────┐
 │              Client (React 19)              │
-│  Router v7 · Contexts · Editor Components   │
-│          API Service (fetch + JWT)          │
+│ App bootstrap · Router v7 · 6 providers     │
+│ Editor feature hooks · API service layer     │
 └─────────────────┬───────────────────────────┘
                   │ HTTP (JSON + HttpOnly cookies)
 ┌─────────────────┴───────────────────────────┐
 │           Server (FastAPI + Python)         │
-│      Middleware · Auth · Documents          │
-│  SQLAlchemy ORM · Alembic · PostgreSQL      │
+│ App factory · Routes · Services · Repos      │
+│ Security middleware · SQLAlchemy · Alembic   │
 └─────────────────────────────────────────────┘
 ```
 
@@ -79,29 +79,38 @@ career-forge/
 ├── client/                  # React frontend
 │   ├── public/              # Static assets (index.html, favicon)
 │   ├── src/
-│   │   ├── components/      # React components (25+)
+│   │   ├── app/             # App bootstrap, providers, routes, guards
+│   │   ├── components/      # Reusable React components
 │   │   ├── contexts/        # React Context providers (6)
 │   │   ├── data/            # Initial data & template definitions
-│   │   ├── hooks/           # Custom React hooks
+│   │   ├── features/        # Feature-level orchestration (editor)
 │   │   ├── locales/         # i18n translation files (en, de)
+│   │   ├── pages/           # Route-level page wrappers
 │   │   ├── services/        # API client layer
-│   │   └── templates/       # Template configuration files
+│   │   ├── types/           # Shared TypeScript types
+│   │   └── utils/           # Shared frontend utilities
 │   ├── __tests__/           # Test files
 │   └── package.json
 │
 ├── server/                  # FastAPI backend
 │   ├── app/
-│   │   ├── main.py          # App entry point, middleware, CORS
+│   │   ├── main.py          # Thin app.main:app compatibility entrypoint
+│   │   ├── bootstrap.py     # create_app(), middleware, routers, CORS
+│   │   ├── lifecycle.py     # Startup/shutdown lifecycle tasks
 │   │   ├── models.py        # SQLAlchemy models
 │   │   ├── schemas.py       # Pydantic validation schemas
 │   │   ├── auth.py          # JWT + password auth logic
-│   │   ├── security.py      # Middleware stack (7 layers)
+│   │   ├── security.py      # Compatibility facade for security exports
+│   │   ├── security_layers/ # Rate limiting, lockout, CSRF, middleware
+│   │   ├── services/        # Business workflows
+│   │   ├── repositories/    # Database query/update helpers
 │   │   ├── audit.py         # Audit logging system
 │   │   ├── config.py        # Settings (env-based)
 │   │   ├── database.py      # DB engine & session
-│   │   └── routes/          # API route handlers
+│   │   └── routes/          # Thin HTTP route adapters
 │   │       ├── auth.py      # Auth endpoints
-│   │       └── documents.py # Document endpoints
+│   │       ├── documents.py # Document endpoints
+│   │       └── public.py    # Root, health, shared document endpoints
 │   ├── alembic/             # Database migrations
 │   ├── scripts/             # Utility scripts
 │   └── requirements.txt

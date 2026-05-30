@@ -98,6 +98,12 @@ This forces the legitimate user to re-authenticate while blocking the attacker.
 
 Seven middleware layers process every request in order:
 
+Implementation note: `app/security.py` is a compatibility facade. The concrete
+implementation is split under `app/security_layers/` into rate limiting,
+account lockout, middleware, CSRF, and sanitization modules. Existing imports
+such as `from app.security import InputSanitizer` and
+`setup_security_middleware` remain stable.
+
 ### 1. TrustedHostMiddleware
 
 Prevents host header injection attacks.
