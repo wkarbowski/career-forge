@@ -4,6 +4,7 @@ import TemplatesGallery from "../components/TemplatesGallery.jsx";
 import { useTranslation } from "../i18n";
 import { useAppState } from "../contexts/AppStateContext";
 import { useAuth } from "../contexts/AuthContext";
+import { usePages } from "../contexts/PageContext";
 import { initialCoverLetterData, initialData } from "../data/initialData";
 import type { CVSettings, CVTemplate, VisibleSections } from "../types";
 
@@ -23,9 +24,12 @@ export default function TemplatesGalleryWrapper() {
   } = useAppState();
   const { isAuthenticated, isGuest, setCurrentDocumentId, documentList } =
     useAuth();
+  const { resetPages } = usePages();
   const [showBanner, setShowBanner] = useState(!!location.state?.fromEditor);
 
   const handleSelectTemplate = (template: CVTemplate) => {
+    resetPages();
+
     if (template.type === "cover-letter") {
       setCoverLetterData({ ...initialCoverLetterData });
       setDocumentType("cover-letter");
