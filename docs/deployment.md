@@ -329,8 +329,8 @@ cd server
 
 This validates:
 
-- `DEBUG=false` (`CAREER_FORGE_DEBUG=false` for Docker Compose)
-- `ENVIRONMENT=production` (`CAREER_FORGE_ENVIRONMENT=production` for Docker Compose)
+- `DEBUG=false`
+- `ENVIRONMENT=production`
 - `SECRET_KEY` length ≥ 64
 - `ENFORCE_HTTPS=true`
 - `COOKIE_SECURE=true`

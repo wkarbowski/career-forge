@@ -230,7 +230,7 @@ Defined in `src/App.css` under `[data-theme="dark"]` and `[data-theme="light"]`:
 - **Dark theme**: Deep backgrounds, indigo primary accent, cyan secondary, glassmorphism (blur + transparency), glow shadows
 - **Light theme**: Clean whites, deeper indigo, refined subtle shadows, no glow
 - **Typography**: Inter (body, 400/500/600/700), Rubik (headings, 400/500/600/700)
-- **Icons**: Font Awesome 6.4 (`fas fa-*` classes)
+- **Icons**: Font Awesome 7 (`fas fa-*` classes), bundled via `@fortawesome/fontawesome-free`
 
 ---
 

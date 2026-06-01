@@ -8,7 +8,7 @@ This guide covers everything needed to run the Career Forge frontend locally, in
 
 | Tool           | Minimum version | Notes                            |
 | -------------- | --------------- | -------------------------------- |
-| Node.js        | 20 LTS          | Required for local development   |
+| Node.js        | 20.19+ or 22.12+ | Required for local development   |
 | pnpm           | 11.5.0          | Managed by Corepack              |
 | Docker         | 24+             | Required for containerised setup |
 | Docker Compose | 2.20+           | Used in the repository root      |
@@ -20,7 +20,7 @@ This guide covers everything needed to run the Career Forge frontend locally, in
 ```bash
 sudo dnf install nodejs -y
 corepack enable
-node --version   # should print v20.x.x
+node --version   # should print v20.19+ or v22.12+
 pnpm --version   # should print 11.5.0
 ```
 
@@ -126,7 +126,7 @@ docker compose build --build-arg VITE_API_URL=https://api.example.com/api client
 ```
 client/
 ├── public/
-│   └── index.html                  # HTML shell — loads Font Awesome from CDN
+│   └── index.html                  # HTML shell
 ├── src/
 │   ├── App.tsx                     # Root component: routing, auth guards, auto-save
 │   ├── App.css                     # Global layout and CV styles
@@ -203,8 +203,9 @@ pnpm run lint
 | `/templates`          | `TemplatesGallery`     | Public                 |
 | `/privacy`            | `PrivacyPolicyPage`    | Public                 |
 | `/shared/:shareToken` | `SharedDocumentViewer` | Public                 |
-| `/editor`             | `CVPagesEditor`        | Guest or authenticated |
-| `/editor/:cvId`       | `CVPagesEditor`        | Guest or authenticated |
+| `/reset-password`     | `PasswordResetPage`    | Public                 |
+| `/editor`             | `CVEditor`             | Guest or authenticated |
+| `/editor/:cvId`       | `CVEditor`             | Authenticated only     |
 | `/dashboard`          | `DocumentDashboard`    | Authenticated only     |
 | `/account`            | `AccountSettings`      | Authenticated only     |
 
@@ -275,7 +276,7 @@ rm -rf node_modules
 pnpm install --frozen-lockfile
 ```
 
-If the error is a Node.js version mismatch, ensure you are running Node.js 20:
+If the error is a Node.js version mismatch, ensure you are running Node.js 20.19+ or 22.12+:
 
 ```bash
 node --version

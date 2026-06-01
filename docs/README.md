@@ -124,8 +124,8 @@ career-forge/
 
 ### Prerequisites
 
-- **Node.js** ≥ 18.x and pnpm
-- **Python** ≥ 3.12 with pip
+- **Node.js** ≥ 20.19.x or ≥ 22.12.x, with pnpm 11.5.0 via Corepack
+- **Python** ≥ 3.11 with pip (Docker and CI use Python 3.12)
 - PostgreSQL
 - Redis (optional for development; recommended for production rate limiting)
 

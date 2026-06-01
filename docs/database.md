@@ -17,19 +17,33 @@
 ## Entity-Relationship Diagram
 
 ```
-┌───────────────────────┐       ┌───────────────────────┐
-│        users          │       │      documents        │
-├───────────────────────┤       ├───────────────────────┤
-│ id          PK  INT   │──┐    │ id          PK  INT   │
-│ email       UQ  STR   │  │    │ title           STR   │
-│ username    UQ  STR   │  ├───►│ document_type   STR   │
-│ hashed_password  STR  │  │    │ data           JSONB  │
-│ is_active      BOOL   │  │    │ owner_id    FK  INT   │
-│ theme          STR    │  │    │ profile_image   STR   │
-│ language       STR    │  │    │ created_at      DT    │
-│ created_at     DT     │  │    │ updated_at      DT    │
-│ updated_at     DT     │  │    └───────────────────────┘
-└───────────────────────┘  │    ┌───────────────────────┐
+┌───────────────────────┐       ┌────────────────────────┐
+│        users          │       │       documents        │
+├───────────────────────┤       ├────────────────────────┤
+│ id          PK  INT   │──┐    │ id           PK  INT   │
+│ email       UQ  STR   │  │    │ title            STR   │
+│ username    UQ  STR   │  ├───►│ document_type    STR   │
+│ hashed_password  STR  │  │    │ data            JSONB  │
+│ is_active      BOOL   │  │    │ owner_id     FK  INT   │
+│ theme          STR    │  │    │ is_default      BOOL   │
+│ language       STR    │  │    │ profile_image    STR   │
+│ created_at     DT     │  │    │ share_token  UQ  STR   │
+│ updated_at     DT     │  │    │ linked_resume_id INT   │──┐
+└───────────────────────┘  │    │ created_at       DT    │  │
+                           │    │ updated_at       DT    │◄─┘
+                           │    └──────────┬─────────────┘
+                           │               │
+                           │    ┌──────────▼─────────────┐
+                           │    │   document_versions    │
+                           │    ├────────────────────────┤
+                           │    │ id           PK  INT   │
+                           │    │ document_id  FK  INT   │
+                           │    │ version_name     STR   │
+                           │    │ data            JSONB  │
+                           │    │ created_at       DT    │
+                           │    └────────────────────────┘
+                           │
+                           │    ┌───────────────────────┐
                            │    │   refresh_tokens      │
                            │    ├───────────────────────┤
                            │    │ id          PK  INT   │
@@ -203,10 +217,14 @@ Managed by **Alembic** (configured in `server/alembic.ini` and `server/alembic/e
 
 ### Migration History
 
-| Revision       | Description       | Changes                                                                 |
-| -------------- | ----------------- | ----------------------------------------------------------------------- |
-| `ac7b3eec10fe` | Baseline          | Empty migration (snapshot of existing schema)                           |
-| `6104f6581867` | Add profile image | Adds `profile_image` column (String 255, nullable) to `documents` table |
+| Revision       | Description                     | Changes                                                             |
+| -------------- | ------------------------------- | ------------------------------------------------------------------- |
+| `ac7b3eec10fe` | Baseline existing schema        | Creates initial `users`, `cvs`, and `refresh_tokens` tables         |
+| `6104f6581867` | Add profile image               | Adds `profile_image` column to `cvs`                                |
+| `e3a1f92b8c04` | CV data JSONB and document type | Converts `cvs.data` to JSONB and adds `document_type`               |
+| `b2d4e8f1a039` | Rename CVs to documents         | Renames `cvs` table to `documents`                                  |
+| `a1b2c3d4e5f6` | Versions and sharing            | Adds `document_versions` and `documents.share_token`                |
+| `f7a2b3c4d5e6` | Linked resume ID                | Adds unique self-referential `documents.linked_resume_id`           |
 
 ### Running Migrations
 

@@ -123,6 +123,14 @@ The API will be available at `http://localhost:8000`
 | POST   | `/api/documents/{id}/upload-image`                    | Upload profile image        |
 | DELETE | `/api/documents/{id}/profile-image`                   | Remove profile image        |
 
+### Public
+
+| Method | Endpoint                    | Description                     |
+| ------ | --------------------------- | ------------------------------- |
+| GET    | `/`                         | API service information         |
+| GET    | `/api/health`               | Health check                    |
+| GET    | `/api/shared/{share_token}` | Public read-only shared document |
+
 ## Example Usage
 
 ### Register a user

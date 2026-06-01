@@ -75,7 +75,7 @@
 | Fonts                 | 16× @fontsource/\* (self-hosted)  |
 | Icons                 | Font Awesome Free 7 (self-hosted) |
 | Sanitization          | DOMPurify 3                       |
-| Backend               | FastAPI 0.136+, Python 3.12+      |
+| Backend               | FastAPI 0.136+, Python 3.11+      |
 | ORM / Migrations      | SQLAlchemy 2, Alembic             |
 | Database              | PostgreSQL 16                     |
 | Cache / Rate Limiting | Redis 7                           |
@@ -102,7 +102,7 @@ docker compose up --build
 cd server
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-# Create .env in the project root — see docs/deployment.md for all variables
+# Create server/.env — see docs/server-setup.md for local variables
 uvicorn app.main:app --reload --port 8000
 
 # Frontend (new terminal)
@@ -177,7 +177,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 - Fork → branch → PR
 - Keep changes focused; one logical change per PR
-- Follow existing code style (Prettier / ESLint for JS, PEP 8 for Python)
+- Follow existing code style (`tsc --noEmit` for TypeScript, ruff for Python)
 
 ---
 

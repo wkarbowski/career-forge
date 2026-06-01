@@ -134,7 +134,7 @@ Per-IP request rate limiting with separate limits for auth endpoints.
 | Scope                          | Default Limit      |
 | ------------------------------ | ------------------ |
 | General API                    | 60 requests/minute |
-| Auth endpoints (`/api/auth/*`) | 10 requests/minute |
+| Login/register endpoints | 10 requests/minute |
 
 - Sliding window algorithm
 - Supports in-memory and Redis backends
@@ -428,5 +428,5 @@ Every response includes these OWASP-recommended headers:
 ### Content Security
 
 - No inline scripts in the application
-- External resources loaded from trusted CDNs (Google Fonts, Font Awesome)
+- Web fonts and Font Awesome icons are bundled from local dependencies; no external font/icon CDN requests are made
 - No `eval()` or dynamic code execution

@@ -19,7 +19,7 @@
 
 ## Prerequisites
 
-- **Node.js** ≥ 20.x
+- **Node.js** ≥ 20.19.x or ≥ 22.12.x
 - **pnpm** 11.5.0 via Corepack
 
 ### Install on Fedora
@@ -32,7 +32,8 @@ corepack enable
 ### Install on Ubuntu/Debian
 
 ```bash
-sudo apt install nodejs
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
 corepack enable
 ```
 
@@ -148,14 +149,14 @@ pnpm dlx serve -s build -l 3000
 pnpm test
 ```
 
-Runs Vitest in watch mode.
+Runs Vitest once in CI mode.
 
 ```bash
-# Run tests once (CI mode)
-pnpm run test -- --run
+# Run tests in watch mode
+pnpm run test:watch
 
 # Run with coverage report
-pnpm run test -- --run --coverage
+pnpm run test:coverage
 ```
 
 ---
@@ -263,8 +264,8 @@ pnpm exec vite --port 3001
 
 **Blank page after build:**
 
-- Check that `homepage` in `package.json` matches your deployment path
-- If deploying to a subdirectory, set `"homepage": "/subdirectory/"`
+- Ensure the host serves `index.html` for deep links handled by React Router.
+- If deploying to a subdirectory, configure Vite's `base` option for that path.
 
 **CORS errors with backend:**
 

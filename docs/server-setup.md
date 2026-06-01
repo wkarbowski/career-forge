@@ -18,7 +18,7 @@
 
 ## Prerequisites
 
-- **Python** ≥ 3.12
+- **Python** ≥ 3.11 (Docker and CI use Python 3.12)
 - **pip** (Python package manager)
 - **PostgreSQL** (required — the app uses PostgreSQL-specific features like JSONB)
 - **Redis** (optional, for distributed rate limiting)
@@ -57,7 +57,7 @@ pip install -r requirements.txt
 | `redis`                     | Redis client (optional)             |
 | `bleach`                    | HTML sanitization                   |
 | `tinycss2`                  | CSS sanitization (defense-in-depth) |
-| `gunicorn`                  | Production WSGI server              |
+| `gunicorn`                  | Production process manager for Uvicorn workers |
 
 ---
 
@@ -120,6 +120,19 @@ COOKIE_DOMAIN=
 # HTTPS (production only)
 ENFORCE_HTTPS=false
 TRUSTED_HOSTS=
+
+# Password reset email (optional)
+APP_BASE_URL=http://localhost:3000
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
+SMTP_USE_TLS=true
+SMTP_TIMEOUT_SECONDS=10
+
+# File uploads
+UPLOAD_DIR=uploads/profile_images
 ```
 
 ### Environment Variables Reference
@@ -128,14 +141,14 @@ TRUSTED_HOSTS=
 | ----------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------- |
 | `APP_NAME`                    | `Career Forge API`                                                           | Application name                                |
 | `DEBUG`                       | `false`                                                                      | Enable debug mode (Swagger docs)                |
-| `ENVIRONMENT`                 | `development`                                                                | `development`, `staging`, or `production`       |
-| `DATABASE_URL`                | `postgresql://careerforge:<your-strong-password>@localhost:5432/careerforge` | PostgreSQL connection string                    |
-| `SECRET_KEY`                  | Auto-generated (dev)                                                         | JWT signing key (min 32 chars, recommended 64+) |
+| `ENVIRONMENT`                 | `development`                                                                | `development`, `staging`, `production`, or `test` |
+| `DATABASE_URL`                | `postgresql://careerforge:password@localhost:5432/careerforge`               | PostgreSQL connection string                    |
+| `SECRET_KEY`                  | Auto-generated when unset                                                    | JWT signing key (min 32 chars, recommended 64+) |
 | `ALGORITHM`                   | `HS256`                                                                      | JWT signing algorithm                           |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `15`                                                                         | Access token lifetime                           |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | `7`                                                                          | Refresh token lifetime                          |
 | `REFRESH_TOKEN_ROTATE`        | `true`                                                                       | Enable token rotation                           |
-| `CORS_ORIGINS`                | `localhost:3000`                                                             | Allowed CORS origins                            |
+| `CORS_ORIGINS`                | `http://localhost:3000,http://127.0.0.1:3000`                                | Allowed CORS origins                            |
 | `RATE_LIMIT_PER_MINUTE`       | `60`                                                                         | General rate limit                              |
 | `RATE_LIMIT_AUTH_PER_MINUTE`  | `10`                                                                         | Auth rate limit                                 |
 | `RATE_LIMIT_BACKEND`          | `memory`                                                                     | `memory` or `redis`                             |
@@ -143,11 +156,11 @@ TRUSTED_HOSTS=
 | `REDIS_PASSWORD`              | —                                                                            | Redis password                                  |
 | `ACCOUNT_LOCKOUT_ATTEMPTS`    | `10`                                                                         | Failed login threshold                          |
 | `ACCOUNT_LOCKOUT_DURATION`    | `15`                                                                         | Lockout duration (minutes)                      |
-| `COOKIE_SECURE`               | `true`                                                                       | HTTPS-only cookies                              |
+| `COOKIE_SECURE`               | `false`                                                                      | HTTPS-only cookies                              |
 | `COOKIE_SAMESITE`             | `lax`                                                                        | Cookie SameSite policy                          |
 | `COOKIE_DOMAIN`               | —                                                                            | Cookie domain scope                             |
 | `ENFORCE_HTTPS`               | `false`                                                                      | Force HTTPS redirect                            |
-| `TRUSTED_HOSTS`               | —                                                                            | Allowed host headers                            |
+| `TRUSTED_HOSTS`               | Empty; TrustedHost middleware disabled                                       | Allowed host headers                            |
 | `APP_BASE_URL`                | `http://localhost:3000`                                                       | Public frontend URL for password reset links    |
 | `SMTP_HOST`                   | —                                                                            | Optional SMTP host for password reset emails    |
 | `SMTP_PORT`                   | `587`                                                                        | SMTP port                                       |
@@ -155,8 +168,10 @@ TRUSTED_HOSTS=
 | `SMTP_PASSWORD`               | —                                                                            | Optional SMTP password                          |
 | `SMTP_FROM_EMAIL`             | —                                                                            | Sender address; enables reset email with host   |
 | `SMTP_USE_TLS`                | `true`                                                                       | Use STARTTLS for SMTP                           |
+| `SMTP_TIMEOUT_SECONDS`        | `10`                                                                         | SMTP connection timeout                         |
+| `UPLOAD_DIR`                  | `uploads/profile_images`                                                     | Profile image storage path                      |
 
-> **Important:** In development, if `SECRET_KEY` is not set, one is auto-generated with a warning. In production, always set a strong `SECRET_KEY` (64+ chars). `DEBUG=true` is **fatal** in production environment.
+> **Important:** If `SECRET_KEY` is not set, the app auto-generates one at startup with a warning. That is only suitable for temporary local development because tokens become invalid after restart. In production, always set a stable strong `SECRET_KEY` (64+ chars). `DEBUG=true` is **fatal** in production environment.
 
 Password reset email is disabled until `SMTP_HOST` and `SMTP_FROM_EMAIL` are set.
 When disabled, the API keeps the same generic response and records the request

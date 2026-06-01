@@ -194,7 +194,7 @@ Incoming Request
 | **Auth**            | `auth.py`             | Password hashing, JWT creation/validation, token rotation                       |
 | **Security Facade** | `security.py`         | Stable exports for middleware, rate limiting, lockout, sanitization             |
 | **Security Layers** | `security_layers/`    | Focused rate limiting, lockout, middleware, CSRF, sanitization modules          |
-| **Audit**           | `audit.py`            | Event logging (25 event types), DB + file dual output                           |
+| **Audit**           | `audit.py`            | Event logging (25 event types), database rows + stdout logging                  |
 | **Config**          | `config.py`           | Environment-based settings via pydantic-settings                                |
 | **Database**        | `database.py`         | Engine, session factory, connection pooling                                     |
 | **Routes**          | `routes/`             | Thin HTTP adapters for auth, documents, public endpoints                        |
@@ -223,7 +223,7 @@ AppStateContext.updateField(path, value)
 State update triggers useEffect in CVEditor
        │
        ▼
-Debounce 2 seconds
+Debounce 1 second
        │
        ▼
 AuthContext.saveDocument(docId, { data, settings, ... })
@@ -273,7 +273,7 @@ CVEditor renders with new settings applied
      │  { email, username, password }      │
      ├───────────────────────────────────► │
      │                                     │ Validate, hash password
-     │                                     │ Create User + default CV
+     │                                     │ Create User
      │                                     │ Audit log: account_created
      │  ◄─ 201 { user }                   │
      │                                     │

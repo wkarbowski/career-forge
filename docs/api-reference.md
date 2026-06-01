@@ -4,6 +4,8 @@
 
 **Base URL:** `http://localhost:8000/api` (development)
 
+The root service-info endpoint is mounted at `http://localhost:8000/`.
+
 **Content Type:** `application/json` (unless noted otherwise)
 
 **Authentication:** Bearer JWT token in `Authorization` header
@@ -33,9 +35,9 @@ Root endpoint. Returns API info.
 
 ```json
 {
-  "app": "Career Forge API",
+  "message": "Career Forge API",
   "version": "1.0.0",
-  "status": "running"
+  "docs": "/api/docs"
 }
 ```
 
@@ -113,17 +115,20 @@ username=user@example.com&password=SecureP@ss1
 ```json
 {
   "access_token": "eyJhbGci...",
-  "token_type": "bearer"
+  "token_type": "bearer",
+  "expires_in": 900
 }
 ```
 
 Also sets an HttpOnly cookie:
 
 ```
-Set-Cookie: refresh_token=<random-token>; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=604800
+Set-Cookie: refresh_token=<random-token>; HttpOnly; SameSite=Lax; Path=/api/auth; Max-Age=604800
 ```
 
-**Errors:** `401` (invalid credentials), `403` (account locked), `400` (inactive account)
+The `Secure` cookie attribute is added when `COOKIE_SECURE=true`.
+
+**Errors:** `401` (invalid credentials), `429` (account locked or rate limited), `400` (inactive account)
 
 ---
 
@@ -161,7 +166,8 @@ Refresh the access token using the refresh token.
 ```json
 {
   "access_token": "eyJhbGci...",
-  "token_type": "bearer"
+  "token_type": "bearer",
+  "expires_in": 900
 }
 ```
 
@@ -360,13 +366,7 @@ Delete the authenticated user's account and all associated data.
 
 **Headers:** `Authorization: Bearer <access_token>`
 
-**Response** `200 OK`
-
-```json
-{
-  "message": "Account deleted successfully"
-}
-```
+**Response** `204 No Content`
 
 ---
 
@@ -383,11 +383,17 @@ Create a new document.
 ```json
 {
   "title": "My Professional Resume",
-  "data": "{\"name\":\"John Doe\",\"position\":\"Software Engineer\",...}"
+  "document_type": "resume",
+  "data": {
+    "data": {
+      "name": "John Doe",
+      "position": "Software Engineer"
+    }
+  }
 }
 ```
 
-> `data` is a JSON string containing the full document content.
+> `data` is a JSON object containing the full document content and editor state.
 
 **Response** `201 Created`
 
@@ -395,9 +401,12 @@ Create a new document.
 {
   "id": 1,
   "title": "My Professional Resume",
-  "data": "{...}",
+  "document_type": "resume",
+  "data": { "...": "..." },
+  "owner_id": 1,
   "is_default": false,
-  "profile_image": null,
+  "share_token": null,
+  "linked_resume_id": null,
   "created_at": "2026-02-13T12:00:00",
   "updated_at": "2026-02-13T12:00:00"
 }
@@ -409,6 +418,8 @@ Create a new document.
 
 List all documents for the authenticated user (lightweight — no `data` field).
 
+Optional query parameter: `document_type=resume` or `document_type=cover_letter`.
+
 **Response** `200 OK`
 
 ```json
@@ -416,18 +427,28 @@ List all documents for the authenticated user (lightweight — no `data` field).
   {
     "id": 1,
     "title": "My Professional Resume",
+    "document_type": "resume",
+    "owner_id": 1,
     "is_default": true,
-    "profile_image": null,
+    "share_token": null,
+    "linked_resume_id": null,
     "created_at": "2026-02-13T12:00:00",
-    "updated_at": "2026-02-13T14:30:00"
+    "updated_at": "2026-02-13T14:30:00",
+    "job_title": "Software Engineer",
+    "document_name": "John Doe"
   },
   {
     "id": 2,
     "title": "Cover Letter - Acme Corp",
+    "document_type": "cover_letter",
+    "owner_id": 1,
     "is_default": false,
-    "profile_image": null,
+    "share_token": null,
+    "linked_resume_id": 1,
     "created_at": "2026-02-13T13:00:00",
-    "updated_at": "2026-02-13T13:00:00"
+    "updated_at": "2026-02-13T13:00:00",
+    "job_title": null,
+    "document_name": null
   }
 ]
 ```
@@ -444,9 +465,12 @@ Get a specific document with full data.
 {
   "id": 1,
   "title": "My Professional Resume",
-  "data": "{\"name\":\"John Doe\",...}",
+  "document_type": "resume",
+  "data": { "...": "..." },
+  "owner_id": 1,
   "is_default": true,
-  "profile_image": "abc123.jpg",
+  "share_token": null,
+  "linked_resume_id": null,
   "created_at": "2026-02-13T12:00:00",
   "updated_at": "2026-02-13T14:30:00"
 }
@@ -465,7 +489,7 @@ Update a document.
 ```json
 {
   "title": "Updated Resume Title",
-  "data": "{...}",
+  "data": { "...": "..." },
   "is_default": true
 }
 ```
@@ -503,7 +527,8 @@ Export a document as JSON with export metadata.
 ```json
 {
   "title": "My Professional Resume",
-  "data": "{...}",
+  "document_type": "resume",
+  "data": { "...": "..." },
   "exported_at": "2026-02-13T15:00:00"
 }
 ```
@@ -519,7 +544,8 @@ Import a document from exported JSON data.
 ```json
 {
   "title": "Imported Resume",
-  "data": "{...}"
+  "document_type": "resume",
+  "data": { "...": "..." }
 }
 ```
 
@@ -537,7 +563,8 @@ Create a copy of an existing document.
 {
   "id": 3,
   "title": "My Professional Resume (Copy)",
-  "data": "{...}",
+  "document_type": "resume",
+  "data": { "...": "..." },
   "is_default": false,
   ...
 }
@@ -561,7 +588,7 @@ file: <image-file>
 
 ```json
 {
-  "url": "uploads/profile_images/uuid-filename.jpg"
+  "url": "/uploads/profile_images/doc_1_1770000000.jpg"
 }
 ```
 
@@ -575,13 +602,7 @@ Remove a document's profile image.
 
 **Headers:** `Authorization: Bearer <access_token>`
 
-**Response** `200 OK`
-
-```json
-{
-  "message": "Profile image removed"
-}
-```
+**Response** `204 No Content`
 
 ---
 
@@ -609,7 +630,7 @@ Create a named snapshot of the current document state.
 }
 ```
 
-**Errors:** `400` (10-version limit per document reached)
+**Errors:** `400` (20-version limit per document reached)
 
 ---
 
@@ -645,7 +666,7 @@ Get a specific version with full data.
 {
   "id": 1,
   "version_name": "Before Job Fair 2026",
-  "data": "{...}",
+  "data": { "...": "..." },
   "created_at": "2026-02-13T16:00:00"
 }
 ```
@@ -685,7 +706,7 @@ Generate a shareable link for a document.
 ```json
 {
   "share_token": "<random-token>",
-  "url": "/api/shared/<random-token>"
+  "url": "/shared/<random-token>"
 }
 ```
 
@@ -697,13 +718,7 @@ Remove the shareable link from a document.
 
 **Headers:** `Authorization: Bearer <access_token>`
 
-**Response** `200 OK`
-
-```json
-{
-  "message": "Share link removed"
-}
-```
+**Response** `204 No Content`
 
 ---
 
@@ -717,7 +732,7 @@ Public endpoint — view a shared document (no authentication required).
 {
   "title": "My Professional Resume",
   "document_type": "resume",
-  "data": "{...}"
+  "data": { "...": "..." }
 }
 ```
 
@@ -761,14 +776,13 @@ Requests are rate-limited per IP address:
 | Scope                          | Limit       | Window     |
 | ------------------------------ | ----------- | ---------- |
 | General API                    | 60 requests | per minute |
-| Auth endpoints (`/api/auth/*`) | 10 requests | per minute |
+| Login/register endpoints       | 10 requests | per minute |
 
-Response headers on every request:
+Successful responses include:
 
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 58
-X-RateLimit-Reset: 1707830400
 ```
 
 When exceeded:

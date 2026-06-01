@@ -38,7 +38,7 @@ The React-based frontend for **Career Forge**, a full-featured resume and cover 
 ```
 client/
 ├── public/
-│   └── index.html                  # HTML shell (Font Awesome CDN included)
+│   └── index.html                  # HTML shell
 ├── src/
 │   ├── App.tsx                     # Compatibility re-export for src/app/App
 │   ├── App.css                     # Global CV and layout styles
@@ -102,6 +102,7 @@ client/
 ├── Dockerfile                      # Multi-stage build → Nginx production image
 ├── nginx.conf                      # Nginx config: SPA routing + /api proxy to backend
 ├── package.json
+├── pnpm-lock.yaml
 └── tsconfig.json                   # TypeScript compiler config (type-checking only)
 ```
 
