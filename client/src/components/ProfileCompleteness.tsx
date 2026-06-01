@@ -13,15 +13,53 @@ const hasText = (value: unknown): boolean => {
   return plainText.length > 0;
 };
 
+const hasAnyText = (values: unknown[]): boolean => values.some(hasText);
+
 const checks: Array<{ key: string; test: (d: CVData) => boolean }> = [
   { key: 'name', test: (d) => hasText(d.name) },
   { key: 'email', test: (d) => hasText(d.contact?.email) },
   { key: 'phone', test: (d) => hasText(d.contact?.phone) },
   { key: 'summary', test: (d) => hasText(d.summary) },
-  { key: 'experience', test: (d) => (d.experience?.length ?? 0) > 0 },
-  { key: 'education', test: (d) => (d.education?.length ?? 0) > 0 },
-  { key: 'skills', test: (d) => (d.skills?.length ?? 0) > 0 },
-  { key: 'languages', test: (d) => (d.languages?.length ?? 0) > 0 },
+  {
+    key: 'experience',
+    test: (d) =>
+      (d.experience || []).some((item) =>
+        hasAnyText([
+          item.title,
+          item.company,
+          item.period,
+          item.location,
+          item.description,
+          ...(item.achievements || []),
+        ])
+      ),
+  },
+  {
+    key: 'education',
+    test: (d) =>
+      (d.education || []).some((item) =>
+        hasAnyText([
+          item.degree,
+          item.school,
+          item.period,
+          item.location,
+          item.description,
+          item.title,
+          item.institution,
+        ])
+      ),
+  },
+  {
+    key: 'skills',
+    test: (d) => (d.skills || []).some((item) => hasText(item.name)),
+  },
+  {
+    key: 'languages',
+    test: (d) =>
+      (d.languages || []).some((item) =>
+        hasText(item.name) || hasText(item.proficiency) || item.level !== null
+      ),
+  },
 ];
 
 interface ProfileCompletenessProps {
@@ -48,12 +86,20 @@ const ProfileCompleteness = ({ data }: ProfileCompletenessProps) => {
         <div className="pc-fill" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
       <ul className="pc-checklist">
-        {results.map((r) => (
-          <li key={r.key} className={r.passed ? 'done' : 'missing'}>
-            <i className={`fas ${r.passed ? 'fa-check-circle' : 'fa-circle'}`}></i>
-            {t(`completeness.${r.key}`)}
-          </li>
-        ))}
+        {results.map((r) => {
+          const status = r.passed ? t('completeness.filled') : t('completeness.notFilled');
+          return (
+            <li
+              key={r.key}
+              className={r.passed ? 'done' : 'missing'}
+              title={`${t(`completeness.${r.key}`)}: ${status}`}
+            >
+              <i className={`fas ${r.passed ? 'fa-check-circle' : 'fa-circle'}`}></i>
+              {t(`completeness.${r.key}`)}
+              <span className="pc-item-status">{status}</span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
