@@ -3677,6 +3677,19 @@ select option {
   gap: 4px;
 }
 
+.profile-completeness .pc-item-status {
+  font-size: 11px;
+  opacity: 0.78;
+}
+
+.profile-completeness .pc-item-status::before {
+  content: "(";
+}
+
+.profile-completeness .pc-item-status::after {
+  content: ")";
+}
+
 .profile-completeness .pc-checklist li.done {
   color: #4caf50;
 }
