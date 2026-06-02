@@ -326,7 +326,9 @@
     "experience": "Berufserfahrung",
     "education": "Ausbildung",
     "skills": "Fähigkeiten",
-    "languages": "Sprachen"
+    "languages": "Sprachen",
+    "filled": "ausgefüllt",
+    "notFilled": "nicht ausgefüllt"
   },
   "keywords": {
     "title": "Keyword-Abgleich",

@@ -326,7 +326,9 @@
     "experience": "Work experience",
     "education": "Education",
     "skills": "Skills",
-    "languages": "Languages"
+    "languages": "Languages",
+    "filled": "filled",
+    "notFilled": "not filled"
   },
   "keywords": {
     "title": "Keyword Matcher",
