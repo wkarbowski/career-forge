@@ -51,6 +51,31 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+mask_database_url() {
+    local url="${DATABASE_URL:-}"
+    if [[ -z "$url" ]]; then
+        echo "<unset>"
+        return
+    fi
+
+    if [[ "$url" == *"://"* ]]; then
+        local scheme="${url%%://*}"
+        local rest="${url#*://}"
+        if [[ "$scheme" != "postgresql" && "$scheme" != "sqlite" ]]; then
+            echo "<unsupported-url-redacted>"
+            return
+        fi
+        if [[ "$rest" == *"@"* ]]; then
+            echo "${scheme}://<redacted>@${rest#*@}"
+        else
+            echo "${scheme}://${rest}"
+        fi
+        return
+    fi
+
+    echo "<set but invalid>"
+}
+
 # Detect database type from DATABASE_URL
 detect_database_type() {
     if [[ "$DATABASE_URL" == postgresql://* ]]; then
@@ -263,7 +288,7 @@ main() {
                     restore_sqlite "$2"
                     ;;
                 *)
-                    log_error "Unknown database type: $DATABASE_URL"
+                    log_error "Unknown database type: $(mask_database_url)"
                     exit 1
                     ;;
             esac
@@ -300,7 +325,7 @@ main() {
                     ;;
                 *)
                     log_error "Unknown database type. Check DATABASE_URL in .env"
-                    log_error "Current: $DATABASE_URL"
+                    log_error "Current: $(mask_database_url)"
                     exit 1
                     ;;
             esac

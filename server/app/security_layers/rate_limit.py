@@ -317,7 +317,7 @@ def create_rate_limiter() -> RateLimiterBackend:
         Configured rate limiter instance
     """
     if settings.rate_limit_backend == "redis" and settings.redis_url:
-        logger.info(f"Initializing Redis rate limiter: {settings.redis_url}")
+        logger.info("Initializing Redis rate limiter")
         redis_limiter = RedisRateLimiter(redis_url=settings.redis_url, password=settings.redis_password or None)
 
         # Create fallback wrapper
