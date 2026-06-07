@@ -111,7 +111,7 @@ fi
 if echo "$DATABASE_URL" | grep -q "postgresql"; then
     check_pass "Using PostgreSQL database"
 else
-    check_fail "Not using PostgreSQL (SQLite not recommended for production)"
+    check_fail "Not using PostgreSQL"
 fi
 
 # Check for default/weak passwords in DATABASE_URL
