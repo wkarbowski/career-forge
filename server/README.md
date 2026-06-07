@@ -149,13 +149,13 @@ curl -X POST "http://localhost:8000/api/auth/login/json" \
   -d '{"email": "user@example.com", "password": "SecureP@ss1"}'
 ```
 
-### Create a CV (with token)
+### Create a Resume (with token)
 
 ```bash
 curl -X POST "http://localhost:8000/api/documents/" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"title": "My CV", "data": {"personal": {"name": "John Doe"}}}'
+  -d '{"title": "Untitled Resume", "data": {"personal": {"name": "John Doe"}}}'
 ```
 
 ## Database

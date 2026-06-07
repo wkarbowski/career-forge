@@ -216,7 +216,7 @@ def export_document(*, document_id: int, current_user: User, db: Session) -> Doc
 def import_document(document_import: DocumentImport, current_user: User, db: Session) -> DocumentResponse:
     new_document = document_repo.create_document_record(
         db,
-        title=InputSanitizer.sanitize_string(document_import.title or "Imported Document"),
+        title=InputSanitizer.sanitize_string(document_import.title or "Imported Resume"),
         document_type=document_import.document_type,
         data=_sanitize_data_if_needed(document_import.data),
         owner_id=current_user.id,

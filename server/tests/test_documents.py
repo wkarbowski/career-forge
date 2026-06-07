@@ -17,14 +17,14 @@ class TestDocumentCreation:
             "/api/documents/",
             headers=auth_headers,
             json={
-                "title": "My Resume",
+                "title": "Untitled Resume",
                 "document_type": "resume",
                 "data": {"name": "John Doe", "position": "Software Engineer"},
             },
         )
         assert response.status_code == 201
         data = response.json()
-        assert data["title"] == "My Resume"
+        assert data["title"] == "Untitled Resume"
         assert data["document_type"] == "resume"
         assert data["owner_id"] == test_user.id
 
@@ -33,7 +33,7 @@ class TestDocumentCreation:
         response = client.post(
             "/api/documents/",
             json={
-                "title": "My Resume",
+                "title": "Untitled Resume",
                 "document_type": "resume",
                 "data": {},
             },
