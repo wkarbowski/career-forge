@@ -23,8 +23,6 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
     isAuthenticated,
     isGuest,
     logout,
-    logoutAllDevices,
-    deleteAccount,
     documentList,
     currentDocumentId,
     deleteDocument
@@ -47,34 +45,6 @@ const UserMenu = ({ onLogin, onLoadDocument, onExitGuest }: UserMenuProps) => {
     setLoggingOut(true);
     await logout();
     setLoggingOut(false);
-    setIsOpen(false);
-    navigate('/');
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogoutAllDevices = async () => {
-    if (window.confirm(t('userMenu.confirmLogoutAll') || 'This will log you out from all devices. Continue?')) {
-      setLoggingOut(true);
-      await logoutAllDevices();
-      setLoggingOut(false);
-      setIsOpen(false);
-      navigate('/');
-    }
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDeleteAccount = async () => {
-    const confirmMsg = t('userMenu.confirmDeleteAccount') ||
-      'This will permanently delete your account and all your document data. This cannot be undone. Type DELETE to confirm.';
-    const input = window.prompt(confirmMsg);
-    if (input !== 'DELETE') return;
-    setLoggingOut(true);
-    const result = await deleteAccount();
-    setLoggingOut(false);
-    if (!result.success) {
-      setOperationError(result.error || 'Failed to delete account');
-      return;
-    }
     setIsOpen(false);
     navigate('/');
   };

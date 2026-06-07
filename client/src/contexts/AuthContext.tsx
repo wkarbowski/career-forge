@@ -12,7 +12,6 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (email: string, username: string, password: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
-  logoutAllDevices: () => Promise<AuthResult>;
   startGuestMode: () => void;
   exitGuestMode: () => void;
   clearError: () => void;
@@ -26,7 +25,6 @@ interface AuthContextValue {
   renameDocument: (id: number | string, newTitle: string) => Promise<AppDocument | null>;
   setCurrentDocumentId: React.Dispatch<React.SetStateAction<number | 'template' | null>>;
   updatePreferences: (preferences: Record<string, unknown>) => Promise<User | null>;
-  deleteAccount: () => Promise<AuthResult>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -148,25 +146,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.sessionStorage.removeItem('selectedTemplateId');
   }, [resetToInitial]);
 
-  const logoutAllDevices = useCallback(async () => {
-    try {
-      await authApi.logoutAllDevices();
-      setUser(null);
-      setDocumentList([]);
-      setCurrentDocumentId(null);
-      setError(null);
-      setIsGuest(false);
-      window.sessionStorage.removeItem('isGuest');
-      // Clear document data to prevent data leakage
-      resetToInitial();
-      window.sessionStorage.removeItem('isTemplate');
-      window.sessionStorage.removeItem('selectedTemplateId');
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: (err as Error).message };
-    }
-  }, [resetToInitial]);
-
   const startGuestMode = useCallback(() => {
     setIsGuest(true);
     setUser(null);
@@ -272,23 +251,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
-  const deleteAccount = useCallback(async (): Promise<AuthResult> => {
-    try {
-      await authApi.deleteAccount();
-      setUser(null);
-      setDocumentList([]);
-      setCurrentDocumentId(null);
-      setError(null);
-      setIsGuest(false);
-      window.sessionStorage.clear();
-      resetToInitial();
-      return { success: true };
-    } catch (err) {
-      setError((err as Error).message);
-      return { success: false, error: (err as Error).message };
-    }
-  }, [resetToInitial]);
-
   const value: AuthContextValue = {
     user,
     loading,
@@ -298,7 +260,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     register,
     logout,
-    logoutAllDevices,
     startGuestMode,
     exitGuestMode,
     clearError: () => setError(null),
@@ -314,7 +275,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setCurrentDocumentId,
     // Preferences
     updatePreferences,
-    deleteAccount,
   };
 
   return (

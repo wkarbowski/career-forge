@@ -1,12 +1,11 @@
 import React from "react";
 import { useTranslation } from "../../i18n";
-import EditableText from "./EditableText";
-import LanguageLevel from "./LanguageLevel";
+import EditableText from "../EditableText";
+import LanguageLevel from "../LanguageLevel";
 import { useAppState } from "../../contexts/AppStateContext";
 import { initialData } from "../../data/initialData";
 import type {
   CVData,
-  CVSettings,
   VisibleSections,
   CoreCompetency,
   Language,
@@ -27,7 +26,6 @@ interface SidebarProps {
   ) => void;
   deleteArrayItem?: (arrayName: string, id: number | string) => void;
   addArrayItem?: (arrayName: string, item: Record<string, unknown>) => void;
-  settings?: Partial<CVSettings>;
   visibleSections?: VisibleSections;
   profileImage?: string | null;
   onImageUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -43,7 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   updateArrayItem,
   deleteArrayItem,
   addArrayItem,
-  settings,
   visibleSections,
   profileImage,
   onImageUpload,
@@ -227,7 +224,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 placeholder={t("placeholders.competencyName")}
               />
               <button
-                className="chip-delete-btn"
+                className="delete-btn chip-delete-btn"
                 onClick={() => _deleteArrayItem("coreCompetencies", comp.id)}
               >
                 <svg

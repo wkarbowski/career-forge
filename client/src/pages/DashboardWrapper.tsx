@@ -12,15 +12,10 @@ export default function DashboardWrapper() {
     navigate(`/editor/${documentId}?print=1`);
   };
 
-  const handleSavePdfDocument = (documentId: number) => {
-    navigate(`/editor/${documentId}?pdf=1`);
-  };
-
   return (
     <DocumentDashboard
       onEditDocument={handleEditDocument}
       onPrintDocument={handlePrintDocument}
-      onSavePdfDocument={handleSavePdfDocument}
     />
   );
 }

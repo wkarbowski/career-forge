@@ -41,7 +41,7 @@ DOMPurify.addHook('uponSanitizeElement', (node, data) => {
   }
 });
 
-DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
   if (data.attrName === 'style' && data.attrValue) {
     const cleaned = data.attrValue
       .split(';')

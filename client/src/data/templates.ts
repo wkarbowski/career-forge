@@ -400,8 +400,3 @@ export const documentTypes: DocumentTypeOption[] = [
 export const getTemplateById = (id: string): CVTemplate => {
   return cvTemplates.find((t) => t.id === id) || cvTemplates[0];
 };
-
-export const getTemplatesByType = (type: string): CVTemplate[] => {
-  if (type === "all") return cvTemplates;
-  return cvTemplates.filter((t) => t.type === type);
-};
