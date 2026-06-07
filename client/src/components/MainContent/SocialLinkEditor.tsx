@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import SocialIconPicker from "./SocialIconPicker";
-import EditableText from "./EditableText";
+import EditableText from "../EditableText";
 
 const stripHtml = (html: string): string =>
   html ? html.replace(/<[^>]+>/g, "").trim() : "";
