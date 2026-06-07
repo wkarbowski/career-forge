@@ -165,7 +165,7 @@ DocumentType = Literal["resume", "cover_letter"]
 
 
 class DocumentBase(BaseModel):
-    title: str = Field(default="My CV", max_length=255)
+    title: str = Field(default="Untitled Resume", max_length=255)
     document_type: DocumentType = "resume"
 
 
@@ -220,7 +220,7 @@ class DocumentExport(BaseModel):
 
 
 class DocumentImport(BaseModel):
-    title: str | None = "Imported CV"
+    title: str | None = "Imported Resume"
     document_type: DocumentType = "resume"
     data: dict[str, Any]
 

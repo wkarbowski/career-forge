@@ -42,7 +42,7 @@ class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False, default="My CV")
+    title: Mapped[str] = mapped_column(String(255), nullable=False, default="Untitled Resume")
     document_type: Mapped[str] = mapped_column(String(20), nullable=False, default="resume")
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
