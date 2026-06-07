@@ -45,7 +45,7 @@ def create_demo_user(db: Session) -> User:
     db.commit()
     db.refresh(user)
     print(f"✓ Created demo user: {user.email}")
-    print(f"  Password: {DEMO_PASSWORD}")
+    print("  Demo password is configured by this seed script.")
     return user
 
 
@@ -119,7 +119,7 @@ def main() -> None:
 
         print("\nDemo data created successfully!")
         print("\nSummary:")
-        print(f"   User: {DEMO_EMAIL} (Password: {DEMO_PASSWORD})")
+        print(f"   User: {DEMO_EMAIL}")
         print(f"   Resume: {DEMO_RESUME_TITLE}")
         print(f"   Cover Letter: {DEMO_COVER_LETTER_TITLE}")
         print("   Linked pair: yes")
