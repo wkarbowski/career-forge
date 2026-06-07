@@ -237,7 +237,7 @@ COVER_LETTER_DATA = {
         "email": "alex.novak@example.com",
         "phone": "+1 555 010 0200",
         "place": "Sample City",
-        "date": "8 May 2026",
+        "date": "9 May 2026",
         "recipientCompany": "Apex Financial Services",
         "recipientContact": "Ms. Sarah Miller",
         "recipientStreet": "200 Innovation Drive",
@@ -278,6 +278,8 @@ COVER_LETTER_DATA = {
 
 
 DEMO_EMAIL = "demo@example.com"
+DEMO_RESUME_TITLE = "Demo Resume – Alex Novak"
+DEMO_COVER_LETTER_TITLE = "Demo Cover Letter – Apex Financial"
 
 
 def main() -> None:
@@ -291,12 +293,12 @@ def main() -> None:
         # Delete any previous demo documents to keep things clean
         db.query(Document).filter(
             Document.owner_id == user.id,
-            Document.title.in_(["Demo Resume – Alex Novak", "Demo Cover Letter – Apex Financial"]),
+            Document.title.in_([DEMO_RESUME_TITLE, DEMO_COVER_LETTER_TITLE]),
         ).delete(synchronize_session=False)
         db.commit()
 
         resume = Document(
-            title="Demo Resume – Alex Novak",
+            title=DEMO_RESUME_TITLE,
             document_type="resume",
             data=RESUME_DATA,
             owner_id=user.id,
@@ -306,7 +308,7 @@ def main() -> None:
         db.flush()
 
         cover = Document(
-            title="Demo Cover Letter – Apex Financial",
+            title=DEMO_COVER_LETTER_TITLE,
             document_type="cover_letter",
             data=COVER_LETTER_DATA,
             owner_id=user.id,
