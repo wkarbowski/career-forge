@@ -3,6 +3,7 @@ import { usePages, PAGE_CONFIG } from '../contexts/PageContext';
 import Sidebar from './Sidebar/Sidebar';
 import MainContent from './MainContent/MainContent';
 import PageControls from './PageControls';
+import DocumentPage from './DocumentPage';
 import { useAppState } from '../contexts/AppStateContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
@@ -18,7 +19,7 @@ interface CVPagesEditorProps {
 }
 
 const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUpload, onImageRemove }) => {
-  const { zoom, setZoom, pages: contextPages, setPages, viewMode, registerPageRef, setMinPages, removePage, userForcedMaxRef } = usePages();
+  const { zoom, setZoom, pages: contextPages, setPages, viewMode, registerPageRef, setMinPages, userForcedMaxRef } = usePages();
   const { settings } = useAppState();
   const { isAuthenticated, currentDocumentId, documentList, refreshDocumentList } = useAuth();
   const { t } = useTranslation();
@@ -202,7 +203,8 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
 
   const GAP = 40;
   const canvasNaturalHeight = pageCount * PAGE_CONFIG.height + Math.max(0, pageCount - 1) * GAP;
-  const zoomPaddingBottom = Math.ceil(canvasNaturalHeight * Math.max(0, zoom - 1)) + 100;
+  const scaledCanvasHeight = Math.ceil(canvasNaturalHeight * zoom);
+  const scaledCanvasWidth = Math.ceil(PAGE_CONFIG.width * zoom);
 
   const cssVarsStyle = {
     '--name-font': `'${settings?.nameFont || settings?.titleFont || 'Rubik'}', sans-serif`,
@@ -216,7 +218,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     '--sidebar-color-1': settings?.sidebarColor1 || '#312e81',
     '--sidebar-color-2': settings?.sidebarColor2 || '#4f46e5',
     '--accent-color': settings?.accentColor || '#6366f1',
-  };
+  } as React.CSSProperties;
 
   const renderLayout = (heightStyle: number | null) => {
     if (layout === 'top-header') {
@@ -330,7 +332,6 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     <div
       className={`cv-pages-editor view-${viewMode}`}
       ref={containerRef}
-      style={{ paddingBottom: zoomPaddingBottom }}
     >
       {showMobileWarning && (
         <div className="mobile-warning-overlay">
@@ -400,76 +401,68 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
         </div>
       )}
       <div
-        className="cv-pages-editor-canvas"
-        style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+        className="cv-pages-editor-canvas-frame"
+        style={{ height: scaledCanvasHeight, width: scaledCanvasWidth }}
       >
-        {/* Hidden content measurer */}
         <div
-          ref={contentRef}
-          className={`cv-content-measurer ${layoutClass}`}
-          style={{
-            position: 'absolute',
-            visibility: 'hidden',
-            width: PAGE_CONFIG.width,
-            pointerEvents: 'none',
-            ...cssVarsStyle,
-          }}
+          className="cv-pages-editor-canvas"
+          style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
         >
-          {renderLayout(null)}
-        </div>
-
-        {/* Visible pages - each clips a portion of the flowing content */}
-        {pages.map((pageIndex) => (
-          <div key={pageIndex} className="cv-page-wrapper">
-            {pageCount > 1 && pageIndex !== 0 && (
-              <button
-                className="cv-page-remove-btn"
-                onClick={() => {
-                  userForcedMaxRef.current = pageCount - 1;
-                  removePage(pageIndex);
-                }}
-                title="Remove page"
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              </button>
-            )}
-            <div
-              ref={(el) => registerPageRef(pageIndex, el)}
-              className={`cv-page ${layoutClass} ${pageIndex === 0 ? 'cv-page-active' : ''}`}
-              data-page-index={pageIndex}
-              style={{
-                width: PAGE_CONFIG.width,
-                height: PAGE_CONFIG.height,
-                ...cssVarsStyle,
-              }}
-            >
-            {/* Page number badge */}
-            <div className="cv-page-number-badge">
-              {pageIndex + 1} / {pageCount}
-            </div>
-
-            {/* Clipped viewport - clips content to this page's portion */}
-            <div
-              className="cv-page-viewport"
-              style={{
-                overflow: 'hidden',
-                height: PAGE_CONFIG.height,
-                width: PAGE_CONFIG.width,
-              }}
-            >
-              {/* Content offset - shifts content up so this page's portion is visible */}
-              <div
-                className="cv-page-content-offset"
-                style={{
-                  transform: `translateY(-${pageIndex * PAGE_CONFIG.height}px)`,
-                }}
-              >
-                {renderLayout(totalContentHeight)}
-              </div>
-            </div>
-            </div>
+          {/* Hidden content measurer */}
+          <div
+            ref={contentRef}
+            className={`cv-content-measurer ${layoutClass}`}
+            style={{
+              position: 'absolute',
+              visibility: 'hidden',
+              width: PAGE_CONFIG.width,
+              pointerEvents: 'none',
+              ...cssVarsStyle,
+            }}
+          >
+            {renderLayout(null)}
           </div>
-        ))}
+
+          {/* Visible pages - each clips a portion of the flowing content */}
+          {pages.map((pageIndex) => (
+            <div key={pageIndex} className="cv-page-wrapper">
+              <DocumentPage
+                ref={(el) => registerPageRef(pageIndex, el)}
+                className={`cv-page ${layoutClass} ${pageIndex === 0 ? 'cv-page-active' : ''}`}
+                active={pageIndex === 0}
+                pageIndex={pageIndex}
+                style={{
+                  ...cssVarsStyle,
+                }}
+              >
+              {/* Page number badge */}
+              <div className="cv-page-number-badge">
+                {pageIndex + 1} / {pageCount}
+              </div>
+
+              {/* Clipped viewport - clips content to this page's portion */}
+              <div
+                className="cv-page-viewport"
+                style={{
+                  overflow: 'hidden',
+                  height: PAGE_CONFIG.height,
+                  width: PAGE_CONFIG.width,
+                }}
+              >
+                {/* Content offset - shifts content up so this page's portion is visible */}
+                <div
+                  className="cv-page-content-offset"
+                  style={{
+                    transform: `translateY(-${pageIndex * PAGE_CONFIG.height}px)`,
+                  }}
+                >
+                  {renderLayout(totalContentHeight)}
+                </div>
+              </div>
+              </DocumentPage>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Zoom Controls */}

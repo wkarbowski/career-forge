@@ -16,8 +16,7 @@
   color: #374151 !important;
 }
 
-.cv-page.layout-top-header .main-content hr,
-.cv-page.layout-top-header .main-content .section-separator {
+.cv-page.layout-top-header .main-content hr {
   border-color: #374151 !important;
   background: #374151 !important;
 }
@@ -93,28 +92,32 @@
 }
 
 .cv-linked-chip-remove {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
   transition:
+    opacity 0.15s,
     color 0.15s,
-    background 0.15s;
+    background 0.15s,
+    border-color 0.15s;
   font-size: 10px;
   line-height: 1;
 }
 
 .cv-linked-chip-remove:hover:not(:disabled) {
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .cv-linked-chip-remove:disabled {
@@ -193,12 +196,33 @@
   position: relative;
 }
 
+.cv-pages-editor-canvas-frame {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+}
+
 /* Hidden content measurer - used to calculate total content height */
 .cv-content-measurer {
   position: absolute !important;
   visibility: hidden !important;
   pointer-events: none !important;
   z-index: -1;
+}
+
+.cv-content-measurer .add-btn,
+.cv-content-measurer .add-link-btn,
+.cv-content-measurer .chip-delete-btn,
+.cv-content-measurer .delete-btn,
+.cv-content-measurer .delete-section-btn,
+.cv-content-measurer .move-btn,
+.cv-content-measurer .profile-image-remove-btn,
+.cv-content-measurer .section-controls,
+.cv-content-measurer .social-link-actions,
+.cv-content-measurer .editable-placeholder[data-placeholder]::before {
+  display: none !important;
+  content: none !important;
 }
 
 .cv-page-viewport {
@@ -252,13 +276,6 @@
     0 24px 48px -8px rgba(0, 0, 0, 0.22);
 }
 
-.cv-page-inner-content {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  position: relative;
-}
-
 .cv-page-content-offset {
   width: 100%;
 }
@@ -304,11 +321,6 @@
   height: 100%;
   overflow: hidden;
   padding-left: 30px;
-}
-
-.cv-page-main-full {
-  margin-left: 0;
-  padding-left: 0;
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -542,15 +554,6 @@
   color: #6b7280;
 }
 
-.layout-minimal .cv-page-body-columns .cv-page-sidebar .sidebar .add-btn {
-  color: var(--accent-color, #6366f1);
-  border-color: var(--accent-color, #6366f1);
-}
-
-.layout-minimal .cv-page-body-columns .cv-page-sidebar .sidebar .delete-btn {
-  color: #9ca3af;
-}
-
 .layout-minimal
   .cv-page-body-columns
   .cv-page-sidebar
@@ -619,123 +622,19 @@
   pointer-events: none;
 }
 
-/* Per-page wrapper — gives a relative context so the remove button can
-   sit outside the page boundary (which has overflow:hidden) */
 .cv-page-wrapper {
   position: relative;
-}
-
-.cv-page-remove-btn {
-  position: absolute;
-  top: -12px;
-  right: -40px;
-  z-index: 20;
-  width: 26px;
-  height: 26px;
-  background: var(--bg-secondary, #f8f9fb);
-  color: var(--text-muted, #9494a8);
-  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  line-height: 1;
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.12));
-  opacity: 0;
-  transition:
-    opacity 0.15s,
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s;
-  padding: 0;
-}
-
-.cv-page-wrapper:hover .cv-page-remove-btn {
-  opacity: 1;
-}
-
-.cv-page-remove-btn:hover {
-  background: var(--bg-hover, #eceef1);
-  color: var(--text-primary, #111827);
-  border-color: var(--border-hover, rgba(0, 0, 0, 0.18));
 }
 
 .cv-page:hover .cv-page-number-badge {
   opacity: 1;
 }
 
-.cv-page-overflow,
-.cv-page-overflow::after,
-.cv-page-overflow-indicator {
-  display: none !important;
-}
-
-.overflow-message {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #dc2626;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.overflow-message i {
-  font-size: 16px;
-}
-
-.overflow-add-page-btn {
-  background: #dc2626;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-}
-
-.overflow-add-page-btn:hover {
-  background: #b91c1c;
-  transform: translateY(-1px);
-}
-
-.cv-add-page-btn {
-  display: none !important;
-}
-
-.cv-add-page-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: white;
-  transform: scale(1.02);
-}
-
-[data-theme="light"] .cv-add-page-btn {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.2);
-  color: rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="light"] .cv-add-page-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  border-color: rgba(0, 0, 0, 0.4);
-  color: rgba(0, 0, 0, 0.8);
-}
-
 .page-controls {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 24px;
   background: rgba(14, 14, 18, 0.92);
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
@@ -745,7 +644,7 @@
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.4),
     0 0 0 0.5px rgba(255, 255, 255, 0.04);
-  z-index: 1000;
+  z-index: 20;
 }
 
 [data-theme="light"] .page-controls {
@@ -829,52 +728,11 @@
   }
 }
 
-.page-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 8px;
-}
-
-.page-number-input {
-  width: 40px;
-  padding: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-  outline: none;
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.page-number-input::-webkit-outer-spin-button,
-.page-number-input::-webkit-inner-spin-button {
-  appearance: none;
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.page-number-input:focus {
-  border-color: rgba(99, 102, 241, 0.5);
-}
-
-[data-theme="light"] .page-number-input {
-  border-color: rgba(0, 0, 0, 0.15);
-  background: rgba(0, 0, 0, 0.05);
-  color: black;
-}
-
-.page-separator,
 .page-total {
   color: rgba(255, 255, 255, 0.6);
   font-size: 13px;
 }
 
-[data-theme="light"] .page-separator,
 [data-theme="light"] .page-total {
   color: rgba(0, 0, 0, 0.5);
 }
@@ -915,31 +773,44 @@
     transform: none !important;
   }
 
+  .cv-pages-editor-canvas-frame {
+    height: auto !important;
+    width: auto !important;
+    max-width: none;
+  }
+
   .cv-content-measurer {
     display: none !important;
   }
 
   .cv-page-wrapper {
     page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 0 !important;
   }
 
   .cv-page {
     box-shadow: none;
     border-radius: 0;
+    width: 210mm !important;
+    height: 297mm !important;
     page-break-after: always;
+    break-after: page;
     margin: 0;
   }
 
-  .cv-page:last-child {
+  .cv-pages-editor-canvas .cv-page-wrapper:last-of-type .cv-page {
     page-break-after: auto;
+    break-after: auto;
+  }
+
+  .cv-page-viewport {
+    width: 210mm !important;
+    height: 297mm !important;
   }
 
   .cv-page-number-badge,
-  .cv-page-overflow-indicator,
-  .cv-add-page-btn,
   .page-controls,
-  .overflow-add-page-btn,
-  .cv-page-remove-btn,
   .cv-linked-cover-letters {
     display: none !important;
   }
@@ -981,7 +852,6 @@
   }
 
   .page-controls {
-    bottom: 10px;
     padding: 4px 6px;
     gap: 4px;
     border-radius: 12px;
@@ -1091,21 +961,26 @@
   font-size: 12px;
   line-height: 1.4;
   color: inherit;
+  position: relative;
 }
 
 .competency-chip .chip-delete-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: 1px solid transparent;
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border-color);
   border-radius: 50%;
-  background: none;
-  color: inherit;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
   padding: 0;
   opacity: 0;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
   transition:
     opacity 0.15s,
     background 0.15s,
@@ -1119,75 +994,7 @@
 }
 
 .competency-chip .chip-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.08);
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
-}
-
-/* ──── Education Type Badge ──── */
-.education-type-badge {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: var(--accent-color, #2196f3);
-  color: #fff;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.education-course {
-  opacity: 0.85;
-}
-
-/* ──── Add Button Group ──── */
-.add-btn-group {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.add-btn-secondary {
-  background: transparent;
-  border: 1px dashed var(--accent-color, #999);
-  color: var(--accent-color, #999);
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-
-.add-btn-secondary:hover {
-  background: var(--accent-color, #999);
-  color: #fff;
-}
-
-/* ──── Custom Sections ──── */
-.custom-section-entry {
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
-}
-
-.custom-section-entry:last-child {
-  border-bottom: none;
-}
-
-.custom-section-subtitle {
-  font-size: 12px;
-  font-style: italic;
-  opacity: 0.7;
-  margin-top: 2px;
-}
-
-.custom-section-period {
-  font-size: 11px;
-  opacity: 0.6;
-  margin-top: 2px;
 }
