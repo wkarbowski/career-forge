@@ -60,8 +60,6 @@ client/
 │   │   ├── LanguageLevel.tsx       # Interactive 5-dot language proficiency widget
 │   │   ├── CentralToolbar.tsx      # Toolbar for resume editor
 │   │   ├── CLToolbar.tsx           # Toolbar for cover letter editor
-│   │   ├── TextToolbar.tsx         # Floating rich-text formatting toolbar
-│   │   ├── TextToolbarFixed.tsx    # Fixed-position formatting toolbar variant
 │   │   ├── LanguageSwitcher.tsx    # UI language selector (en / de)
 │   │   ├── ThemeToggle.tsx         # Light / dark theme switch
 │   │   ├── UserMenu.tsx            # User account dropdown
