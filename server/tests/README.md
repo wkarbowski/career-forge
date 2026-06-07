@@ -34,12 +34,6 @@ docker stop career-forge-test-db
 docker rm career-forge-test-db
 ```
 
-### Option 2: Using SQLite (Requires Compatibility Layer)
-
-For quick local testing without PostgreSQL, you can use SQLite, but note that some PostgreSQL-specific features (like JSONB) will be emulated as JSON.
-
-The test fixtures in `conftest.py` attempt to provide SQLite compatibility, but full test coverage works best with PostgreSQL.
-
 ## Test Structure
 
 - `conftest.py` - Pytest fixtures and test configuration
@@ -95,10 +89,10 @@ Tests are automatically run on GitHub Actions for every pull request. See `.gith
 
 **Database connection errors:**
 
-- Ensure PostgreSQL is running (Option 1)
-- Or verify DATABASE_URL is set to SQLite (Option 2)
+- Ensure PostgreSQL is running.
+- Verify `DATABASE_URL` points to the PostgreSQL test database.
 
 **JSONB compilation errors:**
 
-- This indicates PostgreSQL-specific types are being used with SQLite
-- Use Option 1 (PostgreSQL) for full compatibility
+- This indicates PostgreSQL-specific types are being used without a PostgreSQL test database.
+- Start the PostgreSQL test database and verify `DATABASE_URL`.
