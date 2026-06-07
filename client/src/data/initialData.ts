@@ -126,5 +126,6 @@ export const initialCoverLetterData: CoverLetterData = {
   closing: '',
   signature: '',
   signatureImage: null,
+  signatureImageSize: 56,
   extraPages: [],
 };

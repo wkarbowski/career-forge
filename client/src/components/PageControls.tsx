@@ -1,24 +1,44 @@
-import React from 'react';
 import { usePages } from '../contexts/PageContext';
 import { useTranslation } from '../i18n';
 
-const PageControls = () => {
+interface PageControlsProps {
+  onRemovePage?: (pageIndex: number) => void;
+}
+
+const PageControls = ({ onRemovePage }: PageControlsProps = {}) => {
   const {
     currentPageIndex,
     totalPages,
     addPage,
+    removePage,
     zoom,
     zoomIn,
     zoomOut,
     resetZoom,
     viewMode,
     setViewMode,
+    userForcedMaxRef,
   } = usePages();
 
   const { t } = useTranslation();
 
   const toggleViewMode = () => {
     setViewMode(viewMode === 'pages' ? 'continuous' : 'pages');
+  };
+
+  const addPageAtEnd = () => {
+    addPage(totalPages - 1);
+  };
+
+  const removeLastPage = () => {
+    if (totalPages <= 1) return;
+    const pageIndex = totalPages - 1;
+    userForcedMaxRef.current = totalPages - 1;
+    if (onRemovePage) {
+      onRemovePage(pageIndex);
+      return;
+    }
+    removePage(pageIndex);
   };
 
   return (
@@ -30,11 +50,21 @@ const PageControls = () => {
       <div className="page-controls-section page-actions">
         <button
           className="page-control-btn"
-          onClick={() => addPage(currentPageIndex)}
+          onClick={addPageAtEnd}
           title={t('pages.add') || 'Add Page'}
         >
           <i className="fas fa-plus"></i>
           <span className="btn-label">{t('pages.addPage') || 'Add Page'}</span>
+        </button>
+
+        <button
+          className="page-control-btn page-control-btn-danger"
+          onClick={removeLastPage}
+          disabled={totalPages <= 1}
+          title={t('pages.remove') || 'Remove Page'}
+        >
+          <i className="fas fa-trash"></i>
+          <span className="btn-label">{t('pages.removePage') || 'Remove'}</span>
         </button>
 
         <button
