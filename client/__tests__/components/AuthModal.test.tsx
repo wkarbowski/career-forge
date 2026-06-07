@@ -38,7 +38,6 @@ const makeAuthMock = (overrides: Partial<ReturnType<typeof useAuth>> = {}) => ({
   isAuthenticated: false,
   isGuest: false,
   logout: vi.fn(),
-  logoutAllDevices: vi.fn(),
   startGuestMode: vi.fn(),
   exitGuestMode: vi.fn(),
   documentList: [],
@@ -51,7 +50,6 @@ const makeAuthMock = (overrides: Partial<ReturnType<typeof useAuth>> = {}) => ({
   renameDocument: vi.fn(),
   setCurrentDocumentId: vi.fn(),
   updatePreferences: vi.fn(),
-  deleteAccount: vi.fn(),
   ...overrides,
 });
 

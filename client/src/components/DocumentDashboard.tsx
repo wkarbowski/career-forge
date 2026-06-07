@@ -16,10 +16,9 @@ interface ShareModalState {
 interface DocumentDashboardProps {
   onEditDocument: (documentId: number) => void;
   onPrintDocument?: (documentId: number) => void;
-  onSavePdfDocument?: (documentId: number) => void;
 }
 
-const DocumentDashboard = ({ onEditDocument, onPrintDocument, onSavePdfDocument }: DocumentDashboardProps) => {
+const DocumentDashboard = ({ onEditDocument, onPrintDocument }: DocumentDashboardProps) => {
   const { documentList, refreshDocumentList, deleteDocument, renameDocument, currentDocumentId } = useAuth();
   const { setDocumentTitle } = useAppState();
   const { t } = useTranslation();

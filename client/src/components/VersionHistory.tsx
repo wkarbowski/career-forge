@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../i18n';
 import { documentApi } from '../services/api';
 import type { DocumentVersion, Document as AppDocument } from '../types';
@@ -14,9 +14,8 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
   const [loading, setLoading] = useState(false);
   const [versionName, setVersionName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [previewId, setPreviewId] = useState<number | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
 
-  const loadVersions = async () => {
+  const loadVersions = useCallback(async () => {
     if (!documentId) return;
     setLoading(true);
     try {
@@ -27,11 +26,11 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId]);
 
   useEffect(() => {
     loadVersions();
-  }, [documentId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadVersions]);
 
   const handleCreate = async () => {
     if (!versionName.trim() || !documentId) return;
@@ -97,7 +96,7 @@ const VersionHistory = ({ documentId, onRestore }: VersionHistoryProps) => {
       ) : (
         <ul className="version-list">
           {versions.map((v) => (
-            <li key={v.id} className={`version-item ${previewId === v.id ? 'previewing' : ''}`}>
+            <li key={v.id} className="version-item">
               <div className="version-info">
                 <span className="version-name">{v.version_name}</span>
                 <span className="version-date">{formatDate(v.created_at)}</span>

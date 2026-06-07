@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface LanguageLevelProps {
   level: number | null;
   onChange: (level: number | null) => void;

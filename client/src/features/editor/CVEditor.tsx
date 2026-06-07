@@ -27,7 +27,6 @@ interface CVEditorProps {
 }
 
 export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
-  // ...existing code...
   const {
     data,
     setData,
@@ -58,7 +57,6 @@ export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
   const navigate = useNavigate();
   const { cvId } = useParams();
   const location = useLocation();
-  // (removed duplicate destructuring)
   const { pages, setPages, setUserForcedMax } = usePages();
   const {
     isAuthenticated,

@@ -297,7 +297,7 @@ const CLToolbar = () => {
     };
   }, [detectEditableFocus]);
 
-  const handleToolbarMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleToolbarMouseDown = (_e: React.MouseEvent<HTMLDivElement>) => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       savedRangeRef.current = sel.getRangeAt(0).cloneRange();

@@ -1,8 +1,6 @@
-// ...existing code...
 import React from "react";
 import { useTranslation } from "../../i18n";
-import EditableText from "./EditableText";
-// ...existing code...
+import EditableText from "../EditableText";
 import SocialLinkEditor from "./SocialLinkEditor";
 import { useAppState } from "../../contexts/AppStateContext";
 import type {
@@ -14,6 +12,11 @@ import type {
   CustomSection,
   CustomSectionItem,
 } from "../../types";
+
+const createId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 interface MainContentProps {
   data?: CVData;
@@ -170,7 +173,6 @@ const MainContent = ({
               />
             </span>
             {(_data.contact.links || []).map((link) => {
-              const canDelete = (_data.contact.links || []).length > 1;
               return (
                 <SocialLinkEditor
                   key={link.id}
@@ -198,19 +200,16 @@ const MainContent = ({
                       },
                     }))
                   }
-                  onDelete={
-                    canDelete
-                      ? () =>
-                          appState.setData((prev) => ({
-                            ...prev,
-                            contact: {
-                              ...prev.contact,
-                              links: (prev.contact.links || []).filter(
-                                (l) => l.id !== link.id,
-                              ),
-                            },
-                          }))
-                      : undefined
+                  onDelete={() =>
+                    appState.setData((prev) => ({
+                      ...prev,
+                      contact: {
+                        ...prev.contact,
+                        links: (prev.contact.links || []).filter(
+                          (l) => l.id !== link.id,
+                        ),
+                      },
+                    }))
                   }
                   t={t}
                 />
@@ -220,6 +219,7 @@ const MainContent = ({
               type="button"
               className="add-link-btn hide-on-print"
               title={t("placeholders.addLink") || "Add link"}
+              aria-label={t("placeholders.addLink") || "Add link"}
               onClick={() =>
                 appState.setData((prev) => ({
                   ...prev,
@@ -227,7 +227,7 @@ const MainContent = ({
                     ...prev.contact,
                     links: [
                       ...(prev.contact.links || []),
-                      { id: Date.now(), icon: "fas fa-globe", url: "" },
+                      { id: createId(), icon: "fas fa-globe", url: "" },
                     ],
                   },
                 }))

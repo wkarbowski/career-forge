@@ -143,7 +143,6 @@ client/
 │   │   ├── LanguageLevel.tsx       # 5-dot language proficiency widget
 │   │   ├── CentralToolbar.tsx      # Toolbar for resume editor
 │   │   ├── CLToolbar.tsx           # Toolbar for cover letter editor
-│   │   ├── TextToolbar.tsx         # Floating inline formatting toolbar
 │   │   ├── VerticalMenu.tsx        # Editor side toolbar (print, export…)
 │   │   ├── ThemeToggle.tsx         # Light / dark theme switch
 │   │   ├── LanguageSwitcher.tsx    # UI language selector

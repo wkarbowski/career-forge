@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import Modal from './Modal';
 import { useAppState } from '../contexts/AppStateContext';
