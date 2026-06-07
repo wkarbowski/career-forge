@@ -33,9 +33,11 @@ export interface PageContextValue {
 
 const PageContext = createContext<PageContextValue | null>(null);
 
+const CSS_PX_PER_MM = 96 / 25.4;
+
 export const PAGE_CONFIG = {
-  width: 794,
-  height: 1123,
+  width: 210 * CSS_PX_PER_MM,
+  height: 297 * CSS_PX_PER_MM,
   marginTop: 40,    // Reduced margins to match print output
   marginBottom: 40,
   marginLeft: 0,    // Sidebar extends to edge

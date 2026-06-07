@@ -1,15 +1,6 @@
-import React, { createContext, useContext, useCallback, useRef, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useRef, useEffect, type ReactNode } from 'react';
 import type { AppStateContextValue } from './AppStateContext';
 import { useAppState } from './AppStateContext';
-
-interface UndoContextValue {
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-}
-
-const UndoContext = createContext<UndoContextValue | null>(null);
 
 const MAX_HISTORY = 50;
 
@@ -23,12 +14,15 @@ function snapshot(appState: AppStateContextValue): string {
 
 export function UndoProvider({ children }: { children: ReactNode }) {
   const appState = useAppState();
+  const appStateRef = useRef(appState);
   const undoStack = useRef<string[]>([]);
   const redoStack = useRef<string[]>([]);
   const lastSnapshot = useRef<string | null>(null);
   const skipNextCapture = useRef(false);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+
+  useEffect(() => {
+    appStateRef.current = appState;
+  }, [appState]);
 
   // Capture a snapshot before structural changes
   const captureSnapshot = useCallback(() => {
@@ -36,7 +30,7 @@ export function UndoProvider({ children }: { children: ReactNode }) {
       skipNextCapture.current = false;
       return;
     }
-    const snap = snapshot(appState);
+    const snap = snapshot(appStateRef.current);
     if (snap === lastSnapshot.current) return;
     if (lastSnapshot.current !== null) {
       undoStack.current.push(lastSnapshot.current);
@@ -46,9 +40,7 @@ export function UndoProvider({ children }: { children: ReactNode }) {
       redoStack.current = [];
     }
     lastSnapshot.current = snap;
-    setCanUndo(undoStack.current.length > 0);
-    setCanRedo(false);
-  }, [appState]);
+  }, []);
 
   // Watch for structural changes (data array lengths, sidebarOrder, visibleSections)
   const structuralKey = JSON.stringify({
@@ -65,8 +57,7 @@ export function UndoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     captureSnapshot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [structuralKey]);
+  }, [captureSnapshot, structuralKey]);
 
   const undo = useCallback(() => {
     if (undoStack.current.length === 0) return;
@@ -81,8 +72,6 @@ export function UndoProvider({ children }: { children: ReactNode }) {
     appState.setSidebarOrder(prev.sidebarOrder);
     lastSnapshot.current = prevSnap;
 
-    setCanUndo(undoStack.current.length > 0);
-    setCanRedo(true);
   }, [appState]);
 
   const redo = useCallback(() => {
@@ -98,8 +87,6 @@ export function UndoProvider({ children }: { children: ReactNode }) {
     appState.setSidebarOrder(next.sidebarOrder);
     lastSnapshot.current = nextSnap;
 
-    setCanUndo(true);
-    setCanRedo(redoStack.current.length > 0);
   }, [appState]);
 
   // Keyboard shortcuts: Ctrl+Z / Ctrl+Shift+Z (only when no contentEditable focused)
@@ -122,15 +109,5 @@ export function UndoProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo]);
 
-  return (
-    <UndoContext.Provider value={{ undo, redo, canUndo, canRedo }}>
-      {children}
-    </UndoContext.Provider>
-  );
-}
-
-export function useUndo(): UndoContextValue {
-  const ctx = useContext(UndoContext);
-  if (!ctx) throw new Error('useUndo must be used within UndoProvider');
-  return ctx;
+  return children;
 }

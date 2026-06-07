@@ -1,0 +1,15 @@
+.document-page {
+  box-sizing: border-box;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+}
+
+@media print {
+  .document-page {
+    width: 210mm !important;
+    height: 297mm !important;
+  }
+}
