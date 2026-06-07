@@ -232,7 +232,8 @@
     "sigUpload": "Upload signature",
     "sigDraw": "Draw signature",
     "sigClear": "Clear",
-    "sigSave": "Save"
+    "sigSave": "Save",
+    "signatureSize": "Signature size"
   },
   "gdpr": {
     "bannerLabel": "Privacy notice",

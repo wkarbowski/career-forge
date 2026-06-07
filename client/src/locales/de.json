@@ -232,7 +232,8 @@
     "sigUpload": "Unterschrift hochladen",
     "sigDraw": "Unterschrift zeichnen",
     "sigClear": "Löschen",
-    "sigSave": "Speichern"
+    "sigSave": "Speichern",
+    "signatureSize": "Größe der Unterschrift"
   },
   "gdpr": {
     "bannerLabel": "Datenschutzhinweis",

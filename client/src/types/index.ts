@@ -126,6 +126,7 @@ export interface CoverLetterData {
   closing: string;
   signature: string;
   signatureImage: string | null;
+  signatureImageSize?: number;
   extraPages: string[];
 }
 
