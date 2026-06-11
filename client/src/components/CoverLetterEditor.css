@@ -586,6 +586,10 @@
   .cl-sig-resize {
     display: none !important;
   }
+
+  .cl-empty-on-print {
+    display: none !important;
+  }
 }
 
 @media screen and (max-width: 900px) {

@@ -48,6 +48,23 @@ const stripCoverLetterFieldBackground = (field: string, value: unknown) =>
     ? stripInlineBackgroundStyles(value)
     : value;
 
+const hasEditableText = (value: unknown) => {
+  if (typeof value !== "string") return false;
+
+  if (typeof document !== "undefined") {
+    const container = document.createElement("div");
+    container.innerHTML = value;
+    return Boolean(container.textContent?.replace(/\u00a0/g, " ").trim());
+  }
+
+  return Boolean(
+    value
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/gi, " ")
+      .trim(),
+  );
+};
+
 /**
  * CoverLetterEditor
  *
@@ -264,6 +281,7 @@ const CoverLetterEditor = () => {
   }, [setZoom]);
 
   const d = coverLetterData;
+  const hasRecipientContact = hasEditableText(d.recipientContact);
   const rawSignatureImageSize = Number(d.signatureImageSize);
   const signatureImageSize = Number.isFinite(rawSignatureImageSize)
     ? Math.min(120, Math.max(32, rawSignatureImageSize))
@@ -447,7 +465,9 @@ const CoverLetterEditor = () => {
                     value={d.recipientContact}
                     onChange={(v) => set("recipientContact", v)}
                     tag="span"
-                    className="cl-recipient-line cl-recipient-contact"
+                    className={`cl-recipient-line cl-recipient-contact${
+                      hasRecipientContact ? "" : " cl-empty-on-print"
+                    }`}
                     placeholder={t("coverLetter.recipientContact")}
                   />
                   <EditableText
