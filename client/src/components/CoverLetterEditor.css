@@ -48,7 +48,7 @@
   font-family: var(--cl-body-font, "Open Sans", sans-serif);
   font-size: var(--cl-body-font-size, 12.5px);
   line-height: 1.55;
-  color: #1a1a1a;
+  color: var(--cl-text-color);
   --cl-line-gap: 1.55em;
   /* DIN 5008: left 2.5 cm, right 2 cm, top 4.5 cm, bottom 2 cm
      At 96 dpi: 1 cm ≈ 37.8 px */
@@ -73,7 +73,7 @@
 .cl-sender-name {
   font-family: var(--cl-name-font, "Open Sans", sans-serif);
   font-size: var(--cl-name-font-size, 14px);
-  color: #1a1a1a;
+  color: var(--cl-text-color);
   font-weight: normal;
   letter-spacing: 0.01em;
   display: block;
@@ -82,7 +82,7 @@
 
 .cl-sender-line {
   display: block;
-  color: #1a1a1a;
+  color: var(--cl-text-color);
 }
 
 .cl-sender-contact {
@@ -90,17 +90,19 @@
   align-items: center;
   gap: 6px;
   margin-top: 3px;
-  color: #1a1a1a;
+  color: var(--cl-text-color);
   font-size: 11.5px;
 }
 
 .cl-contact-sep {
-  color: #1a1a1a;
+  color: var(--cl-text-color);
   user-select: none;
 }
 
 .cl-sender-contact-item {
-  display: inline;
+  display: inline-block;
+  min-width: 18ch;
+  flex: 0 0 auto;
 }
 
 .cl-meta-row {
@@ -117,12 +119,13 @@
   gap: 1px;
 }
 
-.cl-empf-line {
+.cl-recipient-line {
   display: block;
-  color: #222;
+  min-width: 28ch;
+  color: var(--cl-text-color);
 }
 
-.cl-empf-company {
+.cl-recipient-company {
   font-weight: normal;
 }
 
@@ -174,12 +177,18 @@
   align-items: baseline;
   gap: 0;
   white-space: nowrap;
-  color: #1a1a1a;
+  color: var(--cl-text-color);
 }
 
 .cl-place,
 .cl-date {
-  display: inline;
+  display: inline-block;
+  min-width: 8ch;
+  color: var(--cl-text-color);
+}
+
+.cl-date {
+  min-width: 10ch;
 }
 
 .cl-date-comma {
@@ -197,14 +206,14 @@
   font-size: var(--cl-subject-font-size, 13px);
   font-weight: normal;
   letter-spacing: 0.01em;
-  color: #1a1a1a;
+  color: var(--cl-text-color);
 }
 
 .cl-page .cl-sender-name *,
 .cl-page .cl-sender-line *,
 .cl-page .cl-sender-contact-item *,
 .cl-page .cl-recipient-contact *,
-.cl-page .cl-empf-line *,
+.cl-page .cl-recipient-line *,
 .cl-page .cl-place *,
 .cl-page .cl-date *,
 .cl-page .cl-subject *,
@@ -268,6 +277,21 @@
   pointer-events: none;
 }
 
+.cl-page .cl-sender-contact-item.editable-placeholder[data-placeholder]::before,
+.cl-page .cl-recipient-line.editable-placeholder[data-placeholder]::before,
+.cl-page .cl-place.editable-placeholder[data-placeholder]::before,
+.cl-page .cl-date.editable-placeholder[data-placeholder]::before {
+  content: attr(data-placeholder);
+  position: static;
+  display: inline;
+  color: #c0c0c0;
+  font-style: italic;
+  pointer-events: none;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 .cl-page [contenteditable="true"]:hover {
   background: rgba(99, 102, 241, 0.04);
 }
@@ -288,7 +312,7 @@
 
 [data-theme="dark"] .cl-page {
   background: white;
-  color: inherit;
+  color: var(--cl-text-color);
   box-shadow: 0 4px 28px rgba(0, 0, 0, 0.5);
 }
 
