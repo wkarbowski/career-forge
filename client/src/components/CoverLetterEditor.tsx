@@ -57,13 +57,21 @@ const hasEditableText = (value: unknown) => {
     return Boolean(container.textContent?.replace(/\u00a0/g, " ").trim());
   }
 
-  return Boolean(
-    value
-      .replace(/<[^>]*>/g, "")
-      .replace(/[<>]/g, "")
-      .replace(/&nbsp;/gi, " ")
-      .trim(),
-  );
+  let text = "";
+  let insideTag = false;
+  for (const char of value) {
+    if (char === "<") {
+      insideTag = true;
+      continue;
+    }
+    if (char === ">") {
+      insideTag = false;
+      continue;
+    }
+    if (!insideTag) text += char;
+  }
+
+  return Boolean(text.replace(/&nbsp;/gi, " ").trim());
 };
 
 const BASE_RECIPIENT_FIELDS = [
