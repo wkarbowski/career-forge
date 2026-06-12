@@ -118,6 +118,8 @@ export const initialCoverLetterData: CoverLetterData = {
   recipientContact: '',
   recipientStreet: '',
   recipientCity: '',
+  extraRecipientLines: [],
+  recipientLineOrder: [],
 
   // Brief
   subject: '',

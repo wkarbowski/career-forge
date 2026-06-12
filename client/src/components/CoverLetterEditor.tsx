@@ -65,6 +65,31 @@ const hasEditableText = (value: unknown) => {
   );
 };
 
+const BASE_RECIPIENT_FIELDS = [
+  {
+    key: "recipientCompany",
+    className: "cl-recipient-line cl-recipient-company",
+    placeholderKey: "coverLetter.recipientCompany",
+  },
+  {
+    key: "recipientContact",
+    className: "cl-recipient-line cl-recipient-contact",
+    placeholderKey: "coverLetter.recipientContact",
+  },
+  {
+    key: "recipientStreet",
+    className: "cl-recipient-line",
+    placeholderKey: "coverLetter.recipientStreet",
+  },
+  {
+    key: "recipientCity",
+    className: "cl-recipient-line",
+    placeholderKey: "coverLetter.recipientCity",
+  },
+] as const;
+
+type BaseRecipientFieldKey = (typeof BASE_RECIPIENT_FIELDS)[number]["key"];
+
 /**
  * CoverLetterEditor
  *
@@ -310,6 +335,21 @@ const CoverLetterEditor = () => {
     pages.length * PAGE_CONFIG.height + Math.max(0, pages.length - 1) * GAP;
   const scaledCanvasHeight = Math.ceil(canvasNaturalHeight * zoom);
   const scaledCanvasWidth = Math.ceil(PAGE_CONFIG.width * zoom);
+  const extraRecipientLines = d.extraRecipientLines || [];
+  const defaultRecipientLineOrder = [
+    ...BASE_RECIPIENT_FIELDS.map((field) => field.key),
+    ...extraRecipientLines.map((_, index) => `extra:${index}`),
+  ];
+  const validRecipientLineKeys = new Set(defaultRecipientLineOrder);
+  const recipientLineOrder = [
+    ...(d.recipientLineOrder || []).filter(
+      (key, index, order) =>
+        validRecipientLineKeys.has(key) && order.indexOf(key) === index,
+    ),
+    ...defaultRecipientLineOrder.filter(
+      (key) => !(d.recipientLineOrder || []).includes(key),
+    ),
+  ];
 
   const handleRemovePage = (pageIndex: number) => {
     removePage(pageIndex);
@@ -320,6 +360,72 @@ const CoverLetterEditor = () => {
         ...(d.extraPages || []).slice(extraIndex + 1),
       ]);
     }
+  };
+
+  const updateExtraRecipientLine = (index: number, value: string) => {
+    const next = [...extraRecipientLines];
+    next[index] = value;
+    set("extraRecipientLines", next);
+  };
+
+  const addExtraRecipientLine = () => {
+    setCoverLetterData((prev) => {
+      const nextLines = [...(prev.extraRecipientLines || []), ""];
+      const nextKey = `extra:${nextLines.length - 1}`;
+      const currentOrder = recipientLineOrder.filter((key) =>
+        key.startsWith("extra:")
+          ? Number(key.slice(6)) < nextLines.length - 1
+          : true,
+      );
+
+      return {
+        ...prev,
+        extraRecipientLines: nextLines,
+        recipientLineOrder: [...currentOrder, nextKey],
+      };
+    });
+  };
+
+  const removeExtraRecipientLine = (index: number) => {
+    setCoverLetterData((prev) => {
+      const nextLines = (prev.extraRecipientLines || []).filter(
+        (_, i) => i !== index,
+      );
+      const nextOrder = recipientLineOrder
+        .map((key) => {
+          if (!key.startsWith("extra:")) return key;
+          const extraIndex = Number(key.slice(6));
+          if (extraIndex === index) return null;
+          return extraIndex > index ? `extra:${extraIndex - 1}` : key;
+        })
+        .filter((key): key is string => Boolean(key));
+
+      return {
+        ...prev,
+        extraRecipientLines: nextLines,
+        recipientLineOrder: nextOrder,
+      };
+    });
+  };
+
+  const moveExtraRecipientLine = (index: number, direction: -1 | 1) => {
+    const key = `extra:${index}`;
+    const currentIndex = recipientLineOrder.indexOf(key);
+    const targetIndex = currentIndex + direction;
+    if (
+      currentIndex === -1 ||
+      targetIndex < 0 ||
+      targetIndex >= recipientLineOrder.length
+    ) {
+      return;
+    }
+
+    const nextOrder = [...recipientLineOrder];
+    [nextOrder[currentIndex], nextOrder[targetIndex]] = [
+      nextOrder[targetIndex],
+      nextOrder[currentIndex],
+    ];
+    set("recipientLineOrder", nextOrder);
   };
 
   return (
@@ -454,36 +560,108 @@ const CoverLetterEditor = () => {
               <div className="cl-meta-row">
                 {/* Recipient — left */}
                 <div className="cl-recipient">
-                  <EditableText
-                    value={d.recipientCompany}
-                    onChange={(v) => set("recipientCompany", v)}
-                    tag="span"
-                    className="cl-recipient-line cl-recipient-company"
-                    placeholder={t("coverLetter.recipientCompany")}
-                  />
-                  <EditableText
-                    value={d.recipientContact}
-                    onChange={(v) => set("recipientContact", v)}
-                    tag="span"
-                    className={`cl-recipient-line cl-recipient-contact${
-                      hasRecipientContact ? "" : " cl-empty-on-print"
-                    }`}
-                    placeholder={t("coverLetter.recipientContact")}
-                  />
-                  <EditableText
-                    value={d.recipientStreet}
-                    onChange={(v) => set("recipientStreet", v)}
-                    tag="span"
-                    className="cl-recipient-line"
-                    placeholder={t("coverLetter.recipientStreet")}
-                  />
-                  <EditableText
-                    value={d.recipientCity}
-                    onChange={(v) => set("recipientCity", v)}
-                    tag="span"
-                    className="cl-recipient-line"
-                    placeholder={t("coverLetter.recipientCity")}
-                  />
+                  {recipientLineOrder.map((key, displayIndex) => {
+                    if (key.startsWith("extra:")) {
+                      const index = Number(key.slice(6));
+                      const line = extraRecipientLines[index] || "";
+
+                      return (
+                        <div
+                          className={`cl-extra-recipient-line${
+                            hasEditableText(line) ? "" : " cl-empty-on-print"
+                          }`}
+                          key={key}
+                        >
+                          <EditableText
+                            value={line}
+                            onChange={(v) => updateExtraRecipientLine(index, v)}
+                            tag="span"
+                            className="cl-recipient-line"
+                            placeholder={t("coverLetter.extraRecipientLine")}
+                          />
+                          <div className="cl-extra-recipient-controls hide-on-print">
+                            <button
+                              type="button"
+                              className="move-btn"
+                              aria-label={t(
+                                "coverLetter.moveExtraRecipientLineUp",
+                              )}
+                              title={t("coverLetter.moveExtraRecipientLineUp")}
+                              disabled={displayIndex === 0}
+                              onClick={() =>
+                                moveExtraRecipientLine(index, -1)
+                              }
+                            >
+                              <i
+                                className="fas fa-arrow-up"
+                                aria-hidden="true"
+                              />
+                            </button>
+                            <button
+                              type="button"
+                              className="move-btn"
+                              aria-label={t(
+                                "coverLetter.moveExtraRecipientLineDown",
+                              )}
+                              title={t(
+                                "coverLetter.moveExtraRecipientLineDown",
+                              )}
+                              disabled={
+                                displayIndex === recipientLineOrder.length - 1
+                              }
+                              onClick={() => moveExtraRecipientLine(index, 1)}
+                            >
+                              <i
+                                className="fas fa-arrow-down"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className="social-link-remove-field hide-on-print"
+                            aria-label={t(
+                              "coverLetter.removeExtraRecipientLine",
+                            )}
+                            title={t("coverLetter.removeExtraRecipientLine")}
+                            onClick={() => removeExtraRecipientLine(index)}
+                          >
+                            <i className="fas fa-times" aria-hidden="true" />
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    const field = BASE_RECIPIENT_FIELDS.find(
+                      (item) => item.key === key,
+                    );
+                    if (!field) return null;
+
+                    return (
+                      <EditableText
+                        key={field.key}
+                        value={d[field.key as BaseRecipientFieldKey]}
+                        onChange={(v) => set(field.key, v)}
+                        tag="span"
+                        className={`${field.className}${
+                          field.key === "recipientContact" &&
+                          !hasRecipientContact
+                            ? " cl-empty-on-print"
+                            : ""
+                        }`}
+                        placeholder={t(field.placeholderKey)}
+                      />
+                    );
+                  })}
+                  <button
+                    type="button"
+                    className="add-link-btn hide-on-print cl-add-recipient-line"
+                    title={t("coverLetter.addExtraRecipientLine")}
+                    aria-label={t("coverLetter.addExtraRecipientLine")}
+                    onClick={addExtraRecipientLine}
+                  >
+                    <i className="fas fa-plus" aria-hidden="true" />
+                  </button>
                 </div>
 
                 {/* Place, date — right */}

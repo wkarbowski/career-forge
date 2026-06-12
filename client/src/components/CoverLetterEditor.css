@@ -129,6 +129,64 @@
   font-weight: normal;
 }
 
+.cl-extra-recipient-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cl-extra-recipient-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.cl-extra-recipient-line:hover .social-link-remove-field,
+.cl-extra-recipient-line .social-link-remove-field:focus-visible,
+.cl-extra-recipient-line:hover .cl-extra-recipient-controls,
+.cl-extra-recipient-line:focus-within .cl-extra-recipient-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cl-extra-recipient-controls .move-btn {
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  font-size: 9px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.cl-extra-recipient-controls .move-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent-color);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.cl-extra-recipient-controls .move-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cl-add-recipient-line {
+  margin-top: 3px;
+  margin-left: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cl-recipient:hover .cl-add-recipient-line,
+.cl-recipient:focus-within .cl-add-recipient-line {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .cl-place-date-wrapper {
   position: relative;
   display: flex;
