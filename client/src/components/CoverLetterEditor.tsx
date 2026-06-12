@@ -60,6 +60,7 @@ const hasEditableText = (value: unknown) => {
   return Boolean(
     value
       .replace(/<[^>]*>/g, "")
+      .replace(/[<>]/g, "")
       .replace(/&nbsp;/gi, " ")
       .trim(),
   );
