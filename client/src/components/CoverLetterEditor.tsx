@@ -48,6 +48,57 @@ const stripCoverLetterFieldBackground = (field: string, value: unknown) =>
     ? stripInlineBackgroundStyles(value)
     : value;
 
+const hasEditableText = (value: unknown) => {
+  if (typeof value !== "string") return false;
+
+  if (typeof document !== "undefined") {
+    const container = document.createElement("div");
+    container.innerHTML = value;
+    return Boolean(container.textContent?.replace(/\u00a0/g, " ").trim());
+  }
+
+  let text = "";
+  let insideTag = false;
+  for (const char of value) {
+    if (char === "<") {
+      insideTag = true;
+      continue;
+    }
+    if (char === ">") {
+      insideTag = false;
+      continue;
+    }
+    if (!insideTag) text += char;
+  }
+
+  return Boolean(text.replace(/&nbsp;/gi, " ").trim());
+};
+
+const BASE_RECIPIENT_FIELDS = [
+  {
+    key: "recipientCompany",
+    className: "cl-recipient-line cl-recipient-company",
+    placeholderKey: "coverLetter.recipientCompany",
+  },
+  {
+    key: "recipientContact",
+    className: "cl-recipient-line cl-recipient-contact",
+    placeholderKey: "coverLetter.recipientContact",
+  },
+  {
+    key: "recipientStreet",
+    className: "cl-recipient-line",
+    placeholderKey: "coverLetter.recipientStreet",
+  },
+  {
+    key: "recipientCity",
+    className: "cl-recipient-line",
+    placeholderKey: "coverLetter.recipientCity",
+  },
+] as const;
+
+type BaseRecipientFieldKey = (typeof BASE_RECIPIENT_FIELDS)[number]["key"];
+
 /**
  * CoverLetterEditor
  *
@@ -264,6 +315,7 @@ const CoverLetterEditor = () => {
   }, [setZoom]);
 
   const d = coverLetterData;
+  const hasRecipientContact = hasEditableText(d.recipientContact);
   const rawSignatureImageSize = Number(d.signatureImageSize);
   const signatureImageSize = Number.isFinite(rawSignatureImageSize)
     ? Math.min(120, Math.max(32, rawSignatureImageSize))
@@ -274,6 +326,7 @@ const CoverLetterEditor = () => {
 
   const clCssVars = {
     "--accent-color": settings?.accentColor || "#2563eb",
+    "--cl-text-color": "#1a1a1a",
     "--sidebar-color-1": settings?.sidebarColor1 || "",
     "--sidebar-color-2": settings?.sidebarColor2 || "",
     "--cl-name-font": `'${clSettings?.nameFont || "Open Sans"}', sans-serif`,
@@ -291,6 +344,21 @@ const CoverLetterEditor = () => {
     pages.length * PAGE_CONFIG.height + Math.max(0, pages.length - 1) * GAP;
   const scaledCanvasHeight = Math.ceil(canvasNaturalHeight * zoom);
   const scaledCanvasWidth = Math.ceil(PAGE_CONFIG.width * zoom);
+  const extraRecipientLines = d.extraRecipientLines || [];
+  const defaultRecipientLineOrder = [
+    ...BASE_RECIPIENT_FIELDS.map((field) => field.key),
+    ...extraRecipientLines.map((_, index) => `extra:${index}`),
+  ];
+  const validRecipientLineKeys = new Set(defaultRecipientLineOrder);
+  const recipientLineOrder = [
+    ...(d.recipientLineOrder || []).filter(
+      (key, index, order) =>
+        validRecipientLineKeys.has(key) && order.indexOf(key) === index,
+    ),
+    ...defaultRecipientLineOrder.filter(
+      (key) => !(d.recipientLineOrder || []).includes(key),
+    ),
+  ];
 
   const handleRemovePage = (pageIndex: number) => {
     removePage(pageIndex);
@@ -303,11 +371,74 @@ const CoverLetterEditor = () => {
     }
   };
 
+  const updateExtraRecipientLine = (index: number, value: string) => {
+    const next = [...extraRecipientLines];
+    next[index] = value;
+    set("extraRecipientLines", next);
+  };
+
+  const addExtraRecipientLine = () => {
+    setCoverLetterData((prev) => {
+      const nextLines = [...(prev.extraRecipientLines || []), ""];
+      const nextKey = `extra:${nextLines.length - 1}`;
+      const currentOrder = recipientLineOrder.filter((key) =>
+        key.startsWith("extra:")
+          ? Number(key.slice(6)) < nextLines.length - 1
+          : true,
+      );
+
+      return {
+        ...prev,
+        extraRecipientLines: nextLines,
+        recipientLineOrder: [...currentOrder, nextKey],
+      };
+    });
+  };
+
+  const removeExtraRecipientLine = (index: number) => {
+    setCoverLetterData((prev) => {
+      const nextLines = (prev.extraRecipientLines || []).filter(
+        (_, i) => i !== index,
+      );
+      const nextOrder = recipientLineOrder
+        .map((key) => {
+          if (!key.startsWith("extra:")) return key;
+          const extraIndex = Number(key.slice(6));
+          if (extraIndex === index) return null;
+          return extraIndex > index ? `extra:${extraIndex - 1}` : key;
+        })
+        .filter((key): key is string => Boolean(key));
+
+      return {
+        ...prev,
+        extraRecipientLines: nextLines,
+        recipientLineOrder: nextOrder,
+      };
+    });
+  };
+
+  const moveExtraRecipientLine = (index: number, direction: -1 | 1) => {
+    const key = `extra:${index}`;
+    const currentIndex = recipientLineOrder.indexOf(key);
+    const targetIndex = currentIndex + direction;
+    if (
+      currentIndex === -1 ||
+      targetIndex < 0 ||
+      targetIndex >= recipientLineOrder.length
+    ) {
+      return;
+    }
+
+    const nextOrder = [...recipientLineOrder];
+    [nextOrder[currentIndex], nextOrder[targetIndex]] = [
+      nextOrder[targetIndex],
+      nextOrder[currentIndex],
+    ];
+    set("recipientLineOrder", nextOrder);
+  };
+
   return (
-    <div
-      className="cl-editor"
-      ref={containerRef}
-    >
+    <div className="cl-editor" ref={containerRef}>
       {/* ── Linked Resume Selector ── */}
       {isAuthenticated && resumeList.length > 0 && (
         <div className="cl-linked-resume">
@@ -327,22 +458,72 @@ const CoverLetterEditor = () => {
         className="cl-canvas-frame"
         style={{ height: scaledCanvasHeight, width: scaledCanvasWidth }}
       >
-      <div
-        className="cl-canvas"
-        style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
-      >
-        {/* ── Page 1: Structured letter ── */}
-        <div className="cv-page-wrapper">
-          <DocumentPage
-            className={`cl-page cl-style-${clStyle}`}
-            active
-            pageIndex={0}
-            style={{ ...clCssVars }}
-          >
-            {/* ── Header band (classic / executive variants) ── */}
-            {hasHeaderBand && (
-              <div className="cl-header-band">
-                <div className="cl-sender">
+        <div
+          className="cl-canvas"
+          style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
+        >
+          {/* ── Page 1: Structured letter ── */}
+          <div className="cv-page-wrapper">
+            <DocumentPage
+              className={`cl-page cl-style-${clStyle}`}
+              active
+              pageIndex={0}
+              style={{ ...clCssVars }}
+            >
+              {/* ── Header band (classic / executive variants) ── */}
+              {hasHeaderBand && (
+                <div className="cl-header-band">
+                  <div className="cl-sender">
+                    <EditableText
+                      value={d.name}
+                      onChange={(v) => set("name", v)}
+                      tag="span"
+                      className="cl-sender-name"
+                      placeholder={t("coverLetter.name")}
+                    />
+                    <EditableText
+                      value={d.street}
+                      onChange={(v) => set("street", v)}
+                      tag="span"
+                      className="cl-sender-line"
+                      placeholder={t("coverLetter.street")}
+                    />
+                    <EditableText
+                      value={d.city}
+                      onChange={(v) => set("city", v)}
+                      tag="span"
+                      className="cl-sender-line"
+                      placeholder={t("coverLetter.city")}
+                    />
+                    <div className="cl-sender-contact">
+                      <EditableText
+                        value={d.phone}
+                        onChange={(v) => set("phone", v)}
+                        tag="span"
+                        className="cl-sender-contact-item"
+                        placeholder={t("coverLetter.phone")}
+                      />
+                      <span className="cl-contact-sep">·</span>
+                      <EditableText
+                        value={d.email}
+                        onChange={(v) => set("email", v)}
+                        tag="span"
+                        className="cl-sender-contact-item"
+                        placeholder={t("coverLetter.email")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Gold accent rule (executive only) ── */}
+              {clStyle === "executive" && (
+                <div className="cl-header-accent-rule" />
+              )}
+
+              {/* ── Sender (shown inline for modern / standard) ── */}
+              {!hasHeaderBand && (
+                <div className="cl-sender cl-sender-inline">
                   <EditableText
                     value={d.name}
                     onChange={(v) => set("name", v)}
@@ -382,317 +563,344 @@ const CoverLetterEditor = () => {
                     />
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* ── Gold accent rule (executive only) ── */}
-            {clStyle === "executive" && (
-              <div className="cl-header-accent-rule" />
-            )}
+              {/* ── Recipient + place/date (two-column row) ── */}
+              <div className="cl-meta-row">
+                {/* Recipient — left */}
+                <div className="cl-recipient">
+                  {recipientLineOrder.map((key, displayIndex) => {
+                    if (key.startsWith("extra:")) {
+                      const index = Number(key.slice(6));
+                      const line = extraRecipientLines[index] || "";
 
-            {/* ── Absender (shown inline for modern / standard) ── */}
-            {!hasHeaderBand && (
-              <div className="cl-sender cl-sender-inline">
-                <EditableText
-                  value={d.name}
-                  onChange={(v) => set("name", v)}
-                  tag="span"
-                  className="cl-sender-name"
-                  placeholder={t("coverLetter.name")}
-                />
-                <EditableText
-                  value={d.street}
-                  onChange={(v) => set("street", v)}
-                  tag="span"
-                  className="cl-sender-line"
-                  placeholder={t("coverLetter.street")}
-                />
-                <EditableText
-                  value={d.city}
-                  onChange={(v) => set("city", v)}
-                  tag="span"
-                  className="cl-sender-line"
-                  placeholder={t("coverLetter.city")}
-                />
-                <div className="cl-sender-contact">
-                  <EditableText
-                    value={d.phone}
-                    onChange={(v) => set("phone", v)}
-                    tag="span"
-                    className="cl-sender-contact-item"
-                    placeholder={t("coverLetter.phone")}
-                  />
-                  <span className="cl-contact-sep">·</span>
-                  <EditableText
-                    value={d.email}
-                    onChange={(v) => set("email", v)}
-                    tag="span"
-                    className="cl-sender-contact-item"
-                    placeholder={t("coverLetter.email")}
-                  />
+                      return (
+                        <div
+                          className={`cl-extra-recipient-line${
+                            hasEditableText(line) ? "" : " cl-empty-on-print"
+                          }`}
+                          key={key}
+                        >
+                          <EditableText
+                            value={line}
+                            onChange={(v) => updateExtraRecipientLine(index, v)}
+                            tag="span"
+                            className="cl-recipient-line"
+                            placeholder={t("coverLetter.extraRecipientLine")}
+                          />
+                          <div className="cl-extra-recipient-controls hide-on-print">
+                            <button
+                              type="button"
+                              className="move-btn"
+                              aria-label={t(
+                                "coverLetter.moveExtraRecipientLineUp",
+                              )}
+                              title={t("coverLetter.moveExtraRecipientLineUp")}
+                              disabled={displayIndex === 0}
+                              onClick={() =>
+                                moveExtraRecipientLine(index, -1)
+                              }
+                            >
+                              <i
+                                className="fas fa-arrow-up"
+                                aria-hidden="true"
+                              />
+                            </button>
+                            <button
+                              type="button"
+                              className="move-btn"
+                              aria-label={t(
+                                "coverLetter.moveExtraRecipientLineDown",
+                              )}
+                              title={t(
+                                "coverLetter.moveExtraRecipientLineDown",
+                              )}
+                              disabled={
+                                displayIndex === recipientLineOrder.length - 1
+                              }
+                              onClick={() => moveExtraRecipientLine(index, 1)}
+                            >
+                              <i
+                                className="fas fa-arrow-down"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className="social-link-remove-field hide-on-print"
+                            aria-label={t(
+                              "coverLetter.removeExtraRecipientLine",
+                            )}
+                            title={t("coverLetter.removeExtraRecipientLine")}
+                            onClick={() => removeExtraRecipientLine(index)}
+                          >
+                            <i className="fas fa-times" aria-hidden="true" />
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    const field = BASE_RECIPIENT_FIELDS.find(
+                      (item) => item.key === key,
+                    );
+                    if (!field) return null;
+
+                    return (
+                      <EditableText
+                        key={field.key}
+                        value={d[field.key as BaseRecipientFieldKey]}
+                        onChange={(v) => set(field.key, v)}
+                        tag="span"
+                        className={`${field.className}${
+                          field.key === "recipientContact" &&
+                          !hasRecipientContact
+                            ? " cl-empty-on-print"
+                            : ""
+                        }`}
+                        placeholder={t(field.placeholderKey)}
+                      />
+                    );
+                  })}
+                  <button
+                    type="button"
+                    className="add-link-btn hide-on-print cl-add-recipient-line"
+                    title={t("coverLetter.addExtraRecipientLine")}
+                    aria-label={t("coverLetter.addExtraRecipientLine")}
+                    onClick={addExtraRecipientLine}
+                  >
+                    <i className="fas fa-plus" aria-hidden="true" />
+                  </button>
+                </div>
+
+                {/* Place, date — right */}
+                <div className="cl-place-date-wrapper">
+                  <button
+                    className="cl-today-btn"
+                    onClick={() => set("date", todayFormatted)}
+                    title={t("coverLetter.setToday")}
+                  >
+                    <i className="fas fa-calendar-check" />
+                    {t("coverLetter.today")}
+                  </button>
+                  <div className="cl-place-date">
+                    <EditableText
+                      value={d.place}
+                      onChange={(v) => set("place", v)}
+                      tag="span"
+                      className="cl-place"
+                      placeholder={t("coverLetter.place")}
+                    />
+                    <span className="cl-date-comma">, </span>
+                    <EditableText
+                      value={d.date}
+                      onChange={(v) => set("date", v)}
+                      tag="span"
+                      className="cl-date"
+                      placeholder={t("coverLetter.date")}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* ── Empfänger + Ort/Datum (two-column row) ── */}
-            <div className="cl-meta-row">
-              {/* Empfänger — left */}
-              <div className="cl-recipient">
+              {/* ── Subject ── */}
+              <div className="cl-subject-row">
                 <EditableText
-                  value={d.recipientCompany}
-                  onChange={(v) => set("recipientCompany", v)}
+                  value={d.subject}
+                  onChange={(v) => set("subject", v)}
                   tag="span"
-                  className="cl-empf-line cl-empf-company"
-                  placeholder={t("coverLetter.recipientCompany")}
-                />
-                <EditableText
-                  value={d.recipientContact}
-                  onChange={(v) => set("recipientContact", v)}
-                  tag="span"
-                  className="cl-empf-line cl-recipient-contact"
-                  placeholder={t("coverLetter.recipientContact")}
-                />
-                <EditableText
-                  value={d.recipientStreet}
-                  onChange={(v) => set("recipientStreet", v)}
-                  tag="span"
-                  className="cl-empf-line"
-                  placeholder={t("coverLetter.recipientStreet")}
-                />
-                <EditableText
-                  value={d.recipientCity}
-                  onChange={(v) => set("recipientCity", v)}
-                  tag="span"
-                  className="cl-empf-line"
-                  placeholder={t("coverLetter.recipientCity")}
+                  className="cl-subject"
+                  placeholder={t("coverLetter.subject")}
                 />
               </div>
 
-              {/* Ort, Datum — right */}
-              <div className="cl-place-date-wrapper">
-                <button
-                  className="cl-today-btn"
-                  onClick={() => set("date", todayFormatted)}
-                  title={t("coverLetter.setToday")}
-                >
-                  <i className="fas fa-calendar-check" />
-                  {t("coverLetter.today")}
-                </button>
-                <div className="cl-place-date">
-                  <EditableText
-                    value={d.place}
-                    onChange={(v) => set("place", v)}
-                    tag="span"
-                    className="cl-place"
-                    placeholder={t("coverLetter.place")}
-                  />
-                  <span className="cl-date-comma">, </span>
-                  <EditableText
-                    value={d.date || todayFormatted}
-                    onChange={(v) => set("date", v)}
-                    tag="span"
-                    className="cl-date"
-                    placeholder={t("coverLetter.date")}
-                  />
-                </div>
+              {/* ── Salutation ── */}
+              <div className="cl-salutation-row">
+                <EditableText
+                  value={d.salutation}
+                  onChange={(v) => set("salutation", v)}
+                  tag="span"
+                  className="cl-salutation"
+                  placeholder={t("coverLetter.salutation")}
+                />
               </div>
-            </div>
 
-            {/* ── Betreff ── */}
-            <div className="cl-subject-row">
-              <EditableText
-                value={d.subject}
-                onChange={(v) => set("subject", v)}
-                tag="span"
-                className="cl-subject"
-                placeholder={t("coverLetter.subject")}
-              />
-            </div>
+              {/* ── Letter body ── */}
+              <div className="cl-body-row">
+                <EditableText
+                  value={d.body}
+                  onChange={(v) => set("body", v)}
+                  tag="div"
+                  className="cl-body"
+                  placeholder={t("coverLetter.body")}
+                />
+              </div>
 
-            {/* ── Anrede ── */}
-            <div className="cl-salutation-row">
-              <EditableText
-                value={d.salutation}
-                onChange={(v) => set("salutation", v)}
-                tag="span"
-                className="cl-salutation"
-                placeholder={t("coverLetter.salutation")}
-              />
-            </div>
+              {/* ── Closing ── */}
+              <div className="cl-closing-row">
+                <EditableText
+                  value={d.closing}
+                  onChange={(v) => set("closing", v)}
+                  tag="span"
+                  className="cl-closing"
+                  placeholder={t("coverLetter.closing")}
+                />
+              </div>
 
-            {/* ── Brieftext ── */}
-            <div className="cl-body-row">
-              <EditableText
-                value={d.body}
-                onChange={(v) => set("body", v)}
-                tag="div"
-                className="cl-body"
-                placeholder={t("coverLetter.body")}
-              />
-            </div>
-
-            {/* ── Grußformel ── */}
-            <div className="cl-closing-row">
-              <EditableText
-                value={d.closing}
-                onChange={(v) => set("closing", v)}
-                tag="span"
-                className="cl-closing"
-                placeholder={t("coverLetter.closing")}
-              />
-            </div>
-
-            {/* ── Unterschrift ── */}
-            <div className="cl-signature-row">
-              {/* Signature image / draw / upload area */}
-              <div className="cl-sig-area">
-                {d.signatureImage ? (
-                  <div className="cl-sig-preview">
-                    <div className="cl-sig-image-wrap">
-                      <img
-                        src={d.signatureImage}
-                        alt="Signature"
-                        className="cl-sig-img"
-                        style={
-                          {
-                            "--cl-signature-image-height": `${signatureImageSize}px`,
-                          } as React.CSSProperties
-                        }
+              {/* ── Signature ── */}
+              <div className="cl-signature-row">
+                {/* Signature image / draw / upload area */}
+                <div className="cl-sig-area">
+                  {d.signatureImage ? (
+                    <div className="cl-sig-preview">
+                      <div className="cl-sig-image-wrap">
+                        <img
+                          src={d.signatureImage}
+                          alt="Signature"
+                          className="cl-sig-img"
+                          style={
+                            {
+                              "--cl-signature-image-height": `${signatureImageSize}px`,
+                            } as React.CSSProperties
+                          }
+                        />
+                        <button
+                          className="cl-sig-remove"
+                          onClick={() => set("signatureImage", null)}
+                          title={t("buttons.delete")}
+                        >
+                          <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 10 10"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M1 1L9 9M9 1L1 9"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        className="cl-sig-resize"
+                        onPointerDown={startSignatureResize}
+                        title={t("coverLetter.signatureSize")}
+                        aria-label={t("coverLetter.signatureSize")}
+                      />
+                    </div>
+                  ) : drawMode ? (
+                    <div className="cl-sig-draw-wrapper">
+                      <canvas
+                        ref={canvasRef}
+                        className="cl-sig-canvas"
+                        width={400}
+                        height={110}
+                        onMouseDown={startDraw}
+                        onMouseMove={draw}
+                        onMouseUp={endDraw}
+                        onMouseLeave={endDraw}
+                        onTouchStart={startDraw}
+                        onTouchMove={draw}
+                        onTouchEnd={endDraw}
+                      />
+                      <div className="cl-sig-draw-actions">
+                        <button
+                          className="cl-sig-btn-ghost"
+                          onClick={clearCanvas}
+                        >
+                          <i className="fas fa-redo" />{" "}
+                          {t("coverLetter.sigClear")}
+                        </button>
+                        <button
+                          className="cl-sig-btn-primary"
+                          onClick={saveSignature}
+                        >
+                          <i className="fas fa-check" />{" "}
+                          {t("coverLetter.sigSave")}
+                        </button>
+                        <button
+                          className="cl-sig-btn-ghost"
+                          onClick={() => setDrawMode(false)}
+                        >
+                          {t("common.cancel")}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="cl-sig-controls">
+                      <label
+                        className="cl-sig-btn-secondary"
+                        htmlFor="cl-sig-file"
+                      >
+                        <i className="fas fa-upload" />{" "}
+                        {t("coverLetter.sigUpload")}
+                      </label>
+                      <input
+                        id="cl-sig-file"
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        style={{ display: "none" }}
+                        onChange={handleSigUpload}
                       />
                       <button
-                        className="cl-sig-remove"
-                        onClick={() => set("signatureImage", null)}
-                        title={t("buttons.delete")}
+                        className="cl-sig-btn-secondary"
+                        onClick={() => setDrawMode(true)}
                       >
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 10 10"
-                          fill="none"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M1 1L9 9M9 1L1 9"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
+                        <i className="fas fa-pen-nib" />{" "}
+                        {t("coverLetter.sigDraw")}
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      className="cl-sig-resize"
-                      onPointerDown={startSignatureResize}
-                      title={t("coverLetter.signatureSize")}
-                      aria-label={t("coverLetter.signatureSize")}
-                    />
-                  </div>
-                ) : drawMode ? (
-                  <div className="cl-sig-draw-wrapper">
-                    <canvas
-                      ref={canvasRef}
-                      className="cl-sig-canvas"
-                      width={400}
-                      height={110}
-                      onMouseDown={startDraw}
-                      onMouseMove={draw}
-                      onMouseUp={endDraw}
-                      onMouseLeave={endDraw}
-                      onTouchStart={startDraw}
-                      onTouchMove={draw}
-                      onTouchEnd={endDraw}
-                    />
-                    <div className="cl-sig-draw-actions">
-                      <button
-                        className="cl-sig-btn-ghost"
-                        onClick={clearCanvas}
-                      >
-                        <i className="fas fa-redo" />{" "}
-                        {t("coverLetter.sigClear")}
-                      </button>
-                      <button
-                        className="cl-sig-btn-primary"
-                        onClick={saveSignature}
-                      >
-                        <i className="fas fa-check" />{" "}
-                        {t("coverLetter.sigSave")}
-                      </button>
-                      <button
-                        className="cl-sig-btn-ghost"
-                        onClick={() => setDrawMode(false)}
-                      >
-                        {t("common.cancel")}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="cl-sig-controls">
-                    <label
-                      className="cl-sig-btn-secondary"
-                      htmlFor="cl-sig-file"
-                    >
-                      <i className="fas fa-upload" />{" "}
-                      {t("coverLetter.sigUpload")}
-                    </label>
-                    <input
-                      id="cl-sig-file"
-                      type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      style={{ display: "none" }}
-                      onChange={handleSigUpload}
-                    />
-                    <button
-                      className="cl-sig-btn-secondary"
-                      onClick={() => setDrawMode(true)}
-                    >
-                      <i className="fas fa-pen-nib" />{" "}
-                      {t("coverLetter.sigDraw")}
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <EditableText
+                  value={d.signature}
+                  onChange={(v) => set("signature", v)}
+                  tag="span"
+                  className="cl-signature"
+                  placeholder={t("coverLetter.signature")}
+                />
               </div>
-
-              <EditableText
-                value={d.signature}
-                onChange={(v) => set("signature", v)}
-                tag="span"
-                className="cl-signature"
-                placeholder={t("coverLetter.signature")}
-              />
-            </div>
-          </DocumentPage>
-        </div>
-
-        {/* ── Pages 2+: Continuation sheets ── */}
-        {pages.slice(1).map((page, i) => (
-          <div key={page.id} className="cv-page-wrapper">
-            <DocumentPage
-              className="cl-page cl-continuation-page"
-              pageIndex={i + 1}
-              style={{ ...clCssVars }}
-            >
-              <div
-                contentEditable
-                suppressContentEditableWarning
-                className="cl-body"
-                style={{ minHeight: PAGE_CONFIG.height - 133, outline: "none" }}
-                onInput={(e) => {
-                  const html = e.currentTarget.innerHTML;
-                  set("extraPages", [
-                    ...(d.extraPages || []).slice(0, i),
-                    html,
-                    ...(d.extraPages || []).slice(i + 1),
-                  ]);
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: (d.extraPages || [])[i] || "",
-                }}
-              />
             </DocumentPage>
           </div>
-        ))}
-      </div>
+
+          {/* ── Pages 2+: Continuation sheets ── */}
+          {pages.slice(1).map((page, i) => (
+            <div key={page.id} className="cv-page-wrapper">
+              <DocumentPage
+                className="cl-page cl-continuation-page"
+                pageIndex={i + 1}
+                style={{ ...clCssVars }}
+              >
+                <div
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="cl-body"
+                  style={{
+                    minHeight: PAGE_CONFIG.height - 133,
+                    outline: "none",
+                  }}
+                  onInput={(e) => {
+                    const html = e.currentTarget.innerHTML;
+                    set("extraPages", [
+                      ...(d.extraPages || []).slice(0, i),
+                      html,
+                      ...(d.extraPages || []).slice(i + 1),
+                    ]);
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: (d.extraPages || [])[i] || "",
+                  }}
+                />
+              </DocumentPage>
+            </div>
+          ))}
+        </div>
       </div>
 
       <PageControls onRemovePage={handleRemovePage} />

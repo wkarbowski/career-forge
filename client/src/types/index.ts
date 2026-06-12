@@ -120,6 +120,8 @@ export interface CoverLetterData {
   recipientContact: string;
   recipientStreet: string;
   recipientCity: string;
+  extraRecipientLines?: string[];
+  recipientLineOrder?: string[];
   subject: string;
   salutation: string;
   body: string;
