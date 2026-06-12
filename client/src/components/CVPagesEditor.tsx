@@ -1,16 +1,15 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { usePages, PAGE_CONFIG } from '../contexts/PageContext';
-import Sidebar from './Sidebar/Sidebar';
-import MainContent from './MainContent/MainContent';
-import PageControls from './PageControls';
-import DocumentPage from './DocumentPage';
-import { useAppState } from '../contexts/AppStateContext';
-import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../i18n';
-import { documentApi } from '../services/api';
-import type { Page } from '../types';
-import './CVPagesEditor.css';
-
+import React, { useRef, useEffect, useCallback, useState } from "react";
+import { usePages, PAGE_CONFIG } from "../contexts/PageContext";
+import Sidebar from "./Sidebar/Sidebar";
+import MainContent from "./MainContent/MainContent";
+import PageControls from "./PageControls";
+import DocumentPage from "./DocumentPage";
+import { useAppState } from "../contexts/AppStateContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useTranslation } from "../i18n";
+import { documentApi } from "../services/api";
+import type { Page } from "../types";
+import "./CVPagesEditor.css";
 
 interface CVPagesEditorProps {
   profileImage?: string | null;
@@ -18,32 +17,65 @@ interface CVPagesEditorProps {
   onImageRemove?: () => void;
 }
 
-const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUpload, onImageRemove }) => {
-  const { zoom, setZoom, pages: contextPages, setPages, viewMode, registerPageRef, setMinPages, userForcedMaxRef } = usePages();
+const CVPagesEditor: React.FC<CVPagesEditorProps> = ({
+  profileImage,
+  onImageUpload,
+  onImageRemove,
+}) => {
+  const {
+    zoom,
+    setZoom,
+    pages: contextPages,
+    setPages,
+    viewMode,
+    registerPageRef,
+    setMinPages,
+    userForcedMaxRef,
+  } = usePages();
   const { settings } = useAppState();
-  const { isAuthenticated, currentDocumentId, documentList, refreshDocumentList } = useAuth();
+  const {
+    isAuthenticated,
+    currentDocumentId,
+    documentList,
+    refreshDocumentList,
+  } = useAuth();
   const { t } = useTranslation();
   const [showMobileWarning, setShowMobileWarning] = useState(false);
-  const [linkingCoverId, setLinkingCoverId] = useState('');  // selected in dropdown
-  const [linkBusy, setLinkBusy] = useState(false);           // async lock
+  const [linkingCoverId, setLinkingCoverId] = useState(""); // selected in dropdown
+  const [linkBusy, setLinkBusy] = useState(false); // async lock
   // Defensive: ensure profileImage is string or null
-  const safeProfileImage = typeof profileImage === 'string' ? profileImage : null;
+  const safeProfileImage =
+    typeof profileImage === "string" ? profileImage : null;
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pageCount = contextPages.length;
 
   const linkedCoverLetters = React.useMemo(() => {
-    if (!isAuthenticated || !currentDocumentId || currentDocumentId === 'template') return [];
+    if (
+      !isAuthenticated ||
+      !currentDocumentId ||
+      currentDocumentId === "template"
+    )
+      return [];
     return (documentList || []).filter((doc) => {
-      if (doc.document_type !== 'cover_letter') return false;
-      return doc.linked_resume_id != null && doc.linked_resume_id === currentDocumentId;
+      if (doc.document_type !== "cover_letter") return false;
+      return (
+        doc.linked_resume_id != null &&
+        doc.linked_resume_id === currentDocumentId
+      );
     });
   }, [currentDocumentId, documentList, isAuthenticated]);
 
   const unlinkedCoverLetters = React.useMemo(() => {
-    if (!isAuthenticated || !currentDocumentId || currentDocumentId === 'template') return [];
+    if (
+      !isAuthenticated ||
+      !currentDocumentId ||
+      currentDocumentId === "template"
+    )
+      return [];
     return (documentList || []).filter(
-      (doc) => doc.document_type === 'cover_letter' && doc.linked_resume_id == null
+      (doc) =>
+        doc.document_type === "cover_letter" && doc.linked_resume_id == null,
     );
   }, [currentDocumentId, documentList, isAuthenticated]);
 
@@ -52,11 +84,14 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     if (!linkingCoverId || linkBusy) return;
     setLinkBusy(true);
     try {
-      await documentApi.linkToResume(linkingCoverId, String(currentDocumentId!));
+      await documentApi.linkToResume(
+        linkingCoverId,
+        String(currentDocumentId!),
+      );
       await refreshDocumentList();
-      setLinkingCoverId('');
+      setLinkingCoverId("");
     } catch (err) {
-      console.error('Failed to link cover letter:', err);
+      console.error("Failed to link cover letter:", err);
     } finally {
       setLinkBusy(false);
     }
@@ -70,7 +105,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
       await documentApi.unlinkFromResume(String(coverLetterId));
       await refreshDocumentList();
     } catch (err) {
-      console.error('Failed to unlink cover letter:', err);
+      console.error("Failed to unlink cover letter:", err);
     } finally {
       setLinkBusy(false);
     }
@@ -84,11 +119,11 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     const marginBottom = PAGE_CONFIG.marginBottom;
 
     const breakableElements = contentRef.current.querySelectorAll(
-      '.section, .experience-item, .sidebar-section, .education-item, h2, h3'
+      ".section, .experience-item, .sidebar-section, .education-item, h2, h3",
     );
 
     breakableElements.forEach((el: Element) => {
-      (el as HTMLElement).style.paddingTop = '';
+      (el as HTMLElement).style.paddingTop = "";
     });
 
     breakableElements.forEach((el: Element) => {
@@ -102,7 +137,8 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
       const elementBottom = relativeTop + rect.height;
       if (elementBottom > pageEndY && relativeTop < pageEndY) {
         const pushPadding = pageEndY - relativeTop + marginTop;
-        if (pushPadding < pageHeight / 2) { // Only push if less than half a page
+        if (pushPadding < pageHeight / 2) {
+          // Only push if less than half a page
           (el as HTMLElement).style.paddingTop = `${pushPadding}px`;
         }
       }
@@ -125,7 +161,7 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     // Only ever grow pages — but respect explicit user deletions.
     // If the user deleted a page, don't auto-restore it unless content truly
     // overflows beyond what fits in the user's chosen count.
-    setPages(prev => {
+    setPages((prev) => {
       if (prev.length >= measured) return prev;
       // User explicitly set a smaller page count — hold it until content overflows
       if (userForcedMaxRef.current !== null) {
@@ -133,7 +169,10 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
         // Content genuinely overflowed the user's count — release the lock
         userForcedMaxRef.current = null;
       }
-      return Array.from({ length: measured }, (_, i) => ({ id: `page-${Date.now()}-${i + 1}`, pageNumber: i + 1 })) as Page[];
+      return Array.from({ length: measured }, (_, i) => ({
+        id: `page-${Date.now()}-${i + 1}`,
+        pageNumber: i + 1,
+      })) as Page[];
     });
 
     applyPageBreaks();
@@ -175,55 +214,59 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
       const delta = e.deltaY;
       const step = 0.1;
       if (delta < 0) {
-        setZoom(prev => Math.min(prev + step, 2));
+        setZoom((prev) => Math.min(prev + step, 2));
       } else if (delta > 0) {
-        setZoom(prev => Math.max(prev - step, 0.5));
+        setZoom((prev) => Math.max(prev - step, 0.5));
       }
     };
 
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, [setZoom]);
 
   // Mobile warning
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
+    const mq = window.matchMedia("(max-width: 768px)");
     setShowMobileWarning(mq.matches);
     const handler = (e: MediaQueryListEvent) => setShowMobileWarning(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   const pages = contextPages.map((_, i) => i);
 
   const totalContentHeight = pageCount * PAGE_CONFIG.height;
 
-  const layout = settings?.layout || 'sidebar-left';
+  const layout = settings?.layout || "sidebar-left";
   const layoutClass = `layout-${layout}`;
 
   const GAP = 40;
-  const canvasNaturalHeight = pageCount * PAGE_CONFIG.height + Math.max(0, pageCount - 1) * GAP;
+  const canvasNaturalHeight =
+    pageCount * PAGE_CONFIG.height + Math.max(0, pageCount - 1) * GAP;
   const scaledCanvasHeight = Math.ceil(canvasNaturalHeight * zoom);
   const scaledCanvasWidth = Math.ceil(PAGE_CONFIG.width * zoom);
 
   const cssVarsStyle = {
-    '--name-font': `'${settings?.nameFont || settings?.titleFont || 'Rubik'}', sans-serif`,
-    '--name-font-size': `${settings?.nameFontSize ?? 36}px`,
-    '--heading-font': `'${settings?.headingFont || settings?.titleFont || 'Rubik'}', sans-serif`,
-    '--heading-font-size': `${settings?.headingFontSize ?? 14}px`,
-    '--subtitle-font': `'${settings?.subtitleFont || 'Rubik'}', sans-serif`,
-    '--subtitle-font-size': `${settings?.subtitleFontSize ?? 14}px`,
-    '--body-font': `'${settings?.bodyFont || 'Inter'}', sans-serif`,
-    '--body-font-size': `${settings?.bodyFontSize ?? 13}px`,
-    '--sidebar-color-1': settings?.sidebarColor1 || '#312e81',
-    '--sidebar-color-2': settings?.sidebarColor2 || '#4f46e5',
-    '--accent-color': settings?.accentColor || '#6366f1',
+    "--name-font": `'${settings?.nameFont || settings?.titleFont || "Rubik"}', sans-serif`,
+    "--name-font-size": `${settings?.nameFontSize ?? 36}px`,
+    "--heading-font": `'${settings?.headingFont || settings?.titleFont || "Rubik"}', sans-serif`,
+    "--heading-font-size": `${settings?.headingFontSize ?? 14}px`,
+    "--subtitle-font": `'${settings?.subtitleFont || "Rubik"}', sans-serif`,
+    "--subtitle-font-size": `${settings?.subtitleFontSize ?? 14}px`,
+    "--body-font": `'${settings?.bodyFont || "Inter"}', sans-serif`,
+    "--body-font-size": `${settings?.bodyFontSize ?? 13}px`,
+    "--sidebar-color-1": settings?.sidebarColor1 || "#312e81",
+    "--sidebar-color-2": settings?.sidebarColor2 || "#4f46e5",
+    "--accent-color": settings?.accentColor || "#6366f1",
   } as React.CSSProperties;
 
   const renderLayout = (heightStyle: number | null) => {
-    if (layout === 'top-header') {
+    if (layout === "top-header") {
       return (
-        <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+        <div
+          className="cv-page-layout"
+          style={heightStyle ? { height: heightStyle } : undefined}
+        >
           <div className="cv-page-top-header-band">
             <MainContent showHeader={true} headerOnly={true} pageIndex={0} />
           </div>
@@ -252,9 +295,12 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
       );
     }
 
-    if (layout === 'minimal') {
+    if (layout === "minimal") {
       return (
-        <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+        <div
+          className="cv-page-layout"
+          style={heightStyle ? { height: heightStyle } : undefined}
+        >
           <div className="cv-page-minimal-header">
             <MainContent showHeader={true} headerOnly={true} pageIndex={0} />
           </div>
@@ -284,13 +330,21 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
     }
 
     // ATS-optimized single-column layout — no sidebar, everything stacked
-    if (layout === 'ats-single-column') {
+    if (layout === "ats-single-column") {
       return (
-        <div className="cv-page-layout cv-page-ats-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+        <div
+          className="cv-page-layout cv-page-ats-layout"
+          style={heightStyle ? { height: heightStyle } : undefined}
+        >
           <div className="cv-page-ats-header">
             <MainContent showHeader={true} headerOnly={true} pageIndex={0} />
           </div>
-          <div className="cv-page-ats-body" style={{ padding: `20px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px ${PAGE_CONFIG.marginLeft || 40}px` }}>
+          <div
+            className="cv-page-ats-body"
+            style={{
+              padding: `20px ${PAGE_CONFIG.marginRight}px ${PAGE_CONFIG.marginBottom}px ${PAGE_CONFIG.marginLeft || 40}px`,
+            }}
+          >
             <Sidebar
               profileImage={safeProfileImage}
               onImageUpload={onImageUpload}
@@ -304,7 +358,10 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
 
     // sidebar-left (default) and sidebar-right share the same structure
     return (
-      <div className="cv-page-layout" style={heightStyle ? { height: heightStyle } : undefined}>
+      <div
+        className="cv-page-layout"
+        style={heightStyle ? { height: heightStyle } : undefined}
+      >
         <div
           className="cv-page-sidebar"
           style={heightStyle ? { height: heightStyle } : undefined}
@@ -329,94 +386,109 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
   };
 
   return (
-    <div
-      className={`cv-pages-editor view-${viewMode}`}
-      ref={containerRef}
-    >
+    <div className={`cv-pages-editor view-${viewMode}`} ref={containerRef}>
       {showMobileWarning && (
         <div className="mobile-warning-overlay">
           <div className="mobile-warning-content">
             <i className="fas fa-desktop"></i>
-            <p>{t('mobile.warning')}</p>
-            <button onClick={() => setShowMobileWarning(false)} className="mobile-warning-dismiss">
-              {t('mobile.continue')}
+            <p>{t("mobile.warning")}</p>
+            <button
+              onClick={() => setShowMobileWarning(false)}
+              className="mobile-warning-dismiss"
+            >
+              {t("mobile.continue")}
             </button>
           </div>
         </div>
       )}
-      {isAuthenticated && currentDocumentId && currentDocumentId !== 'template' && (
-        <div className="cv-linked-cover-letters">
-          <div className="cv-linked-cover-letters-header">
-            <i className="fas fa-link"></i>
-            <span>{t('coverLetterLink.linkedCoverLetters')}</span>
-          </div>
-
-          {/* Linked chips with remove buttons */}
-          {linkedCoverLetters.length > 0 && (
-            <div className="cv-linked-cover-letters-list">
-              {linkedCoverLetters.map((doc) => (
-                <span key={doc.id} className="cv-linked-cover-letter-chip">
-                  {doc.title}
-                  <button
-                    className="cv-linked-chip-remove"
-                    onClick={() => handleUnlink(doc.id)}
-                    disabled={linkBusy}
-                    title={t('coverLetterLink.unlink')}
-                    aria-label={t('coverLetterLink.unlink')}
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </span>
-              ))}
+      {isAuthenticated &&
+        currentDocumentId &&
+        currentDocumentId !== "template" && (
+          <div className="cv-linked-cover-letters">
+            <div className="cv-linked-cover-letters-header">
+              <i className="fas fa-link"></i>
+              <span>{t("coverLetterLink.linkedCoverLetters")}</span>
             </div>
-          )}
 
-          {/* Add-link row */}
-          {unlinkedCoverLetters.length > 0 ? (
-            <div className="cv-linked-add-row">
-              <select
-                className="cv-linked-add-select"
-                value={linkingCoverId}
-                onChange={(e) => setLinkingCoverId(e.target.value)}
-                disabled={linkBusy}
-              >
-                <option value="">{t('coverLetterLink.selectCoverLetter')}</option>
-                {unlinkedCoverLetters.map((doc) => (
-                  <option key={doc.id} value={doc.id}>{doc.title}</option>
+            {/* Linked chips with remove buttons */}
+            {linkedCoverLetters.length > 0 && (
+              <div className="cv-linked-cover-letters-list">
+                {linkedCoverLetters.map((doc) => (
+                  <span key={doc.id} className="cv-linked-cover-letter-chip">
+                    {doc.title}
+                    <button
+                      className="cv-linked-chip-remove"
+                      onClick={() => handleUnlink(doc.id)}
+                      disabled={linkBusy}
+                      title={t("coverLetterLink.unlink")}
+                      aria-label={t("coverLetterLink.unlink")}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </span>
                 ))}
-              </select>
-              <button
-                className="cv-linked-add-btn"
-                onClick={handleLink}
-                disabled={!linkingCoverId || linkBusy}
-              >
-                {linkBusy
-                  ? <i className="fas fa-spinner fa-spin"></i>
-                  : <><i className="fas fa-plus"></i> {t('coverLetterLink.link')}</>}
-              </button>
-            </div>
-          ) : linkedCoverLetters.length === 0 && (
-            <p className="cv-linked-cover-letters-empty">{t('coverLetterLink.noLinkedCoverLetters')}</p>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+
+            {/* Add-link row */}
+            {unlinkedCoverLetters.length > 0 ? (
+              <div className="cv-linked-add-row">
+                <select
+                  className="cv-linked-add-select"
+                  value={linkingCoverId}
+                  onChange={(e) => setLinkingCoverId(e.target.value)}
+                  disabled={linkBusy}
+                >
+                  <option value="">
+                    {t("coverLetterLink.selectCoverLetter")}
+                  </option>
+                  {unlinkedCoverLetters.map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      {doc.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="cv-linked-add-btn"
+                  onClick={handleLink}
+                  disabled={!linkingCoverId || linkBusy}
+                >
+                  {linkBusy ? (
+                    <i className="fas fa-spinner fa-spin"></i>
+                  ) : (
+                    <>
+                      <i className="fas fa-plus"></i>{" "}
+                      {t("coverLetterLink.link")}
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              linkedCoverLetters.length === 0 && (
+                <p className="cv-linked-cover-letters-empty">
+                  {t("coverLetterLink.noLinkedCoverLetters")}
+                </p>
+              )
+            )}
+          </div>
+        )}
       <div
         className="cv-pages-editor-canvas-frame"
         style={{ height: scaledCanvasHeight, width: scaledCanvasWidth }}
       >
         <div
           className="cv-pages-editor-canvas"
-          style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+          style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
         >
           {/* Hidden content measurer */}
           <div
             ref={contentRef}
             className={`cv-content-measurer ${layoutClass}`}
             style={{
-              position: 'absolute',
-              visibility: 'hidden',
+              position: "absolute",
+              visibility: "hidden",
               width: PAGE_CONFIG.width,
-              pointerEvents: 'none',
+              pointerEvents: "none",
               ...cssVarsStyle,
             }}
           >
@@ -428,37 +500,37 @@ const CVPagesEditor: React.FC<CVPagesEditorProps> = ({ profileImage, onImageUplo
             <div key={pageIndex} className="cv-page-wrapper">
               <DocumentPage
                 ref={(el) => registerPageRef(pageIndex, el)}
-                className={`cv-page ${layoutClass} ${pageIndex === 0 ? 'cv-page-active' : ''}`}
+                className={`cv-page ${layoutClass} ${pageIndex === 0 ? "cv-page-active" : ""}`}
                 active={pageIndex === 0}
                 pageIndex={pageIndex}
                 style={{
                   ...cssVarsStyle,
                 }}
               >
-              {/* Page number badge */}
-              <div className="cv-page-number-badge">
-                {pageIndex + 1} / {pageCount}
-              </div>
+                {/* Page number badge */}
+                <div className="cv-page-number-badge">
+                  {pageIndex + 1} / {pageCount}
+                </div>
 
-              {/* Clipped viewport - clips content to this page's portion */}
-              <div
-                className="cv-page-viewport"
-                style={{
-                  overflow: 'hidden',
-                  height: PAGE_CONFIG.height,
-                  width: PAGE_CONFIG.width,
-                }}
-              >
-                {/* Content offset - shifts content up so this page's portion is visible */}
+                {/* Clipped viewport - clips content to this page's portion */}
                 <div
-                  className="cv-page-content-offset"
+                  className="cv-page-viewport"
                   style={{
-                    transform: `translateY(-${pageIndex * PAGE_CONFIG.height}px)`,
+                    overflow: "hidden",
+                    height: PAGE_CONFIG.height,
+                    width: PAGE_CONFIG.width,
                   }}
                 >
-                  {renderLayout(totalContentHeight)}
+                  {/* Content offset - shifts content up so this page's portion is visible */}
+                  <div
+                    className="cv-page-content-offset"
+                    style={{
+                      transform: `translateY(-${pageIndex * PAGE_CONFIG.height}px)`,
+                    }}
+                  >
+                    {renderLayout(totalContentHeight)}
+                  </div>
                 </div>
-              </div>
               </DocumentPage>
             </div>
           ))}
