@@ -358,7 +358,7 @@ const MainContent = ({
 
           {/* Education Section */}
           {_visibleSections.education && (
-            <div className="section">
+            <div className="section education-section">
               <h2 className="section-title">{t("sections.education")}</h2>
               {educationArr.map((edu: Education) => (
                 <div key={edu.id} className="experience-item education-degree">

@@ -1010,7 +1010,20 @@ select option {
 .experience-item {
   margin-bottom: 15px;
   position: relative;
-  padding-top: 20px;
+  padding-top: 0px;
+}
+
+.education-degree {
+  margin-bottom: calc(var(--body-font-size, 13px) * 0.7);
+  padding-top: calc(var(--body-font-size, 13px) * 0.45);
+}
+
+.education-degree .experience-header {
+  margin-bottom: 0;
+}
+
+.education-degree .experience-bottom {
+  margin-top: calc(var(--body-font-size, 13px) * 0.15);
 }
 
 .experience-header {
@@ -1281,6 +1294,16 @@ select option {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+.main-content .education-section:focus-within:not(:hover) > .add-btn {
+  max-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
 }
 
 .sidebar-section > .add-btn i {
