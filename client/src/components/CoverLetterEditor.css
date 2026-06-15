@@ -267,15 +267,15 @@
   color: var(--cl-text-color);
 }
 
-.cl-page .cl-sender-name *,
-.cl-page .cl-sender-line *,
-.cl-page .cl-sender-contact-item *,
-.cl-page .cl-recipient-contact *,
-.cl-page .cl-recipient-line *,
-.cl-page .cl-place *,
-.cl-page .cl-date *,
-.cl-page .cl-subject *,
-.cl-page .cl-salutation * {
+.cl-page .cl-sender-name *:not([style*="background"]),
+.cl-page .cl-sender-line *:not([style*="background"]),
+.cl-page .cl-sender-contact-item *:not([style*="background"]),
+.cl-page .cl-recipient-contact *:not([style*="background"]),
+.cl-page .cl-recipient-line *:not([style*="background"]),
+.cl-page .cl-place *:not([style*="background"]),
+.cl-page .cl-date *:not([style*="background"]),
+.cl-page .cl-subject *:not([style*="background"]),
+.cl-page .cl-salutation *:not([style*="background"]) {
   background: transparent !important;
   background-color: transparent !important;
 }

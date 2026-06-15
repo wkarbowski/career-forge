@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import DOMPurify from "dompurify";
+import React, { useRef, useEffect, useCallback } from "react";
+import { sanitizeEditableHtml } from "../utils/editableHtml";
 
 type EditableTag =
   | "span"
@@ -22,59 +22,9 @@ interface EditableTextProps {
   autoFocus?: boolean;
 }
 
-const DOMPURIFY_CONFIG = {
-  ALLOWED_TAGS: [
-    "b",
-    "i",
-    "u",
-    "strong",
-    "em",
-    "br",
-    "p",
-    "ul",
-    "ol",
-    "li",
-    "a",
-    "s",
-    "strike",
-    "del",
-  ],
-  ALLOWED_ATTR: ["href", "target", "rel"],
-  FORBID_ATTR: ["onerror", "onclick", "onload", "onmouseover"],
-  ALLOW_DATA_ATTR: false,
-  FORCE_BODY: true,
+type EditableCommitElement = HTMLElement & {
+  __careerForgeCommit?: () => void;
 };
-
-// Whitelist CSS properties that the text toolbar may apply.
-// DOMPurify strips all inline styles unless we explicitly allow them.
-const ALLOWED_CSS: string[] = [];
-
-// Convert <font color="..."> (produced by execCommand('foreColor'))
-// into <span style="color: ..."> before DOMPurify strips the <font> tag.
-DOMPurify.addHook("uponSanitizeElement", (node, data) => {
-  if (data.tagName === "font" && (node as Element).getAttribute?.("color")) {
-    const color = (node as Element).getAttribute("color");
-    const span = document.createElement("span");
-    span.style.color = color ?? "";
-    while (node.firstChild) span.appendChild(node.firstChild);
-    node.parentNode?.replaceChild(span, node);
-  }
-});
-
-DOMPurify.addHook("uponSanitizeAttribute", (_node, data) => {
-  if (data.attrName === "style" && data.attrValue) {
-    const cleaned = data.attrValue
-      .split(";")
-      .map((d) => d.trim())
-      .filter((d) => {
-        const prop = d.split(":")[0]?.trim().toLowerCase();
-        return prop && ALLOWED_CSS.includes(prop);
-      })
-      .join("; ");
-    data.attrValue = cleaned || "";
-    if (!cleaned) data.keepAttr = false;
-  }
-});
 
 const EditableText = ({
   value,
@@ -84,7 +34,7 @@ const EditableText = ({
   style = {},
   placeholder = "",
 }: EditableTextProps) => {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<EditableCommitElement>(null);
 
   const decodeEntities = (str: string) => {
     if (!str) return "";
@@ -101,6 +51,15 @@ const EditableText = ({
     return !text.replace(/\n/g, "").trim();
   };
 
+  const commitValue = useCallback(
+    (el: HTMLElement) => {
+      if (!onChange) return;
+      const html = el.innerHTML;
+      onChange(isContentEmpty(el) ? "" : sanitizeEditableHtml(html));
+    },
+    [onChange],
+  );
+
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
 
@@ -115,7 +74,7 @@ const EditableText = ({
     const fragment = document.createDocumentFragment();
 
     if (html) {
-      const sanitizedHtml = DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
+      const sanitizedHtml = sanitizeEditableHtml(html);
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(sanitizedHtml, "text/html");
@@ -139,26 +98,30 @@ const EditableText = ({
 
     setTimeout(() => document.dispatchEvent(new Event("selectionchange")), 0);
 
-    if (ref.current && onChange) {
-      const html = ref.current.innerHTML;
-      onChange(
-        isContentEmpty(ref.current)
-          ? ""
-          : DOMPurify.sanitize(html, DOMPURIFY_CONFIG),
-      );
-    }
+    if (ref.current) commitValue(ref.current);
   };
 
   const handleInput = (e: React.FormEvent<HTMLElement>) => {
-    if (onChange) {
-      const html = (e.target as HTMLElement).innerHTML;
-      onChange(
-        isContentEmpty(e.target as HTMLElement)
-          ? ""
-          : DOMPurify.sanitize(html, DOMPURIFY_CONFIG),
-      );
+    commitValue(e.currentTarget);
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
+    if ((e.ctrlKey || e.metaKey) && ["b", "i", "u"].includes(e.key.toLowerCase())) {
+      commitValue(e.currentTarget);
     }
   };
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.__careerForgeCommit = () => commitValue(el);
+    const handleCommit = () => commitValue(el);
+    el.addEventListener("editabletext:commit", handleCommit);
+    return () => {
+      delete el.__careerForgeCommit;
+      el.removeEventListener("editabletext:commit", handleCommit);
+    };
+  }, [commitValue]);
 
   useEffect(() => {
     const el = ref.current;
@@ -177,7 +140,7 @@ const EditableText = ({
     if (hasActiveSelection) return;
 
     const decoded = decodeEntities(value || "");
-    el.innerHTML = DOMPurify.sanitize(decoded, DOMPURIFY_CONFIG);
+    el.innerHTML = sanitizeEditableHtml(decoded);
   }, [value]);
 
   return (
@@ -187,6 +150,7 @@ const EditableText = ({
       suppressContentEditableWarning
       onPaste={handlePaste}
       onInput={handleInput}
+      onKeyUp={handleKeyUp}
       className={`${className} ${!value ? "editable-placeholder" : ""}`.trim()}
       style={style}
       data-placeholder={placeholder || undefined}

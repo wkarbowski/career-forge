@@ -2,7 +2,16 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppState } from '../contexts/AppStateContext';
 import { useTranslation } from '../i18n';
 import ToolbarDropdown from './ToolbarDropdown';
+import {
+  applyEditableFormattingCommand,
+  getEditableFormattingState,
+  type EditableFormattingCommand,
+} from '../utils/editableFormatting';
 import './CentralToolbar.css';
+
+type EditableCommitElement = HTMLElement & {
+  __careerForgeCommit?: () => void;
+};
 
 const FONT_OPTIONS_SANS = [
   'Inter', 'Rubik', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
@@ -67,107 +76,6 @@ const FontSelect = ({ value, onChange, ariaLabel }: { value: string; onChange: (
   />
 );
 
-// ── Inline formatting via Selection/Range API ──
-
-const wrapSelectionWith = (tagName: string, style?: Record<string, string>) => {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
-  const range = sel.getRangeAt(0);
-  const wrapper = document.createElement(tagName);
-  if (style) Object.assign(wrapper.style, style);
-  try {
-    range.surroundContents(wrapper);
-  } catch {
-    // surroundContents fails if range spans partial nodes — fall back to extractContents
-    const frag = range.extractContents();
-    wrapper.appendChild(frag);
-    range.insertNode(wrapper);
-  }
-  sel.removeAllRanges();
-  const newRange = document.createRange();
-  newRange.selectNodeContents(wrapper);
-  sel.addRange(newRange);
-  return wrapper;
-};
-
-const isWrappedIn = (tagName: string) => {
-  const sel = window.getSelection();
-  if (!sel || !sel.anchorNode) return false;
-  let node: Element | null = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as Element;
-  while (node) {
-    if (node.nodeName === tagName.toUpperCase()) return true;
-    if ((node as HTMLElement).contentEditable === 'true') break;
-    node = node.parentElement;
-  }
-  return false;
-};
-
-const unwrapTag = (tagName: string) => {
-  const sel = window.getSelection();
-  if (!sel || !sel.anchorNode) return;
-  let node: Element | null = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as Element;
-  while (node) {
-    if (node.nodeName === tagName.toUpperCase()) {
-      const parent = node.parentNode;
-      if (!parent) return;
-      while (node.firstChild) parent.insertBefore(node.firstChild, node);
-      parent.removeChild(node);
-      return;
-    }
-    if ((node as HTMLElement).contentEditable === 'true') break;
-    node = node.parentElement;
-  }
-};
-
-const toggleInlineTag = (tagName: string) => {
-  if (isWrappedIn(tagName)) {
-    unwrapTag(tagName);
-  } else {
-    wrapSelectionWith(tagName);
-  }
-};
-
-const setBlockAlignment = (alignment: string) => {
-  const sel = window.getSelection();
-  if (!sel || !sel.anchorNode) return;
-  let block: Element | null = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as Element;
-  // Walk up to find nearest block-level element
-  while (block && window.getComputedStyle(block).display === 'inline') block = block.parentElement;
-  if (block) (block as HTMLElement).style.textAlign = alignment;
-};
-
-const insertList = (ordered: boolean) => {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0) return;
-  const range = sel.getRangeAt(0);
-
-  const list = document.createElement(ordered ? 'ol' : 'ul');
-  const li = document.createElement('li');
-
-  if (sel.isCollapsed) {
-    li.appendChild(document.createTextNode('\u200B'));
-  } else {
-    li.appendChild(range.extractContents());
-  }
-  list.appendChild(li);
-  range.insertNode(list);
-
-  sel.removeAllRanges();
-  const newRange = document.createRange();
-  newRange.selectNodeContents(li);
-  newRange.collapse(false);
-  sel.addRange(newRange);
-};
-
-const removeFormat = () => {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
-  const range = sel.getRangeAt(0);
-  const frag = range.extractContents();
-  const text = frag.textContent;
-  range.insertNode(document.createTextNode(text));
-};
-
 const CentralToolbar = () => {
   const { t } = useTranslation();
   const { settings, setSettings } = useAppState();
@@ -178,6 +86,7 @@ const CentralToolbar = () => {
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
+  const [isStrike, setIsStrike] = useState(false);
 
   // Derive scale slider value from current bodyFontSize
   const bodyFontSize = settings?.bodyFontSize ?? 13;
@@ -186,29 +95,12 @@ const CentralToolbar = () => {
 
   // Monitor focus on editable elements for inline formatting state
   const detectEditableFocus = useCallback(() => {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) { setHasEditableFocus(false); return; }
-    let node = sel.focusNode || sel.anchorNode;
-    if (!node) { setHasEditableFocus(false); return; }
-    if (node.nodeType === 3) node = node.parentElement as Node;
-
-    let editable: Element | null = node as Element;
-    while (editable && (editable as HTMLElement).contentEditable !== 'true') editable = editable.parentElement;
-    if (!editable) { setHasEditableFocus(false); return; }
-    setHasEditableFocus(true);
-
-    if (node && node.nodeType === 1) {
-      try {
-        const computed = window.getComputedStyle(node as Element);
-        const fw = computed.fontWeight;
-        setIsBold(fw === 'bold' || fw === '700' || parseInt(fw, 10) >= 700);
-        setIsItalic(computed.fontStyle === 'italic');
-        setIsUnderline(
-          computed.textDecorationLine?.includes('underline') ||
-          computed.textDecoration?.includes('underline')
-        );
-      } catch (err) { /* ignore */ }
-    }
+    const state = getEditableFormattingState();
+    setHasEditableFocus(state.hasEditableFocus);
+    setIsBold(state.isBold);
+    setIsItalic(state.isItalic);
+    setIsUnderline(state.isUnderline);
+    setIsStrike(state.isStrike);
   }, []);
 
   useEffect(() => {
@@ -229,6 +121,9 @@ const CentralToolbar = () => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+    if ((e.target as HTMLElement).closest('.ct-formatting button')) {
+      e.preventDefault();
     }
   };
 
@@ -263,7 +158,14 @@ const CentralToolbar = () => {
   };
 
   const fireInputEvent = (el: HTMLElement | null) => {
-    if (el) el.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
+    if (!el) return;
+    const commit = (el as EditableCommitElement).__careerForgeCommit;
+    if (commit) {
+      commit();
+      return;
+    }
+    el.dispatchEvent(new Event('editabletext:commit', { bubbles: true }));
+    el.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
   };
 
   const applyFormat = (fn: () => void) => {
@@ -274,18 +176,16 @@ const CentralToolbar = () => {
     detectEditableFocus();
   };
 
+  const applyCommand = (command: EditableFormattingCommand, value?: string) => {
+    applyFormat(() => applyEditableFormattingCommand(command, value));
+  };
+
   const handleColor = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const targetEl = getTargetEl();
-    restoreSelection();
-    wrapSelectionWith('span', { color: e.target.value });
-    fireInputEvent(targetEl);
+    applyCommand('foreColor', e.target.value);
   };
 
   const handleBgColor = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const targetEl = getTargetEl();
-    restoreSelection();
-    wrapSelectionWith('span', { backgroundColor: e.target.value });
-    fireInputEvent(targetEl);
+    applyCommand('hiliteColor', e.target.value);
   };
 
   // Global style handlers
@@ -397,16 +297,16 @@ const CentralToolbar = () => {
       {/* ── Inline Formatting (selection-based) ── */}
       <div className={`ct-section ct-formatting ${hasEditableFocus ? '' : 'ct-disabled'}`}>
         <div className="ct-group">
-          <button onClick={() => applyFormat(() => toggleInlineTag('strong'))} className={`ct-btn ${isBold ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.bold')}>
+          <button onClick={() => applyCommand('bold')} className={`ct-btn ${isBold ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.bold')}>
             <i className="fas fa-bold" />
           </button>
-          <button onClick={() => applyFormat(() => toggleInlineTag('em'))} className={`ct-btn ${isItalic ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.italic')}>
+          <button onClick={() => applyCommand('italic')} className={`ct-btn ${isItalic ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.italic')}>
             <i className="fas fa-italic" />
           </button>
-          <button onClick={() => applyFormat(() => toggleInlineTag('u'))} className={`ct-btn ${isUnderline ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.underline')}>
+          <button onClick={() => applyCommand('underline')} className={`ct-btn ${isUnderline ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.underline')}>
             <i className="fas fa-underline" />
           </button>
-          <button onClick={() => applyFormat(() => toggleInlineTag('s'))} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.strike')}>
+          <button onClick={() => applyCommand('strikeThrough')} className={`ct-btn ${isStrike ? 'ct-btn--active' : ''}`} disabled={!hasEditableFocus} title={t('toolbar.strike')}>
             <i className="fas fa-strikethrough" />
           </button>
         </div>
@@ -427,13 +327,13 @@ const CentralToolbar = () => {
         <div className="ct-divider" />
 
         <div className="ct-group">
-          <button onClick={() => applyFormat(() => setBlockAlignment('left'))} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.alignLeft')}>
+          <button onClick={() => applyCommand('justifyLeft')} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.alignLeft')}>
             <i className="fas fa-align-left" />
           </button>
-          <button onClick={() => applyFormat(() => setBlockAlignment('center'))} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.alignCenter')}>
+          <button onClick={() => applyCommand('justifyCenter')} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.alignCenter')}>
             <i className="fas fa-align-center" />
           </button>
-          <button onClick={() => applyFormat(() => setBlockAlignment('right'))} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.alignRight')}>
+          <button onClick={() => applyCommand('justifyRight')} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.alignRight')}>
             <i className="fas fa-align-right" />
           </button>
         </div>
@@ -441,10 +341,10 @@ const CentralToolbar = () => {
         <div className="ct-divider" />
 
         <div className="ct-group">
-          <button onClick={() => applyFormat(() => insertList(false))} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.unorderedList')}>
+          <button onClick={() => applyCommand('insertUnorderedList')} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.unorderedList')}>
             <i className="fas fa-list-ul" />
           </button>
-          <button onClick={() => applyFormat(() => insertList(true))} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.orderedList')}>
+          <button onClick={() => applyCommand('insertOrderedList')} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.orderedList')}>
             <i className="fas fa-list-ol" />
           </button>
         </div>
@@ -452,7 +352,7 @@ const CentralToolbar = () => {
         <div className="ct-divider" />
 
         <div className="ct-group">
-          <button onClick={() => applyFormat(removeFormat)} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.removeFormat')}>
+          <button onClick={() => applyCommand('removeFormat')} className="ct-btn" disabled={!hasEditableFocus} title={t('toolbar.removeFormat')}>
             <i className="fas fa-eraser" />
           </button>
         </div>
