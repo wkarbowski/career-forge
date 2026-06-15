@@ -801,6 +801,11 @@ select option {
   font-family: var(--name-font, "Rubik", sans-serif);
 }
 
+.header h1 strong,
+.header h1 b {
+  font-weight: 900;
+}
+
 .header p {
   color: #6366f1;
   font-size: 20px;
