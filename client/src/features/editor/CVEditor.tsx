@@ -148,9 +148,17 @@ export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
     handleExport,
     handleExportPdf,
     handleImport,
+    showResetFormattingPrompt,
+    isResetFormattingPromptPaused,
+    resetFormattingProgressKey,
+    dismissResetFormattingPrompt,
+    pauseResetFormattingPrompt,
+    resumeResetFormattingPrompt,
+    handleResetFormatting,
   } = useImportExport({
     data,
     settings,
+    clSettings,
     visibleSections,
     sidebarOrder,
     profileImage,
@@ -159,10 +167,10 @@ export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
     coverLetterData,
     setData,
     setSettings,
+    setClSettings,
     setVisibleSections,
     setSidebarOrder,
     setProfileImage,
-    setDocumentType,
     setCoverLetterData,
     migrateData,
     onSaveStatusChange,
@@ -274,20 +282,42 @@ export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
               <div className="export-dropdown-menu" role="menu">
                 <button
                   role="menuitem"
+                  className="content-transfer-tooltip"
+                  data-tooltip={t("toolbar.exportJsonContentTooltip")}
                   onClick={() => {
-                    handleExport();
+                    handleExport(false);
                     setShowExportMenu(false);
                   }}
                 >
-                  <i className="fas fa-file-code"></i> {t("toolbar.exportJson")}
+                  <span className="export-option-title">
+                    {t("toolbar.exportJsonContent")}
+                  </span>
+                </button>
+                <button
+                  role="menuitem"
+                  className="content-transfer-tooltip"
+                  data-tooltip={t("toolbar.exportJsonAppearanceTooltip")}
+                  onClick={() => {
+                    handleExport(true);
+                    setShowExportMenu(false);
+                  }}
+                >
+                  <span className="export-option-title">
+                    {t("toolbar.exportJsonAppearance")}
+                  </span>
                 </button>
                 <button role="menuitem" onClick={handleExportPdf}>
-                  <i className="fas fa-file-pdf"></i> {t("toolbar.exportPdf")}
+                  <span className="export-option-title">
+                    {t("toolbar.exportPdf")}
+                  </span>
                 </button>
               </div>
             )}
           </div>
-          <label className="secondary toolbar-import-btn">
+          <label
+            className="secondary toolbar-import-btn content-transfer-tooltip"
+            data-tooltip={t("toolbar.importContentTooltip")}
+          >
             <i className="fas fa-upload"></i> {t("toolbar.import")}
             <input
               ref={fileInputRef}
@@ -322,6 +352,44 @@ export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
       </div>
 
       {documentType === "cover-letter" ? <CLToolbar /> : <CentralToolbar />}
+
+      {showResetFormattingPrompt && (
+        <div
+          className={`reset-formatting-prompt${
+            isResetFormattingPromptPaused ? " is-paused" : ""
+          }`}
+          role="status"
+          aria-live="polite"
+          onMouseEnter={pauseResetFormattingPrompt}
+          onMouseLeave={resumeResetFormattingPrompt}
+          onFocus={pauseResetFormattingPrompt}
+          onBlur={resumeResetFormattingPrompt}
+        >
+          <div
+            key={resetFormattingProgressKey}
+            className="reset-formatting-progress"
+            aria-hidden="true"
+          ></div>
+          <p>{t("toolbar.resetFormattingPrompt")}</p>
+          <div className="reset-formatting-actions">
+            <button
+              type="button"
+              className="reset-formatting-action"
+              onClick={handleResetFormatting}
+            >
+              {t("toolbar.resetFormatting")}
+            </button>
+            <button
+              type="button"
+              className="reset-formatting-dismiss"
+              onClick={dismissResetFormattingPrompt}
+              aria-label={t("common.close") || "Close"}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="editor-layout">
         <VerticalMenu />

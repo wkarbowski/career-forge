@@ -8,10 +8,32 @@ describe("download filenames", () => {
     );
   });
 
+  it("adds the content export suffix before the JSON extension", () => {
+    expect(
+      buildJsonDownloadFileName("WIKTOR-JAN-KARBOWSKI", "cv", "content"),
+    ).toBe("WIKTOR-JAN-KARBOWSKI_content.json");
+  });
+
+  it("adds the appearance export suffix before the JSON extension", () => {
+    expect(
+      buildJsonDownloadFileName(
+        "WIKTOR-JAN-KARBOWSKI",
+        "cv",
+        "content_and_appearance",
+      ),
+    ).toBe("WIKTOR-JAN-KARBOWSKI_content_and_appearance.json");
+  });
+
   it("does not append JSON twice", () => {
     expect(buildJsonDownloadFileName("Cover letter.json")).toBe(
       "Cover letter.json",
     );
+  });
+
+  it("adds suffixes before an existing JSON extension", () => {
+    expect(
+      buildJsonDownloadFileName("Cover letter.json", "cover-letter", "content"),
+    ).toBe("Cover letter_content.json");
   });
 
   it("removes rich-text markup and unsafe filename characters", () => {

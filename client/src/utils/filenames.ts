@@ -21,13 +21,18 @@ export const sanitizeDownloadBaseName = (name: string): string => {
 export const buildJsonDownloadFileName = (
   documentTitle: string,
   fallbackBaseName = "document",
+  suffix?: string,
 ): string => {
   const baseName =
     sanitizeDownloadBaseName(documentTitle) ||
     sanitizeDownloadBaseName(fallbackBaseName) ||
     "document";
+  const nameWithoutExtension = baseName.toLowerCase().endsWith(JSON_EXTENSION)
+    ? baseName.slice(0, -JSON_EXTENSION.length)
+    : baseName;
+  const exportBaseName = suffix
+    ? `${nameWithoutExtension}_${suffix}`
+    : nameWithoutExtension;
 
-  return baseName.toLowerCase().endsWith(JSON_EXTENSION)
-    ? baseName
-    : `${baseName}${JSON_EXTENSION}`;
+  return `${exportBaseName}${JSON_EXTENSION}`;
 };
