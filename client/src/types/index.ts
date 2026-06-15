@@ -241,6 +241,7 @@ export interface CVTemplate {
 
 export interface CustomSectionTemplate {
   name: string;
+  title?: string;
   type: string;
   position: 'main' | 'sidebar';
   items: CustomSectionItem[];

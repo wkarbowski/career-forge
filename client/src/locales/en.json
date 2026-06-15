@@ -399,6 +399,8 @@
     "sections": "Sections",
     "visibility": "Visibility",
     "addSection": "Add Section",
+    "mainContent": "Main content",
+    "sidebar": "Sidebar",
     "titleFont": "Title font"
   },
   "shared": {

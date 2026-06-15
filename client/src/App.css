@@ -410,6 +410,12 @@ select option {
   overflow-x: hidden;
 }
 
+.custom-section-placement {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 8px 14px;
+}
+
 /* Sub-header label inside panels */
 .panel-sub-label {
   font-size: 10px;
@@ -455,6 +461,24 @@ select option {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.section-toggle-remove {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-toggle-remove:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 
 /* Toggle switch pill */

@@ -30,6 +30,15 @@ const SECTION_ICONS: Record<string, string> = {
 const LEGACY_KEYS = new Set(['strengths', 'courses']);
 const NON_TOGGLABLE_KEYS = new Set(['experience', 'education']);
 
+const isCoursesSection = (section?: { title?: string; name?: string; type?: string }) => {
+  const normalizedTitle = (section?.title || section?.name || '').trim().toLowerCase();
+  return (
+    section?.type === 'courses' ||
+    normalizedTitle === 'courses' ||
+    normalizedTitle === 'kurse'
+  );
+};
+
 interface VerticalMenuProps {
   settings?: CVSettings;
   updateSettings?: (key: string, val: string) => void;
@@ -43,6 +52,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
 
   const _settings = settings ?? app?.settings ?? { sidebarColor1: '#312e81', sidebarColor2: '#4f46e5', accentColor: '#6366f1' } as CVSettings;
   const _visibleSections = visibleSections ?? app?.visibleSections ?? {} as VisibleSections;
+  const visibleSectionEntries: Record<string, boolean> = { ..._visibleSections, projects: _visibleSections.projects ?? false };
   const _updateSettings = updateSettings ?? ((key: string, val: string) => app?.setSettings(prev => ({ ...(prev || {} as CVSettings), [key]: val })));
   const _toggleSection = (key: string) => {
     if (NON_TOGGLABLE_KEYS.has(key)) return;
@@ -66,6 +76,7 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
   }, [_settings?.layout, _settings?.clStyle, documentType]);
 
   const [openPanel, setOpenPanel] = useState<'colors' | 'sections' | null>(null);
+  const [showCustomPlacement, setShowCustomPlacement] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const colorsBtnRef = useRef<HTMLButtonElement>(null);
   const sectionsBtnRef = useRef<HTMLButtonElement>(null);
@@ -120,29 +131,50 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
     setOpenPanel(openPanel === panel ? null : panel);
   };
 
-  const handleAddCustomSection = () => {
+  const getNextCustomSectionName = () => {
+    const customCount = (app?.data?.customSections || []).filter(section => section.type === 'custom').length + 1;
+    return `${t('sections.customSection') || 'Custom Section'} ${customCount}`;
+  };
+
+  const handleAddCustomSection = (position: 'main' | 'sidebar') => {
     if (app?.addCustomSection) {
+      const name = getNextCustomSectionName();
       app.addCustomSection({
-        name: t('sections.customSection') || 'Custom Section',
+        name,
+        title: name,
         type: 'custom',
-        position: 'main',
+        position,
         items: [{ id: `item_${Date.now()}`, title: '', description: '' }],
       });
     }
+    setShowCustomPlacement(false);
     setOpenPanel(null);
   };
 
-  const handleAddCoursesSidebarSection = () => {
-    if (app?.addCustomSection) {
-      app.addCustomSection({
-        name: t('sections.courses') || 'Courses',
-        type: 'courses',
-        position: 'sidebar',
-        items: [{ id: `item_${Date.now()}`, title: '', description: '' }],
-      });
-    }
-    setOpenPanel(null);
-  };
+  const sectionRows = Object.keys(visibleSectionEntries)
+    .filter(key => !LEGACY_KEYS.has(key) && !NON_TOGGLABLE_KEYS.has(key))
+    .map((key) => {
+      const isCustom = key.startsWith('custom_');
+      const customSection = isCustom
+        ? app?.data?.customSections?.find(section => section.id === key)
+        : undefined;
+      if (isCustom && !customSection) return null;
+
+      const label = isCustom
+        ? (isCoursesSection(customSection)
+          ? t('sections.courses')
+          : customSection?.title || customSection?.name || t('sections.customSection') || 'Custom')
+        : (t(`sections.${key}`) || key);
+
+      return {
+        key,
+        label,
+        icon: SECTION_ICONS[key] || (isCustom ? 'puzzle-piece' : 'circle'),
+        removable: isCustom && !isCoursesSection(customSection),
+      };
+    })
+    .filter((row): row is { key: string; label: string; icon: string; removable: boolean } => Boolean(row))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   // Simplified single sidebar color handler — auto-derives sidebarColor2
   const handleSidebarColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,21 +286,28 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
 
               <p className="panel-sub-label">{t('settings.visibility')}</p>
               <div className="sections-list">
-                {Object.keys(_visibleSections)
-                  .filter(key => !LEGACY_KEYS.has(key) && !NON_TOGGLABLE_KEYS.has(key))
-                  .map((key) => {
-                    const isCustom = key.startsWith('custom_');
-                    const icon = SECTION_ICONS[key] || (isCustom ? 'puzzle-piece' : 'circle');
-                    const label = isCustom
-                      ? (app?.data?.customSections?.find(s => s.id === key)?.title || t('sections.customSection') || 'Custom')
-                      : (t(`sections.${key}`) || key);
+                {sectionRows
+                  .map(({ key, label, icon, removable }) => {
                     return (
                       <div key={key} className="section-toggle" onClick={() => _toggleSection(key)}>
                         <span className="section-toggle-icon">
                           <i className={`fas fa-${icon}`}></i>
                         </span>
                         <span className="section-toggle-label">{label}</span>
-                        <span className={`toggle-switch${_visibleSections[key] ? ' on' : ''}`} />
+                        {removable && (
+                          <button
+                            type="button"
+                            className="section-toggle-remove"
+                            title={t('buttons.deleteSection') || t('buttons.delete') || 'Delete'}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              app?.removeCustomSection?.(key);
+                            }}
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        )}
+                        <span className={`toggle-switch${visibleSectionEntries[key] ? ' on' : ''}`} />
                       </div>
                     );
                   })
@@ -278,14 +317,22 @@ const VerticalMenu = ({ settings, updateSettings, visibleSections, toggleSection
               <div className="panel-divider" />
 
               <p className="panel-sub-label">{t('settings.addSection')}</p>
-              <button className="add-custom-section-btn" onClick={handleAddCustomSection}>
+              <button className="add-custom-section-btn" onClick={() => setShowCustomPlacement(value => !value)}>
                 <i className="fas fa-plus"></i>
                 <span>{t('sections.customSection')}</span>
               </button>
-              <button className="add-custom-section-btn" onClick={handleAddCoursesSidebarSection}>
-                <i className="fas fa-graduation-cap"></i>
-                <span>{t('sections.courses')}</span>
-              </button>
+              {showCustomPlacement && (
+                <div className="custom-section-placement">
+                  <button className="add-custom-section-btn" onClick={() => handleAddCustomSection('main')}>
+                    <i className="fas fa-align-left"></i>
+                    <span>{t('settings.mainContent') || 'Main content'}</span>
+                  </button>
+                  <button className="add-custom-section-btn" onClick={() => handleAddCustomSection('sidebar')}>
+                    <i className="fas fa-columns"></i>
+                    <span>{t('settings.sidebar') || 'Sidebar'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
