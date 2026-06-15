@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { defaultSettings } from "../../../contexts/AppStateContext";
 import type { CoverLetterData, CVData, CVSettings, VisibleSections } from "../../../types";
+import { buildJsonDownloadFileName } from "../../../utils/filenames";
 
 type SaveStatus = "saving" | "saved" | "error" | "";
 
@@ -11,6 +12,7 @@ interface UseImportExportParams {
   sidebarOrder: string[];
   profileImage: string | null;
   documentType: "resume" | "cover-letter";
+  documentTitle: string;
   coverLetterData: CoverLetterData;
   setData: (data: CVData) => void;
   setSettings: (settings: CVSettings) => void;
@@ -30,6 +32,7 @@ export function useImportExport({
   sidebarOrder,
   profileImage,
   documentType,
+  documentTitle,
   coverLetterData,
   setData,
   setSettings,
@@ -63,10 +66,10 @@ export function useImportExport({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const fileName = data?.name
-      ? `${data.name.replace(/\s+/g, "-")}-cv-${new Date().toISOString().split("T")[0]}.json`
-      : `cv-export-${new Date().toISOString().split("T")[0]}.json`;
-    a.download = fileName;
+    a.download = buildJsonDownloadFileName(
+      documentTitle,
+      documentType === "cover-letter" ? "cover-letter" : "cv",
+    );
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

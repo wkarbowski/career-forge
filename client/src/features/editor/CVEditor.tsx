@@ -155,6 +155,7 @@ export default function CVEditor({ onSaveStatusChange }: CVEditorProps) {
     sidebarOrder,
     profileImage,
     documentType,
+    documentTitle,
     coverLetterData,
     setData,
     setSettings,
