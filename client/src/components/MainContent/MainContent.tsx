@@ -341,11 +341,11 @@ const MainContent = ({
                 className="add-btn"
                 onClick={() =>
                   _addArrayItem("experience", {
-                    title: t("placeholders.title"),
-                    company: t("placeholders.company"),
-                    period: t("placeholders.period"),
-                    location: t("placeholders.location"),
-                    description: t("placeholders.description"),
+                    title: "",
+                    company: "",
+                    period: "",
+                    location: "",
+                    description: "",
                     achievements: [],
                   })
                 }

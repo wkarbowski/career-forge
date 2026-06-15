@@ -1106,18 +1106,13 @@ select option {
   background: rgba(99, 102, 241, 0.1);
 }
 
-.editable-placeholder[data-placeholder]:empty::before,
-.editable-placeholder[data-placeholder]:has(> br:only-child)::before {
+.editable-placeholder[data-placeholder]::before {
   content: attr(data-placeholder);
-  position: absolute;
-  inset: 2px 4px auto 4px;
+  display: inline-block;
   color: #9ca3af;
   pointer-events: none;
   font-style: italic;
   white-space: nowrap;
-  max-width: calc(100% - 8px);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .sidebar .editable-placeholder[data-placeholder]:empty::before,

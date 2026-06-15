@@ -258,7 +258,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="add-btn"
           onClick={() =>
             _addArrayItem("coreCompetencies", {
-              name: t("placeholders.competencyName"),
+              name: "",
             })
           }
         >
@@ -331,9 +331,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="add-btn"
           onClick={() =>
             _addArrayItem("languages", {
-              name: t("placeholders.languageName"),
+              name: "",
               level: null,
-              proficiency: t("placeholders.proficiency"),
+              proficiency: "",
             })
           }
         >
@@ -400,7 +400,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="add-btn"
           onClick={() =>
             _addArrayItem("skills", {
-              name: t("placeholders.skillName"),
+              name: "",
             })
           }
         >
@@ -480,8 +480,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="add-btn"
           onClick={() =>
             _addArrayItem("achievements", {
-              title: t("placeholders.achievementTitle"),
-              description: t("placeholders.achievementDescription"),
+              title: "",
+              description: "",
             })
           }
         >
