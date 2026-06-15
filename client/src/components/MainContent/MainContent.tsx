@@ -120,6 +120,11 @@ const MainContent = ({
     );
   };
 
+  const getCustomSectionTitle = (section: CustomSection) =>
+    isCoursesSection(section)
+      ? t("sections.courses")
+      : section.title || section.name || "";
+
   const handleContactClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     if (!(e.target as HTMLElement).isContentEditable) {
       const ed = e.currentTarget.querySelector(
@@ -447,19 +452,25 @@ const MainContent = ({
                 _visibleSections[section.id] !== false && (
                   <div className="section" key={section.id}>
                     <div className="section-title-row">
-                      <EditableText
-                        value={section.title || ""}
-                        onChange={(val) => {
-                          const updated = (_data.customSections || []).map(
-                            (s: CustomSection) =>
-                              s.id === section.id ? { ...s, title: val } : s,
-                          );
-                          _updateField("customSections", updated);
-                        }}
-                        tag="h2"
-                        className="section-title"
-                        placeholder={t("placeholders.sectionTitle")}
-                      />
+                      {isCoursesSection(section) ? (
+                        <h2 className="section-title">
+                          {getCustomSectionTitle(section)}
+                        </h2>
+                      ) : (
+                        <EditableText
+                          value={getCustomSectionTitle(section)}
+                          onChange={(val) => {
+                            const updated = (_data.customSections || []).map(
+                              (s: CustomSection) =>
+                                s.id === section.id ? { ...s, title: val } : s,
+                            );
+                            _updateField("customSections", updated);
+                          }}
+                          tag="h2"
+                          className="section-title"
+                          placeholder={t("placeholders.sectionTitle")}
+                        />
+                      )}
                       <button
                         className="delete-section-btn"
                         title={t("buttons.deleteSection") || "Delete section"}

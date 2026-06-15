@@ -164,6 +164,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     );
   };
 
+  const getCustomSectionTitle = (section: CustomSection) =>
+    isCoursesSection(section)
+      ? t("sections.courses")
+      : section.title || section.name || "";
+
   const sections: Record<string, React.ReactElement> = {
     summary: (
       <div className="sidebar-section" key="summary">
@@ -574,17 +579,21 @@ const Sidebar: React.FC<SidebarProps> = ({
       sections[section.id] = (
         <div className="sidebar-section" key={section.id}>
           <div className="section-header-with-controls">
-            <EditableText
-              value={section.title || ""}
-              onChange={(val) => {
-                const updated = customSections.map((s: CustomSection) =>
-                  s.id === section.id ? { ...s, title: val } : s,
-                );
-                _updateField("customSections", updated);
-              }}
-              tag="h2"
-              placeholder={t("placeholders.sectionTitle")}
-            />
+            {isCoursesSection(section) ? (
+              <h2>{getCustomSectionTitle(section)}</h2>
+            ) : (
+              <EditableText
+                value={getCustomSectionTitle(section)}
+                onChange={(val) => {
+                  const updated = customSections.map((s: CustomSection) =>
+                    s.id === section.id ? { ...s, title: val } : s,
+                  );
+                  _updateField("customSections", updated);
+                }}
+                tag="h2"
+                placeholder={t("placeholders.sectionTitle")}
+              />
+            )}
             <div className="section-controls">
               <button
                 onClick={() => _onMoveSectionUp(section.id)}
