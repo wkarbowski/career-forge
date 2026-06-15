@@ -208,8 +208,24 @@ export function useEditorDocumentLifecycle({
       // never leaves the indicator stuck.
       if (onSaveStatusChange) onSaveStatusChange("saving");
       try {
-        const result = await saveDocument(title, documentData);
+        const targetDocumentId =
+          cvId ||
+          (currentDocumentId && currentDocumentId !== "template"
+            ? String(currentDocumentId)
+            : null);
+        const result = targetDocumentId
+          ? await documentApi.update(targetDocumentId, {
+              title,
+              data: documentData,
+            })
+          : await saveDocument(title, documentData);
         if (!result) throw new Error("Save returned no result");
+        if (result.id) {
+          setCurrentDocumentId(result.id);
+        }
+        if (!cvId && result.id) {
+          navigate(`/editor/${result.id}`, { replace: true });
+        }
         lastSavedDataRef.current = currentData;
         lastSavedTitleRef.current = currentTitle;
         pendingSaveRef.current = null;
@@ -245,6 +261,10 @@ export function useEditorDocumentLifecycle({
     isAuthenticated,
     isGuest,
     saveDocument,
+    currentDocumentId,
+    setCurrentDocumentId,
+    cvId,
+    navigate,
     onSaveStatusChange,
   ]);
 
@@ -252,14 +272,18 @@ export function useEditorDocumentLifecycle({
   useEffect(() => {
     const flushSave = () => {
       const pending = pendingSaveRef.current;
-      if (!pending || !currentDocumentId || currentDocumentId === "template")
-        return;
+      const targetDocumentId =
+        cvId ||
+        (currentDocumentId && currentDocumentId !== "template"
+          ? String(currentDocumentId)
+          : null);
+      if (!pending || !targetDocumentId) return;
       try {
         const payload = JSON.stringify({
           title: pending.title,
           data: pending.documentData,
         });
-        fetch(`/api/documents/${currentDocumentId}`, {
+        fetch(`/api/documents/${targetDocumentId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: payload,
@@ -277,7 +301,7 @@ export function useEditorDocumentLifecycle({
       // Also flush when CVEditor unmounts (in-app navigation)
       flushSave();
     };
-  }, [currentDocumentId]);
+  }, [currentDocumentId, cvId]);
 
   useEffect(() => {
     const loadDocumentById = async () => {
@@ -291,8 +315,10 @@ export function useEditorDocumentLifecycle({
               ...(documentData.settings || {}),
             };
             const loadedImage = documentData.profileImage || null;
-            if (documentData.data)
-              setData(migrateData(decodeData(documentData.data) as CVData));
+            const decodedData = documentData.data
+              ? (decodeData(documentData.data) as CVData)
+              : undefined;
+            if (decodedData) setData(migrateData(decodedData));
             setSettings(mergedSettings);
             if (documentData.visibleSections)
               setVisibleSections(documentData.visibleSections);
@@ -318,7 +344,7 @@ export function useEditorDocumentLifecycle({
             const loadedTitle = doc.title || "";
             setDocumentTitle(loadedTitle);
             const decodedDocumentData = {
-              data: decodeData(documentData.data),
+              data: decodedData,
               settings: mergedSettings,
               clSettings: documentData.clSettings
                 ? { ...defaultClSettings, ...documentData.clSettings }
@@ -395,8 +421,10 @@ export function useEditorDocumentLifecycle({
               ...(documentData.settings || {}),
             };
             const loadedImage = documentData.profileImage || null;
-            if (documentData.data)
-              setData(migrateData(decodeData(documentData.data) as CVData));
+            const decodedData = documentData.data
+              ? (decodeData(documentData.data) as CVData)
+              : undefined;
+            if (decodedData) setData(migrateData(decodedData));
             setSettings(mergedSettings);
             if (documentData.visibleSections)
               setVisibleSections(documentData.visibleSections);
@@ -422,7 +450,7 @@ export function useEditorDocumentLifecycle({
             const loadedTitle = doc.title || "";
             setDocumentTitle(loadedTitle);
             const decodedDocumentData = {
-              data: decodeData(documentData.data),
+              data: decodedData,
               settings: mergedSettings,
               clSettings: documentData.clSettings
                 ? { ...defaultClSettings, ...documentData.clSettings }
