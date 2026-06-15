@@ -11,6 +11,7 @@ import type {
   Language,
   Skill,
   Achievement,
+  Project,
   CustomSection,
   CustomSectionItem,
 } from "../../types";
@@ -89,6 +90,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const _data = data ?? safeApp.data;
   const _visibleSections = visibleSections ?? safeApp.visibleSections;
   const _sidebarOrder = sidebarOrder ?? safeApp.sidebarOrder;
+  const sidebarSectionOrder = _sidebarOrder.includes("projects")
+    ? _sidebarOrder
+    : [..._sidebarOrder, "projects"];
 
   const _updateField =
     updateField ??
@@ -133,9 +137,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const _onMoveSectionUp =
     onMoveSectionUp ??
     ((name: string) => {
-      const idx = safeApp.sidebarOrder.indexOf(name);
+      const idx = sidebarSectionOrder.indexOf(name);
       if (idx > 0) {
-        const arr = [...safeApp.sidebarOrder];
+        const arr = [...sidebarSectionOrder];
         [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
         safeApp.setSidebarOrder(arr);
       }
@@ -143,9 +147,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const _onMoveSectionDown =
     onMoveSectionDown ??
     ((name: string) => {
-      const idx = safeApp.sidebarOrder.indexOf(name);
-      if (idx >= 0 && idx < safeApp.sidebarOrder.length - 1) {
-        const arr = [...safeApp.sidebarOrder];
+      const idx = sidebarSectionOrder.indexOf(name);
+      if (idx >= 0 && idx < sidebarSectionOrder.length - 1) {
+        const arr = [...sidebarSectionOrder];
         [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
         safeApp.setSidebarOrder(arr);
       }
@@ -481,6 +485,86 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
     ),
+    projects: (
+      <div className="sidebar-section" key="projects">
+        <div className="section-header-with-controls">
+          <h2>{t("sections.projects")}</h2>
+          <div className="section-controls">
+            <button
+              onClick={() => _onMoveSectionUp("projects")}
+              className="move-btn"
+              title={t("buttons.moveUp")}
+            >
+              <i className="fas fa-arrow-up"></i>
+            </button>
+            <button
+              onClick={() => _onMoveSectionDown("projects")}
+              className="move-btn"
+              title={t("buttons.moveDown")}
+            >
+              <i className="fas fa-arrow-down"></i>
+            </button>
+          </div>
+        </div>
+        {(_data.projects || []).map((project: Project) => (
+          <div key={project.id} className="sidebar-item">
+            <div className="sidebar-item-content" style={{ flex: 1 }}>
+              <EditableText
+                value={project.name}
+                onChange={(val) =>
+                  _updateArrayItem("projects", project.id, "name", val)
+                }
+                tag="h3"
+                placeholder={t("placeholders.projectName")}
+              />
+              <EditableText
+                value={project.description}
+                onChange={(val) =>
+                  _updateArrayItem(
+                    "projects",
+                    project.id,
+                    "description",
+                    val,
+                  )
+                }
+                tag="p"
+                placeholder={t("placeholders.projectDescription")}
+              />
+            </div>
+            <button
+              className="delete-btn"
+              onClick={() => _deleteArrayItem("projects", project.id)}
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M1 1L9 9M9 1L1 9"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        ))}
+        <button
+          className="add-btn"
+          onClick={() =>
+            _addArrayItem("projects", {
+              name: "",
+              description: "",
+            })
+          }
+        >
+          <i className="fas fa-plus"></i> {t("projects.addProject")}
+        </button>
+      </div>
+    ),
   };
 
   // Add custom sections that belong in the sidebar
@@ -712,7 +796,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {_sidebarOrder
+      {sidebarSectionOrder
         .map(
           (sectionName: string) =>
             _visibleSections[sectionName] && sections[sectionName],

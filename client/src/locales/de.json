@@ -73,6 +73,7 @@
     "achievements": "Erfolge",
     "experience": "Erfahrung",
     "education": "Ausbildung",
+    "projects": "Projekte",
     "courses": "Kurse",
     "customSection": "Eigener Abschnitt"
   },
@@ -97,6 +98,8 @@
     "company": "Firmenname",
     "period": "Zeitraum",
     "description": "Beschreiben Sie Ihre Aufgaben und Erfolge in dieser Rolle.",
+    "projectName": "Projektname",
+    "projectDescription": "Projekt kurz beschreiben.",
     "degree": "Abschluss oder Zertifizierung",
     "school": "Schule oder Universität",
     "courseTitle": "Kurstitel",
@@ -361,6 +364,9 @@
     "addDegree": "Abschluss hinzufügen",
     "addCourse": "Kurs hinzufügen",
     "courseLabel": "Kurs"
+  },
+  "projects": {
+    "addProject": "Projekt hinzufügen"
   },
   "customSections": {
     "addSection": "Abschnitt hinzufügen",

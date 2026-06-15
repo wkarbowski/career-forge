@@ -73,6 +73,7 @@
     "achievements": "Achievements",
     "experience": "Experience",
     "education": "Education",
+    "projects": "Projects",
     "courses": "Courses",
     "customSection": "Custom Section"
   },
@@ -97,6 +98,8 @@
     "company": "Company",
     "period": "Period",
     "description": "Describe your responsibilities and achievements in this role.",
+    "projectName": "Project name",
+    "projectDescription": "Briefly describe the project.",
     "degree": "Degree or Certification",
     "school": "School or University",
     "courseTitle": "Course Title",
@@ -361,6 +364,9 @@
     "addDegree": "Add Degree",
     "addCourse": "Add Course",
     "courseLabel": "Course"
+  },
+  "projects": {
+    "addProject": "Add Project"
   },
   "customSections": {
     "addSection": "Add Section",

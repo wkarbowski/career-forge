@@ -21,6 +21,7 @@ const SECTION_ICONS: Record<string, string> = {
   languages: 'globe',
   coreCompetencies: 'star',
   achievements: 'trophy',
+  projects: 'diagram-project',
   contact: 'address-card',
   headings: 'heading',
 };

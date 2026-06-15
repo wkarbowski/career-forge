@@ -62,6 +62,12 @@ export interface Education {
   institution?: string;
 }
 
+export interface Project {
+  id: number | string;
+  name: string;
+  description: string;
+}
+
 export interface CustomSectionItem {
   id: number | string;
   title?: string;
@@ -103,6 +109,7 @@ export interface CVData {
   achievements: Achievement[];
   experience: Experience[];
   education: Education[];
+  projects: Project[];
   customSections: CustomSection[];
 }
 
@@ -179,6 +186,7 @@ export interface VisibleSections {
   achievements: boolean;
   experience: boolean;
   education: boolean;
+  projects: boolean;
   [key: string]: boolean; // custom section IDs
 }
 
