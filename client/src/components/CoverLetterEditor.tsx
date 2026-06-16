@@ -877,24 +877,20 @@ const CoverLetterEditor = () => {
                 pageIndex={i + 1}
                 style={{ ...clCssVars }}
               >
-                <div
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="cl-body"
-                  style={{
-                    minHeight: PAGE_CONFIG.height - 133,
-                    outline: "none",
-                  }}
-                  onInput={(e) => {
-                    const html = e.currentTarget.innerHTML;
+                <EditableText
+                  value={(d.extraPages || [])[i] || ""}
+                  onChange={(html) => {
                     set("extraPages", [
                       ...(d.extraPages || []).slice(0, i),
                       html,
                       ...(d.extraPages || []).slice(i + 1),
                     ]);
                   }}
-                  dangerouslySetInnerHTML={{
-                    __html: (d.extraPages || [])[i] || "",
+                  tag="div"
+                  className="cl-body"
+                  style={{
+                    minHeight: PAGE_CONFIG.height - 133,
+                    outline: "none",
                   }}
                 />
               </DocumentPage>

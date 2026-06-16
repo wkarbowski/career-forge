@@ -58,6 +58,7 @@ export const initialData: CVData = {
       location: ''
     }
   ],
+  projects: [],
   customSections: [],
 };
 

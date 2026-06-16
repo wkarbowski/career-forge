@@ -120,6 +120,11 @@ const MainContent = ({
     );
   };
 
+  const getCustomSectionTitle = (section: CustomSection) =>
+    isCoursesSection(section)
+      ? t("sections.courses")
+      : section.title || section.name || "";
+
   const handleContactClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     if (!(e.target as HTMLElement).isContentEditable) {
       const ed = e.currentTarget.querySelector(
@@ -336,11 +341,11 @@ const MainContent = ({
                 className="add-btn"
                 onClick={() =>
                   _addArrayItem("experience", {
-                    title: t("placeholders.title"),
-                    company: t("placeholders.company"),
-                    period: t("placeholders.period"),
-                    location: t("placeholders.location"),
-                    description: t("placeholders.description"),
+                    title: "",
+                    company: "",
+                    period: "",
+                    location: "",
+                    description: "",
                     achievements: [],
                   })
                 }
@@ -353,7 +358,7 @@ const MainContent = ({
 
           {/* Education Section */}
           {_visibleSections.education && (
-            <div className="section">
+            <div className="section education-section">
               <h2 className="section-title">{t("sections.education")}</h2>
               {educationArr.map((edu: Education) => (
                 <div key={edu.id} className="experience-item education-degree">
@@ -447,19 +452,25 @@ const MainContent = ({
                 _visibleSections[section.id] !== false && (
                   <div className="section" key={section.id}>
                     <div className="section-title-row">
-                      <EditableText
-                        value={section.title || ""}
-                        onChange={(val) => {
-                          const updated = (_data.customSections || []).map(
-                            (s: CustomSection) =>
-                              s.id === section.id ? { ...s, title: val } : s,
-                          );
-                          _updateField("customSections", updated);
-                        }}
-                        tag="h2"
-                        className="section-title"
-                        placeholder={t("placeholders.sectionTitle")}
-                      />
+                      {isCoursesSection(section) ? (
+                        <h2 className="section-title">
+                          {getCustomSectionTitle(section)}
+                        </h2>
+                      ) : (
+                        <EditableText
+                          value={getCustomSectionTitle(section)}
+                          onChange={(val) => {
+                            const updated = (_data.customSections || []).map(
+                              (s: CustomSection) =>
+                                s.id === section.id ? { ...s, title: val } : s,
+                            );
+                            _updateField("customSections", updated);
+                          }}
+                          tag="h2"
+                          className="section-title"
+                          placeholder={t("placeholders.sectionTitle")}
+                        />
+                      )}
                       <button
                         className="delete-section-btn"
                         title={t("buttons.deleteSection") || "Delete section"}
