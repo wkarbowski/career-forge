@@ -69,18 +69,30 @@ const getActiveClPresetKey = (
   );
 };
 
-const interpolateClScale = (t: number) => {
+export const getClScaleValue = (bodyFontSize: number): number => {
+  const min = CL_SCALE_PRESETS.compact.bodyFontSize;
+  const mid = CL_SCALE_PRESETS.standard.bodyFontSize;
+  const max = CL_SCALE_PRESETS.spacious.bodyFontSize;
+
+  if (bodyFontSize <= min) return 0;
+  if (bodyFontSize >= max) return 1;
+  if (bodyFontSize <= mid) return ((bodyFontSize - min) / (mid - min)) * 0.5;
+
+  return 0.5 + ((bodyFontSize - mid) / (max - mid)) * 0.5;
+};
+
+export const interpolateClScale = (t: number) => {
   const from = t <= 0.5 ? CL_SCALE_PRESETS.compact : CL_SCALE_PRESETS.standard;
   const to = t <= 0.5 ? CL_SCALE_PRESETS.standard : CL_SCALE_PRESETS.spacious;
   const local = t <= 0.5 ? t * 2 : (t - 0.5) * 2;
   const result: Record<string, number> = {};
   for (const key of Object.keys(from)) {
-    result[key] = Math.round(
+    const value =
       (from as Record<string, number>)[key] +
-        ((to as Record<string, number>)[key] -
-          (from as Record<string, number>)[key]) *
-          local,
-    );
+      ((to as Record<string, number>)[key] -
+        (from as Record<string, number>)[key]) *
+        local;
+    result[key] = Number(value.toFixed(2));
   }
   return result;
 };
@@ -273,12 +285,7 @@ const CLToolbar = () => {
   const bodyFont = clSettings?.bodyFont || "Open Sans";
 
   const clBodyFontSize = clSettings?.bodyFontSize ?? 12;
-  const clScaleValue =
-    clBodyFontSize <= 10
-      ? 0
-      : clBodyFontSize >= 14
-        ? 1
-        : ((clBodyFontSize - 10) / (14 - 10)) * 0.5 + 0.25;
+  const clScaleValue = getClScaleValue(clBodyFontSize);
   const activeClPresetKey = getActiveClPresetKey(
     clSettings as unknown as Record<string, unknown>,
   );
@@ -406,7 +413,7 @@ const CLToolbar = () => {
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.1"
               value={clScaleValue}
               onChange={handleClScaleChange}
               className="ct-scale-slider"
