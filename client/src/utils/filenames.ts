@@ -1,14 +1,22 @@
 const JSON_EXTENSION = ".json";
+const HTML_ENTITY_REPLACEMENTS: Record<string, string> = {
+  nbsp: " ",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  "#39": "'",
+};
+
+const decodeCommonHtmlEntities = (value: string): string =>
+  value.replace(/&(nbsp|amp|lt|gt|quot|#39);/gi, (entity) => {
+    const key = entity.slice(1, -1).toLowerCase();
+    return HTML_ENTITY_REPLACEMENTS[key] ?? entity;
+  });
 
 export const sanitizeDownloadBaseName = (name: string): string => {
   const withoutTags = name.replace(/<[^>]*>/g, " ");
-  const decoded = withoutTags
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'");
+  const decoded = decodeCommonHtmlEntities(withoutTags);
 
   return decoded
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, " ")

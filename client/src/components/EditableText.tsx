@@ -36,13 +36,6 @@ const EditableText = ({
 }: EditableTextProps) => {
   const ref = useRef<EditableCommitElement>(null);
 
-  const decodeEntities = (str: string) => {
-    if (!str) return "";
-    const txt = document.createElement("textarea");
-    txt.innerHTML = str;
-    return txt.value;
-  };
-
   // Treat content that is only whitespace / <br> tags as empty so the
   // CSS placeholder can show.
   const isContentEmpty = (el: HTMLElement | null) => {
@@ -139,8 +132,7 @@ const EditableText = ({
       el.contains(sel.anchorNode);
     if (hasActiveSelection) return;
 
-    const decoded = decodeEntities(value || "");
-    el.innerHTML = sanitizeEditableHtml(decoded);
+    el.innerHTML = sanitizeEditableHtml(value || "");
   }, [value]);
 
   return (

@@ -101,6 +101,18 @@ const installEditableHtmlHooks = () => {
       while (node.firstChild) span.appendChild(node.firstChild);
       node.parentNode?.replaceChild(span, node);
     }
+
+    if (["s", "strike", "del"].includes(data.tagName)) {
+      const span = document.createElement("span");
+      const style = (node as Element).getAttribute?.("style");
+      span.setAttribute(
+        "style",
+        [style, "text-decoration: line-through"].filter(Boolean).join("; "),
+      );
+
+      while (node.firstChild) span.appendChild(node.firstChild);
+      node.parentNode?.replaceChild(span, node);
+    }
   });
 
   DOMPurify.addHook("uponSanitizeAttribute", (_node, data) => {
@@ -133,45 +145,7 @@ const installEditableHtmlHooks = () => {
   });
 };
 
-const convertFontTags = (root: ParentNode) => {
-  root.querySelectorAll("font").forEach((font) => {
-    const span = document.createElement("span");
-    const color = font.getAttribute("color");
-    const style = font.getAttribute("style");
-    const styles = [style, color ? `color: ${color}` : ""]
-      .filter(Boolean)
-      .join("; ");
-
-    if (styles) span.setAttribute("style", styles);
-    while (font.firstChild) span.appendChild(font.firstChild);
-    font.parentNode?.replaceChild(span, font);
-  });
-};
-
-const convertStrikeTags = (root: ParentNode) => {
-  root.querySelectorAll("s, strike, del").forEach((node) => {
-    const span = document.createElement("span");
-    const style = node.getAttribute("style");
-    span.setAttribute(
-      "style",
-      [style, "text-decoration: line-through"].filter(Boolean).join("; "),
-    );
-
-    while (node.firstChild) span.appendChild(node.firstChild);
-    node.parentNode?.replaceChild(span, node);
-  });
-};
-
-const normalizeEditableHtml = (html: string) => {
-  if (!html) return "";
-  const template = document.createElement("template");
-  template.innerHTML = html;
-  convertFontTags(template.content);
-  convertStrikeTags(template.content);
-  return template.innerHTML;
-};
-
 export const sanitizeEditableHtml = (html: string) => {
   installEditableHtmlHooks();
-  return DOMPurify.sanitize(normalizeEditableHtml(html), DOMPURIFY_CONFIG);
+  return DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
 };

@@ -86,7 +86,7 @@ describe("sanitizeEditableHtml", () => {
     const result = sanitizeEditableHtml('<font color="#00ff00">Green</font>');
 
     expect(result).toContain("<span");
-    expect(result).toContain("color: #00ff00");
+    expect(result).toMatch(/color: (#00ff00|rgb\(0, 255, 0\))/);
     expect(result).toContain(">Green</span>");
   });
 });
