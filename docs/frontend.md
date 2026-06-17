@@ -70,7 +70,7 @@ focused behavior into hooks:
 
 - `useEditorDocumentLifecycle` — document loading, template application, autosave, unload flush
 - `useDocumentTitle` — title edit state and persistence
-- `useImportExport` — JSON import/export and print export
+- `useImportExport` — JSON import/export, content-vs-appearance import behavior, reset-formatting prompt, and print export
 - `useProfileImageHandlers` — upload, crop, remove
 - `useResumeText` — keyword matcher source text
 
@@ -343,16 +343,19 @@ The `CVPagesEditor` implements a word-processor-like page system:
 
 ### Export & Import
 
-**JSON Export** includes the full CV state:
+**JSON Export** supports two editor export modes:
+
+- Content JSON: visible text, sections, images, and cover-letter content.
+- Content + appearance JSON: the same visible content plus allowed appearance settings such as colors, fonts, and text sizes.
+
+Hidden sections are stripped from exported editor JSON. Imports preserve the destination template structure and only apply appearance settings when the JSON was exported with appearance.
 
 ```json
 {
-  "data": { "name": "...", "experience": [...], ... },
-  "settings": { "sidebarColor1": "#312e81", ... },
-  "visibleSections": { "summary": true, ... },
-  "profileImage": "data:image/...",
-  "sidebarOrder": ["summary", "skills", ...],
-  "exportedAt": "2026-02-13T15:00:00"
+  "exportType": "content-with-appearance",
+  "data": { "name": "...", "experience": [...], "projects": [...] },
+  "settings": { "sidebarColor1": "#006666", "accentColor": "#006666" },
+  "profileImage": "data:image/..."
 }
 ```
 
