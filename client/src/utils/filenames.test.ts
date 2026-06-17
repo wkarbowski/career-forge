@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildJsonDownloadFileName, sanitizeDownloadBaseName } from "./filenames";
+import {
+  buildJsonDownloadFileName,
+  buildPdfDownloadFileName,
+  sanitizeDownloadBaseName,
+} from "./filenames";
 
 describe("download filenames", () => {
   it("uses the document title as the JSON filename", () => {
@@ -27,6 +31,18 @@ describe("download filenames", () => {
   it("does not append JSON twice", () => {
     expect(buildJsonDownloadFileName("Cover letter.json")).toBe(
       "Cover letter.json",
+    );
+  });
+
+  it("uses the document title as the PDF filename", () => {
+    expect(buildPdfDownloadFileName("WIKTOR-JAN-KARBOWSKI")).toBe(
+      "WIKTOR-JAN-KARBOWSKI.pdf",
+    );
+  });
+
+  it("does not append PDF twice", () => {
+    expect(buildPdfDownloadFileName("Cover letter.pdf")).toBe(
+      "Cover letter.pdf",
     );
   });
 

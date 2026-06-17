@@ -1,4 +1,5 @@
 const JSON_EXTENSION = ".json";
+const PDF_EXTENSION = ".pdf";
 const HTML_ENTITY_REPLACEMENTS: Record<string, string> = {
   nbsp: " ",
   amp: "&",
@@ -43,4 +44,18 @@ export const buildJsonDownloadFileName = (
     : nameWithoutExtension;
 
   return `${exportBaseName}${JSON_EXTENSION}`;
+};
+
+export const buildPdfDownloadFileName = (
+  documentTitle: string,
+  fallbackBaseName = "document",
+): string => {
+  const baseName =
+    sanitizeDownloadBaseName(documentTitle) ||
+    sanitizeDownloadBaseName(fallbackBaseName) ||
+    "document";
+
+  return baseName.toLowerCase().endsWith(PDF_EXTENSION)
+    ? baseName
+    : `${baseName}${PDF_EXTENSION}`;
 };
