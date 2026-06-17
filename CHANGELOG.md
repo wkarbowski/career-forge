@@ -8,11 +8,32 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+No unreleased changes.
+
+---
+
+## [1.1.0] — 2026-06-17
+
+### Added
+
+- Added projects as a first-class CV section with visibility controls and template support.
+- Added content-only and content-with-appearance JSON export flows for resumes and cover letters.
+- Added a non-modal reset-formatting prompt after importing content-only JSON over previously imported appearance settings.
+
 ### Changed
 
 - Refactored the client bootstrap into dedicated app, provider, route, page-wrapper, and editor feature modules without changing routes or user-facing behavior.
 - Refactored the FastAPI backend into app bootstrap, lifecycle, route adapter, service, repository, and focused security modules while preserving public API contracts.
 - Updated developer documentation to describe the current frontend and backend architecture.
+- Renamed the legacy courses section into education entries and migrated strengths to core competencies.
+- Improved editor autosave, rich text formatting persistence, placeholders, education spacing, and bold name rendering.
+- Updated JSON export filenames to use the document title and include the JSON export type.
+- Updated JSON imports to preserve the destination document template structure while importing content and allowed appearance settings.
+- Corrected resume and cover-letter scaling controls.
+
+### Security
+
+- Hardened editable HTML and filename sanitization to address CodeQL alerts.
 
 ---
 
@@ -50,5 +71,6 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-[Unreleased]: https://github.com/wkarbowski/career-forge/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/wkarbowski/career-forge/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/wkarbowski/career-forge/releases/tag/v1.1.0
 [1.0.0]: https://github.com/wkarbowski/career-forge/releases/tag/v1.0.0

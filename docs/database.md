@@ -287,12 +287,14 @@ The `data` field in the `documents` table stores a JSONB value with this structu
 {
   "name": "John Doe",
   "position": "Software Engineer",
-  "phone": "+1 234 567 890",
-  "email": "john@example.com",
-  "linkedin": "linkedin.com/in/johndoe",
-  "location": "New York, NY",
+  "contact": {
+    "phone": "+1 234 567 890",
+    "email": "john@example.com",
+    "links": [{ "icon": "fab fa-linkedin", "url": "linkedin.com/in/johndoe" }],
+    "location": "New York, NY"
+  },
   "summary": "Experienced developer...",
-  "strengths": [{ "title": "Leadership", "description": "..." }],
+  "coreCompetencies": [{ "name": "Leadership" }],
   "languages": [
     { "name": "English", "level": 5 },
     { "name": "German", "level": 3 }
@@ -316,7 +318,7 @@ The `data` field in the `documents` table stores a JSONB value with this structu
       "location": "Cambridge, MA"
     }
   ],
-  "courses": [{ "title": "AWS Solutions Architect", "description": "..." }],
+  "projects": [{ "name": "Portfolio", "description": "..." }],
   "settings": {
     "sidebarColor1": "#312e81",
     "sidebarColor2": "#4f46e5",
@@ -324,21 +326,21 @@ The `data` field in the `documents` table stores a JSONB value with this structu
   },
   "visibleSections": {
     "summary": true,
-    "strengths": true,
+    "coreCompetencies": true,
     "languages": true,
     "skills": true,
     "achievements": true,
     "experience": true,
     "education": true,
-    "courses": true
+    "projects": false
   },
   "sidebarOrder": [
     "summary",
     "skills",
     "languages",
-    "courses",
-    "strengths",
-    "achievements"
+    "coreCompetencies",
+    "achievements",
+    "projects"
   ]
 }
 ```

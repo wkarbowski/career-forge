@@ -7,7 +7,10 @@ import type {
   VisibleSections,
 } from "../../../types";
 import { decodeData } from "../../../utils/decodeData";
-import { buildJsonDownloadFileName } from "../../../utils/filenames";
+import {
+  buildJsonDownloadFileName,
+  buildPdfDownloadFileName,
+} from "../../../utils/filenames";
 import {
   buildContentExportPayload,
   buildContentWithAppearanceExportPayload,
@@ -158,7 +161,28 @@ export function useImportExport({
 
   const handleExportPdf = () => {
     setShowExportMenu(false);
+    const originalTitle = document.title;
+    const printTitle = buildPdfDownloadFileName(
+      documentTitle,
+      documentType === "cover-letter" ? "cover-letter" : "cv",
+    );
+    let restored = false;
+    let fallbackTimeoutId: number | undefined;
+
+    const restoreTitle = () => {
+      if (restored) return;
+      restored = true;
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+      if (fallbackTimeoutId !== undefined) {
+        window.clearTimeout(fallbackTimeoutId);
+      }
+    };
+
+    document.title = printTitle;
+    window.addEventListener("afterprint", restoreTitle, { once: true });
     window.print();
+    fallbackTimeoutId = window.setTimeout(restoreTitle, 30000);
   };
 
   useEffect(() => {
