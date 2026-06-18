@@ -13,7 +13,7 @@ The React-based frontend for **Career Forge**, a full-featured resume and cover 
 - **Authentication** — full register / login flow with JWT access tokens and HttpOnly-cookie refresh tokens; guest mode available without an account
 - **Profile image upload** — upload a photo directly from the editor (requires authentication)
 - **Export to PDF** — browser print with print-optimised CSS that hides all UI chrome
-- **Import / Export JSON** — save and restore complete document data
+- **Import / Export JSON** — save and restore document content, with optional appearance settings
 - **Theme toggle** — light and dark mode, persisted per user
 - **Multi-language UI** — English and German locales (persisted per user)
 - **Auto-save** — changes are debounced and synced to the backend when authenticated

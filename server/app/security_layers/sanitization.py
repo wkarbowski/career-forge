@@ -41,11 +41,14 @@ class InputSanitizer:
         "ol",
         "li",
         "a",
+        "s",
+        "strike",
+        "del",
         "span",
         "div",
     ]
     SAFE_HTML_ATTRS: ClassVar[dict[str, list[str]]] = {
-        "a": ["href", "title"],
+        "a": ["href", "title", "target", "rel", "style"],
         "span": ["class", "style"],
         "p": ["style"],
         "div": ["style"],
@@ -55,6 +58,9 @@ class InputSanitizer:
         "b": ["style"],
         "i": ["style"],
         "u": ["style"],
+        "s": ["style"],
+        "strike": ["style"],
+        "del": ["style"],
         "strong": ["style"],
         "em": ["style"],
     }
@@ -83,6 +89,7 @@ class InputSanitizer:
                 "font-style",
                 "text-decoration",
                 "text-align",
+                "display",
             ]
             css_sanitizer = CSSSanitizer(allowed_css_properties=allowed_css)
 

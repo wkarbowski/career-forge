@@ -26,7 +26,7 @@
 - **Template system** — Start from professional, modern, or cover-letter templates
 - **Account persistence** — Register to save, manage, and version documents; guest mode requires no account
 - **PDF / Print export** — Browser `window.print()` with print-optimised CSS that hides all UI chrome
-- **JSON import / export** — Full backup and portability
+- **JSON import / export** — Portable content-only or content-with-appearance document data
 - **Version history** — Create named snapshots and restore previous versions
 - **Keyword matcher** — Paste a job description and see matching keywords
 - **Dark / Light themes** — Full theme system with CSS custom properties

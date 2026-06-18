@@ -21,14 +21,13 @@ Templates define the visual style and section configuration for CV documents. Th
 
 ### Available Templates
 
-| ID                     | Name                   | Type         | Category     | Sidebar Colors                    |
+| ID                     | Name                   | Type         | Category     | Sidebar / Accent Colors           |
 | ---------------------- | ---------------------- | ------------ | ------------ | --------------------------------- |
-| `resume-modern`        | Modern Professional    | Resume       | Modern       | Teal (#006666)                    |
-| `classic-professional` | Classic Professional   | Resume       | Professional | Navy gradient (#0f2847 → #1e3a5f) |
-| `executive-prestige`   | Executive Prestige     | Resume       | Professional | Dark gradient (#111827 → #374151) |
-| `ats-optimized`        | ATS Optimized          | Resume       | Technical    | Navy gradient (#1a1a2e → #16213e) |
-| `cover-executive`      | Executive Cover Letter | Cover Letter | Professional | Dark gradient (#111827 → #374151) |
-| `cover-professional`   | Standard Cover Letter  | Cover Letter | Professional | Indigo accent (#2563eb)           |
+| `resume-modern`        | Left Sidebar           | Resume       | Modern       | Teal (#006666)                    |
+| `classic-professional` | Right Sidebar          | Resume       | Professional | Navy gradient (#0f2847 → #1e3a5f) |
+| `executive-prestige`   | Dark Header            | Resume       | Professional | Charcoal / gold (#111827, #7c6f57) |
+| `cover-executive`      | Executive Cover Letter | Cover Letter | Professional | Charcoal / gold (#111827, #7c6f57) |
+| `cover-professional`   | Standard Cover Letter  | Cover Letter | Professional | Black accent (#1a1a1a)            |
 
 ### Template Structure
 
@@ -55,15 +54,15 @@ Each template in `src/data/templates.ts` includes:
   },
   visibleSections: {
     summary: true,
-    strengths: true,
+    coreCompetencies: true,
     languages: true,
     skills: true,
     achievements: true,
     experience: true,
     education: true,
-    courses: true
+    projects: false
   },
-  sidebarOrder: ['summary', 'skills', 'languages', 'courses', 'strengths', 'achievements']
+  sidebarOrder: ['summary', 'skills', 'languages', 'coreCompetencies', 'achievements', 'projects']
 }
 ```
 
@@ -73,10 +72,9 @@ Located in `src/data/templates.ts`:
 
 | Template ID            | Type           | Description                                       |
 | ---------------------- | -------------- | ------------------------------------------------- |
-| `resume-modern`        | `resume`       | Sleek modern design with teal tones               |
-| `classic-professional` | `resume`       | Traditional professional resume with navy sidebar |
-| `executive-prestige`   | `resume`       | Executive layout with dark gradient       |
-| `ats-optimized`        | `resume`       | Clean, parser-friendly layout for ATS systems     |
+| `resume-modern`        | `resume`       | Left-sidebar resume with teal tones               |
+| `classic-professional` | `resume`       | Right-sidebar resume with navy sidebar            |
+| `executive-prestige`   | `resume`       | Dark header resume with charcoal and gold accents |
 | `cover-executive`      | `cover-letter` | Executive cover letter with dark gradient         |
 | `cover-professional`   | `cover-letter` | Standard professional cover letter                |
 

@@ -202,3 +202,47 @@ class TestSanitizeHtml:
         result = InputSanitizer.sanitize_html('<p onclick="evil()">Text</p>')
         assert "onclick" not in result
         assert "Text" in result
+
+    def test_text_decoration_style_preserved(self) -> None:
+        result = InputSanitizer.sanitize_html('<span style="text-decoration: line-through">Text</span>')
+        assert "text-decoration: line-through" in result
+        assert "Text" in result
+
+    def test_alignment_wrapper_styles_preserved(self) -> None:
+        result = InputSanitizer.sanitize_html('<span style="display: block; text-align: right">Text</span>')
+        assert "display: block" in result
+        assert "text-align: right" in result
+        assert "Text" in result
+
+    def test_editor_rich_text_contract_preserved(self) -> None:
+        result = InputSanitizer.sanitize_html(
+            '<span style="color: #ff0000; background-color: #ffff00; '
+            "font-weight: 700; font-style: italic; "
+            "text-decoration: underline line-through; text-align: center; "
+            'display: block; position: absolute">Text</span>'
+            '<ul><li style="text-align: right">One</li></ul>'
+            "<ol><li>Two</li></ol>"
+            '<a href="https://example.com" target="_blank" '
+            'rel="noopener noreferrer" style="color: #0044cc; '
+            'text-decoration: underline" onclick="bad()">Project</a>'
+            "<s>Strike</s><strike>Legacy</strike><del>Deleted</del>"
+        )
+
+        assert "color: #ff0000" in result
+        assert "background-color: #ffff00" in result
+        assert "font-weight: 700" in result
+        assert "font-style: italic" in result
+        assert "text-decoration: underline line-through" in result
+        assert "text-align: center" in result
+        assert "display: block" in result
+        assert "position" not in result
+        assert '<li style="text-align: right' in result
+        assert "<ol><li>Two</li></ol>" in result
+        assert 'href="https://example.com"' in result
+        assert 'target="_blank"' in result
+        assert 'rel="noopener noreferrer"' in result
+        assert "color: #0044cc" in result
+        assert "onclick" not in result
+        assert "<s>Strike</s>" in result
+        assert "<strike>Legacy</strike>" in result
+        assert "<del>Deleted</del>" in result

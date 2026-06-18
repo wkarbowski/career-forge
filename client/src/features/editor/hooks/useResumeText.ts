@@ -17,6 +17,10 @@ export function useResumeText(data: CVData): string {
       if (e.school) parts.push(e.school);
       if (e.description) parts.push(e.description);
     });
+    (data.projects || []).forEach((p) => {
+      if (p.name) parts.push(p.name);
+      if (p.description) parts.push(p.description);
+    });
     (data.skills || []).forEach((s) => {
       if (s.name) parts.push(s.name);
     });

@@ -30,9 +30,16 @@
     "print": "Print",
     "export": "Export",
     "exportJson": "JSON",
+    "exportJsonContent": "Content JSON",
+    "exportJsonContentTooltip": "Exports document content only.",
+    "exportJsonAppearance": "Content + appearance JSON",
+    "exportJsonAppearanceTooltip": "Exports content with colors and typography.",
     "exportPdf": "PDF",
     "exportPng": "PNG",
     "import": "Import",
+    "importContentTooltip": "Imports JSON automatically.",
+    "resetFormattingPrompt": "Content-only import detected. Do you want to reset the template colors and formatting to their default settings?",
+    "resetFormatting": "Reset formatting",
     "settings": "Settings",
     "selectText": "Select text to format",
     "language": "Language",
@@ -73,7 +80,8 @@
     "achievements": "Achievements",
     "experience": "Experience",
     "education": "Education",
-    "courses": "Courses",
+    "projects": "Projects",
+    "courses": "Continuing Education",
     "customSection": "Custom Section"
   },
   "buttons": {
@@ -97,6 +105,8 @@
     "company": "Company",
     "period": "Period",
     "description": "Describe your responsibilities and achievements in this role.",
+    "projectName": "Project name",
+    "projectDescription": "Briefly describe the project.",
     "degree": "Degree or Certification",
     "school": "School or University",
     "courseTitle": "Course Title",
@@ -362,6 +372,9 @@
     "addCourse": "Add Course",
     "courseLabel": "Course"
   },
+  "projects": {
+    "addProject": "Add Project"
+  },
   "customSections": {
     "addSection": "Add Section",
     "projects": "Projects",
@@ -393,6 +406,8 @@
     "sections": "Sections",
     "visibility": "Visibility",
     "addSection": "Add Section",
+    "mainContent": "Main content",
+    "sidebar": "Sidebar",
     "titleFont": "Title font"
   },
   "shared": {
