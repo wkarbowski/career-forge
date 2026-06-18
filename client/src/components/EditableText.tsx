@@ -98,6 +98,23 @@ const EditableText = ({
     commitValue(e.currentTarget);
   };
 
+  const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
+    commitValue(e.currentTarget);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (Tag !== "span") return;
+    if (e.key !== "Enter" && e.key !== "Escape") return;
+
+    e.preventDefault();
+    if (e.key === "Escape") {
+      e.currentTarget.innerHTML = sanitizeEditableHtml(value || "");
+    } else {
+      commitValue(e.currentTarget);
+    }
+    e.currentTarget.blur();
+  };
+
   const handleKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
     if ((e.ctrlKey || e.metaKey) && ["b", "i", "u"].includes(e.key.toLowerCase())) {
       commitValue(e.currentTarget);
@@ -142,6 +159,8 @@ const EditableText = ({
       suppressContentEditableWarning
       onPaste={handlePaste}
       onInput={handleInput}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       className={`${className} ${!value ? "editable-placeholder" : ""}`.trim()}
       style={style}
