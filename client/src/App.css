@@ -1078,6 +1078,11 @@ select option {
   color: #6b7280;
 }
 
+.experience-header .text-muted-inline:not(:focus),
+.experience-header .text-muted-inline:not(:focus) * {
+  color: #6b7280 !important;
+}
+
 .experience-subtitle {
   font-size: var(--body-font-size, 14px);
   font-family: var(--body-font, "Inter", sans-serif);
@@ -1150,6 +1155,13 @@ select option {
 .sidebar [contenteditable="true"]:focus {
   background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.resume-location-field[contenteditable="true"]:not(:focus),
+.resume-location-field[contenteditable="true"]:not(:focus) * {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .delete-btn,
@@ -1336,6 +1348,26 @@ select option {
 @media print {
   .editable-placeholder[data-placeholder]::before {
     content: none !important;
+  }
+
+  [contenteditable="true"],
+  [contenteditable="true"]:hover,
+  [contenteditable="true"]:focus {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .resume-location-field,
+  .resume-location-field * {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .experience-header .text-muted-inline,
+  .experience-header .text-muted-inline * {
+    color: #6b7280 !important;
   }
 
   * {

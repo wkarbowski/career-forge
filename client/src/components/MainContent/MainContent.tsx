@@ -174,6 +174,7 @@ const MainContent = ({
               <EditableText
                 value={_data.contact.location}
                 onChange={(val) => _updateField("contact.location", val)}
+                className="resume-location-field"
                 placeholder={t("placeholders.location")}
               />
             </span>
@@ -296,7 +297,7 @@ const MainContent = ({
                           )
                         }
                         tag="span"
-                        className="text-muted-inline"
+                        className="text-muted-inline resume-location-field"
                         placeholder={t("placeholders.location")}
                       />
                     </div>
@@ -400,7 +401,7 @@ const MainContent = ({
                           _updateArrayItem("education", edu.id, "location", val)
                         }
                         tag="span"
-                        className="text-muted-inline"
+                        className="text-muted-inline resume-location-field"
                         placeholder={t("placeholders.location")}
                       />
                     </div>
