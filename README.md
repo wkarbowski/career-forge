@@ -20,7 +20,7 @@
 - **Document dashboard** — create, rename, search, sort, filter, and delete saved documents
 - **Auth system** — register / login with JWT access tokens + HttpOnly-cookie refresh tokens; guest mode with no account required
 - **PDF / Print export** — browser print via `window.print()` with print-optimised CSS that hides all UI chrome
-- **JSON import / export** — full document backup and portability
+- **JSON import / export** — portable content-only or content-with-appearance document data
 - **Profile image upload** — upload and crop a photo directly from the editor
 - **Version history** — create named snapshots and restore previous versions
 - **Keyword matcher** — paste a job description and see matching keywords highlighted

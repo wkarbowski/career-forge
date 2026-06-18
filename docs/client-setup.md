@@ -223,7 +223,7 @@ Add new templates in `src/data/templates.ts`:
   preview: { colors: { primary: '#color1', secondary: '#color2', accent: '#color3' } },
   settings: { sidebarColor1: '#...', sidebarColor2: '#...', accentColor: '#...' },
   visibleSections: { summary: true, skills: true, /* ... */ },
-  sidebarOrder: ['summary', 'skills', 'languages', 'courses', 'strengths', 'achievements']
+  sidebarOrder: ['summary', 'skills', 'languages', 'coreCompetencies', 'achievements', 'projects']
 }
 ```
 

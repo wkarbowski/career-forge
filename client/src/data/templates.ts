@@ -45,6 +45,7 @@ export const cvTemplates: CVTemplate[] = [
       skills: true,
       achievements: true,
       experience: true,
+      projects: false,
       education: true,
     },
     sidebarOrder: [
@@ -53,6 +54,7 @@ export const cvTemplates: CVTemplate[] = [
       "languages",
       "coreCompetencies",
       "achievements",
+      "projects",
     ],
   },
 
@@ -104,6 +106,7 @@ export const cvTemplates: CVTemplate[] = [
       skills: true,
       achievements: true,
       experience: true,
+      projects: false,
       education: true,
     },
     sidebarOrder: [
@@ -112,6 +115,7 @@ export const cvTemplates: CVTemplate[] = [
       "languages",
       "coreCompetencies",
       "achievements",
+      "projects",
     ],
   },
 
@@ -156,6 +160,7 @@ export const cvTemplates: CVTemplate[] = [
       skills: true,
       achievements: true,
       experience: true,
+      projects: false,
       education: true,
     },
     sidebarOrder: [
@@ -164,6 +169,7 @@ export const cvTemplates: CVTemplate[] = [
       "languages",
       "summary",
       "achievements",
+      "projects",
     ],
   },
 

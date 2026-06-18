@@ -230,7 +230,7 @@ def duplicate_document(*, document_id: int, current_user: User, db: Session) -> 
         db,
         title=InputSanitizer.sanitize_string(f"{original.title} (Copy)"),
         document_type=original.document_type,
-        data=original.data,
+        data=_sanitize_data_if_needed(original.data),
         owner_id=current_user.id,
     )
     return DocumentResponse.model_validate(new_document)
@@ -263,7 +263,7 @@ def create_version(
         db,
         document_id=document_id,
         version_name=InputSanitizer.sanitize_string(body.version_name),
-        data=doc.data,
+        data=_sanitize_data_if_needed(doc.data),
     )
     return DocumentVersionResponse.model_validate(version)
 
@@ -300,7 +300,7 @@ def restore_version(
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
 
-    doc.data = version.data
+    doc.data = _sanitize_data_if_needed(version.data)
     document_repo.save_document(db, doc)
     return DocumentResponse.model_validate(doc)
 

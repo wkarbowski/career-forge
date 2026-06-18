@@ -520,7 +520,7 @@ Get the user's default document, or the most recently updated document if no def
 
 ### `GET /api/documents/{document_id}/export`
 
-Export a document as JSON with export metadata.
+Export a saved backend document as JSON with export metadata. Editor-level JSON exports additionally support content-only and content-with-appearance payloads.
 
 **Response** `200 OK`
 

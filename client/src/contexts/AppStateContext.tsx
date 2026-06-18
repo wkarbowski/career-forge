@@ -67,6 +67,7 @@ const defaultVisibleSections: VisibleSections = {
   skills: true,
   achievements: true,
   experience: true,
+  projects: false,
   education: true,
 };
 
@@ -76,6 +77,7 @@ const defaultSidebarOrder: string[] = [
   'languages',
   'coreCompetencies',
   'achievements',
+  'projects',
 ];
 
 interface SavedState {
@@ -140,6 +142,10 @@ function migrateData(data: CVData): CVData {
     migrated.customSections = [];
   }
 
+  if (!Array.isArray(migrated.projects)) {
+    migrated.projects = [];
+  }
+
   // Ensure contact has links array (migrate from old website/websiteIcon/linkedin/github fields)
   if (migrated.contact && typeof migrated.contact === 'object') {
     const c = migrated.contact as Record<string, unknown>;
@@ -179,14 +185,18 @@ function migrateVisibleSections(vs: VisibleSections): VisibleSections {
   if ('courses' in migrated) {
     delete (migrated as Record<string, unknown>).courses;
   }
+  if (!('projects' in migrated)) {
+    migrated.projects = false;
+  }
   return migrated as VisibleSections;
 }
 
 function migrateSidebarOrder(order: string[]): string[] {
   if (!order) return order;
-  return order
+  const migrated = order
     .map(name => (name === 'strengths' ? 'coreCompetencies' : name))
     .filter(name => name !== 'courses');
+  return migrated.includes('projects') ? migrated : [...migrated, 'projects'];
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
