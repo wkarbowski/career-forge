@@ -88,32 +88,37 @@ const sanitizeCssValue = (property: string, value: string) => {
   }
 };
 
+const replaceElementWithSpan = (element: Element, style: string) => {
+  const span = document.createElement("span");
+  span.setAttribute("style", style);
+  while (element.firstChild) span.appendChild(element.firstChild);
+  element.parentNode?.replaceChild(span, element);
+};
+
+const normalizeLegacyEditableMarkup = (html: string) => {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+
+  template.content.querySelectorAll("font[color]").forEach((element) => {
+    const color = element.getAttribute("color") ?? "";
+    replaceElementWithSpan(element, `color: ${color}`);
+  });
+
+  template.content.querySelectorAll("s, strike, del").forEach((element) => {
+    const style = element.getAttribute("style");
+    replaceElementWithSpan(
+      element,
+      [style, "text-decoration: line-through"].filter(Boolean).join("; "),
+    );
+  });
+
+  return template.innerHTML;
+};
+
 const installEditableHtmlHooks = () => {
   const purify = DOMPurify as DOMPurifyWithEditableHookFlag;
   if (purify.__careerForgeEditableHooksInstalled) return;
   purify.__careerForgeEditableHooksInstalled = true;
-
-  DOMPurify.addHook("uponSanitizeElement", (node, data) => {
-    if (data.tagName === "font" && (node as Element).getAttribute?.("color")) {
-      const color = (node as Element).getAttribute("color");
-      const span = document.createElement("span");
-      span.style.color = color ?? "";
-      while (node.firstChild) span.appendChild(node.firstChild);
-      node.parentNode?.replaceChild(span, node);
-    }
-
-    if (["s", "strike", "del"].includes(data.tagName)) {
-      const span = document.createElement("span");
-      const style = (node as Element).getAttribute?.("style");
-      span.setAttribute(
-        "style",
-        [style, "text-decoration: line-through"].filter(Boolean).join("; "),
-      );
-
-      while (node.firstChild) span.appendChild(node.firstChild);
-      node.parentNode?.replaceChild(span, node);
-    }
-  });
 
   DOMPurify.addHook("uponSanitizeAttribute", (_node, data) => {
     if (data.attrName !== "style" || !data.attrValue) return;
@@ -147,5 +152,5 @@ const installEditableHtmlHooks = () => {
 
 export const sanitizeEditableHtml = (html: string) => {
   installEditableHtmlHooks();
-  return DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
+  return DOMPurify.sanitize(normalizeLegacyEditableMarkup(html), DOMPURIFY_CONFIG);
 };
