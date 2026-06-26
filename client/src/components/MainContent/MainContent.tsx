@@ -125,15 +125,6 @@ const MainContent = ({
       ? t("sections.courses")
       : section.title || section.name || "";
 
-  const handleContactClick = (e: React.MouseEvent<HTMLSpanElement>) => {
-    if (!(e.target as HTMLElement).isContentEditable) {
-      const ed = e.currentTarget.querySelector(
-        "[contenteditable]",
-      ) as HTMLElement | null;
-      if (ed) ed.focus();
-    }
-  };
-
   return (
     <div className="main-content">
       {/* Header */}
@@ -153,7 +144,7 @@ const MainContent = ({
             placeholder={t("placeholders.position")}
           />
           <div className="contact-info">
-            <span className="contact-item" onClick={handleContactClick}>
+            <span className="contact-item">
               <i className="fas fa-phone"></i>
               <EditableText
                 value={_data.contact.phone}
@@ -161,7 +152,7 @@ const MainContent = ({
                 placeholder={t("placeholders.phone")}
               />
             </span>
-            <span className="contact-item" onClick={handleContactClick}>
+            <span className="contact-item">
               <i className="fas fa-envelope"></i>
               <EditableText
                 value={_data.contact.email}
@@ -169,12 +160,11 @@ const MainContent = ({
                 placeholder={t("placeholders.email")}
               />
             </span>
-            <span className="contact-item" onClick={handleContactClick}>
+            <span className="contact-item">
               <i className="fas fa-map-marker-alt"></i>
               <EditableText
                 value={_data.contact.location}
                 onChange={(val) => _updateField("contact.location", val)}
-                className="resume-location-field"
                 placeholder={t("placeholders.location")}
               />
             </span>
@@ -297,7 +287,7 @@ const MainContent = ({
                           )
                         }
                         tag="span"
-                        className="text-muted-inline resume-location-field"
+                        className="text-muted-inline"
                         placeholder={t("placeholders.location")}
                       />
                     </div>
@@ -401,7 +391,7 @@ const MainContent = ({
                           _updateArrayItem("education", edu.id, "location", val)
                         }
                         tag="span"
-                        className="text-muted-inline resume-location-field"
+                        className="text-muted-inline"
                         placeholder={t("placeholders.location")}
                       />
                     </div>

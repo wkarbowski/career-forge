@@ -127,9 +127,11 @@ const CentralToolbar = () => {
     };
     document.addEventListener('selectionchange', handle);
     document.addEventListener('focusin', handle);
+    document.addEventListener('focusout', handle);
     return () => {
       document.removeEventListener('selectionchange', handle);
       document.removeEventListener('focusin', handle);
+      document.removeEventListener('focusout', handle);
     };
   }, [detectEditableFocus]);
 
@@ -232,6 +234,7 @@ const CentralToolbar = () => {
     <div
       ref={toolbarRef}
       className="central-toolbar"
+      data-editor-selection-preserver
       onMouseDown={handleToolbarMouseDown}
       role="toolbar"
       aria-label={t('centralToolbar.label')}

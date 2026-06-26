@@ -6,6 +6,7 @@ import {
 import { sanitizeEditableHtml } from "./editableHtml";
 
 const selectText = (editable: HTMLElement, text: string) => {
+  editable.focus();
   const walker = document.createTreeWalker(editable, NodeFilter.SHOW_TEXT);
   let node = walker.nextNode();
   while (node) {
@@ -27,6 +28,7 @@ const selectText = (editable: HTMLElement, text: string) => {
 const createEditable = (html = "Alpha Beta Gamma") => {
   const editable = document.createElement("div");
   editable.contentEditable = "true";
+  editable.tabIndex = -1;
   editable.innerHTML = html;
   document.body.appendChild(editable);
   return editable;
@@ -218,6 +220,7 @@ describe("applyEditableFormattingCommand", () => {
     const editable = document.createElement("div");
     editable.className = "template-field";
     editable.contentEditable = "true";
+    editable.tabIndex = -1;
     editable.innerHTML = "Alpha Beta Gamma";
     wrapper.appendChild(editable);
     selectText(editable, "Beta");
