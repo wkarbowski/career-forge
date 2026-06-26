@@ -359,6 +359,57 @@ const CoverLetterEditor = () => {
       (key) => !(d.recipientLineOrder || []).includes(key),
     ),
   ];
+  const senderContactRows = [
+    {
+      className: "cl-sender-address",
+      fields: [
+        { key: "street", placeholder: t("coverLetter.street") },
+        { key: "city", placeholder: t("coverLetter.city") },
+      ],
+    },
+    {
+      className: "",
+      fields: [
+        { key: "phone", placeholder: t("coverLetter.phone") },
+        { key: "email", placeholder: t("coverLetter.email") },
+      ],
+    },
+  ] as const;
+
+  const renderSenderContactRow = (
+    row: (typeof senderContactRows)[number],
+  ) => (
+    <div
+      className={["cl-sender-contact", row.className].filter(Boolean).join(" ")}
+      key={row.fields.map((field) => field.key).join("-")}
+    >
+      {row.fields.map((field, index) => (
+        <React.Fragment key={field.key}>
+          {index > 0 && <span className="cl-contact-sep">·</span>}
+          <EditableText
+            value={d[field.key]}
+            onChange={(v) => set(field.key, v)}
+            tag="span"
+            className="cl-sender-contact-item"
+            placeholder={field.placeholder}
+          />
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
+  const renderSender = (className = "cl-sender") => (
+    <div className={className}>
+      <EditableText
+        value={d.name}
+        onChange={(v) => set("name", v)}
+        tag="span"
+        className="cl-sender-name"
+        placeholder={t("coverLetter.name")}
+      />
+      {senderContactRows.map(renderSenderContactRow)}
+    </div>
+  );
 
   const handleRemovePage = (pageIndex: number) => {
     removePage(pageIndex);
@@ -473,46 +524,7 @@ const CoverLetterEditor = () => {
               {/* ── Header band (classic / executive variants) ── */}
               {hasHeaderBand && (
                 <div className="cl-header-band">
-                  <div className="cl-sender">
-                    <EditableText
-                      value={d.name}
-                      onChange={(v) => set("name", v)}
-                      tag="span"
-                      className="cl-sender-name"
-                      placeholder={t("coverLetter.name")}
-                    />
-                    <EditableText
-                      value={d.street}
-                      onChange={(v) => set("street", v)}
-                      tag="span"
-                      className="cl-sender-line"
-                      placeholder={t("coverLetter.street")}
-                    />
-                    <EditableText
-                      value={d.city}
-                      onChange={(v) => set("city", v)}
-                      tag="span"
-                      className="cl-sender-line"
-                      placeholder={t("coverLetter.city")}
-                    />
-                    <div className="cl-sender-contact">
-                      <EditableText
-                        value={d.phone}
-                        onChange={(v) => set("phone", v)}
-                        tag="span"
-                        className="cl-sender-contact-item"
-                        placeholder={t("coverLetter.phone")}
-                      />
-                      <span className="cl-contact-sep">·</span>
-                      <EditableText
-                        value={d.email}
-                        onChange={(v) => set("email", v)}
-                        tag="span"
-                        className="cl-sender-contact-item"
-                        placeholder={t("coverLetter.email")}
-                      />
-                    </div>
-                  </div>
+                  {renderSender()}
                 </div>
               )}
 
@@ -523,46 +535,7 @@ const CoverLetterEditor = () => {
 
               {/* ── Sender (shown inline for modern / standard) ── */}
               {!hasHeaderBand && (
-                <div className="cl-sender cl-sender-inline">
-                  <EditableText
-                    value={d.name}
-                    onChange={(v) => set("name", v)}
-                    tag="span"
-                    className="cl-sender-name"
-                    placeholder={t("coverLetter.name")}
-                  />
-                  <EditableText
-                    value={d.street}
-                    onChange={(v) => set("street", v)}
-                    tag="span"
-                    className="cl-sender-line"
-                    placeholder={t("coverLetter.street")}
-                  />
-                  <EditableText
-                    value={d.city}
-                    onChange={(v) => set("city", v)}
-                    tag="span"
-                    className="cl-sender-line"
-                    placeholder={t("coverLetter.city")}
-                  />
-                  <div className="cl-sender-contact">
-                    <EditableText
-                      value={d.phone}
-                      onChange={(v) => set("phone", v)}
-                      tag="span"
-                      className="cl-sender-contact-item"
-                      placeholder={t("coverLetter.phone")}
-                    />
-                    <span className="cl-contact-sep">·</span>
-                    <EditableText
-                      value={d.email}
-                      onChange={(v) => set("email", v)}
-                      tag="span"
-                      className="cl-sender-contact-item"
-                      placeholder={t("coverLetter.email")}
-                    />
-                  </div>
-                </div>
+                renderSender("cl-sender cl-sender-inline")
               )}
 
               {/* ── Recipient + place/date (two-column row) ── */}
