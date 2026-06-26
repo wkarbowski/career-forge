@@ -377,6 +377,9 @@ export const getEditableFormattingState = (): EditableFormattingState => {
   const editable = getSelectionEditable();
   if (!editable) return emptyFormattingState;
 
+  const activeEditable = findEditableEl(document.activeElement);
+  if (!activeEditable || activeEditable !== editable) return emptyFormattingState;
+
   const selectedTextElementState = getSelectedTextElementState();
   const effectiveTextElementState = getEffectiveTextElementState();
 

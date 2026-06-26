@@ -830,7 +830,7 @@ select option {
   gap: 3px;
   min-width: 0;
   max-width: 100%;
-  cursor: text;
+  cursor: default;
   border-radius: 3px;
   transition: background 0.2s;
   padding: 1px 4px;
@@ -854,7 +854,7 @@ select option {
   background: rgba(99, 102, 241, 0.06);
 }
 
-.contact-item [contenteditable="true"] {
+.contact-item [data-editable-field] {
   margin: 0;
   min-width: 40px;
 }
@@ -1038,8 +1038,9 @@ select option {
 
 .experience-top,
 .experience-bottom {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: 12px;
   align-items: baseline;
 }
 
@@ -1051,6 +1052,20 @@ select option {
   margin: 0;
   padding: 0;
   line-height: 1.15;
+}
+
+.experience-top > [data-editable-field],
+.experience-bottom > [data-editable-field] {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  justify-self: start;
+}
+
+.experience-top > [data-editable-field]:last-child,
+.experience-bottom > [data-editable-field]:last-child {
+  justify-self: end;
+  text-align: right;
 }
 
 .experience-header h3,
@@ -1115,18 +1130,22 @@ select option {
   color: #9ca3af;
 }
 
-[contenteditable="true"] {
+[data-editable-field] {
   outline: none;
   position: relative;
   min-height: 1em;
-  padding: 2px 4px;
-  margin: -2px -4px;
   border-radius: 3px;
   transition: background 0.2s;
 }
 
-[contenteditable="true"]:hover {
+[data-editable-field]:hover {
   background: rgba(99, 102, 241, 0.1);
+}
+
+[data-editable-field]:not([data-editing="true"]):not(:hover) {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .editable-placeholder[data-placeholder]::before {
@@ -1143,22 +1162,25 @@ select option {
   color: rgba(255, 255, 255, 0.45);
 }
 
-[contenteditable="true"]:focus {
+[data-editable-field][data-editing="true"] {
   background: rgba(99, 102, 241, 0.15);
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
 }
 
-.sidebar [contenteditable="true"]:hover {
+.sidebar [data-editable-field]:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.sidebar [contenteditable="true"]:focus {
+.sidebar [data-editable-field][data-editing="true"] {
   background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
-.resume-location-field[contenteditable="true"]:not(:focus),
-.resume-location-field[contenteditable="true"]:not(:focus) * {
+.experience-header
+  .text-muted-inline[data-editable-field]:not([data-editing="true"]),
+.experience-header
+  .text-muted-inline[data-editable-field]:not([data-editing="true"])
+  * {
   background: transparent !important;
   background-color: transparent !important;
   box-shadow: none !important;
@@ -1350,16 +1372,9 @@ select option {
     content: none !important;
   }
 
-  [contenteditable="true"],
-  [contenteditable="true"]:hover,
-  [contenteditable="true"]:focus {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-  }
-
-  .resume-location-field,
-  .resume-location-field * {
+  [data-editable-field],
+  [data-editable-field]:hover,
+  [data-editable-field][data-editing="true"] {
     background: transparent !important;
     background-color: transparent !important;
     box-shadow: none !important;

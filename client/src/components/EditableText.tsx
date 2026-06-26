@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  useLayoutEffect,
+} from "react";
 import { sanitizeEditableHtml } from "../utils/editableHtml";
 
 type EditableTag =
@@ -26,6 +32,103 @@ type EditableCommitElement = HTMLElement & {
   __careerForgeCommit?: () => void;
 };
 
+const EDITOR_SELECTION_PRESERVER_SELECTOR = "[data-editor-selection-preserver]";
+const EDITABLE_SELECTOR = '[contenteditable="true"]';
+
+let editableBlurListenerCount = 0;
+const clearEditingCallbacks = new Set<() => void>();
+
+const findEditable = (node: EventTarget | null) =>
+  node instanceof Element ? node.closest<HTMLElement>(EDITABLE_SELECTOR) : null;
+
+const findPreserver = (node: EventTarget | null) =>
+  node instanceof Element
+    ? node.closest<HTMLElement>(EDITOR_SELECTION_PRESERVER_SELECTOR)
+    : null;
+
+const clearSelection = () => {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+  selection.removeAllRanges();
+  document.dispatchEvent(new Event("selectionchange"));
+};
+
+const clearEditorInteractionState = () => {
+  const activeEditable = findEditable(document.activeElement);
+  activeEditable?.blur();
+  clearEditingCallbacks.forEach((clearEditing) => clearEditing());
+  clearSelection();
+};
+
+const handleDocumentPointerDown = (event: PointerEvent) => {
+  if (findEditable(event.target) || findPreserver(event.target)) return;
+  clearEditorInteractionState();
+};
+
+const registerEditableBlurHandler = () => {
+  if (editableBlurListenerCount === 0) {
+    document.addEventListener("pointerdown", handleDocumentPointerDown, true);
+  }
+  editableBlurListenerCount += 1;
+
+  return () => {
+    editableBlurListenerCount -= 1;
+    if (editableBlurListenerCount === 0) {
+      document.removeEventListener(
+        "pointerdown",
+        handleDocumentPointerDown,
+        true,
+      );
+    }
+  };
+};
+
+const placeCaretAtEnd = (el: HTMLElement) => {
+  const selection = window.getSelection();
+  if (!selection) return;
+
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+};
+
+const getCaretRangeFromPoint = (x: number, y: number) => {
+  const pointDocument = document as Document & {
+    caretPositionFromPoint?: (
+      x: number,
+      y: number,
+    ) => { offsetNode: Node; offset: number } | null;
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+  };
+
+  const position = pointDocument.caretPositionFromPoint?.(x, y);
+  if (position) {
+    const range = document.createRange();
+    range.setStart(position.offsetNode, position.offset);
+    range.collapse(true);
+    return range;
+  }
+
+  const range = pointDocument.caretRangeFromPoint?.(x, y) ?? null;
+  range?.collapse(true);
+  return range;
+};
+
+const placeCaretFromPoint = (el: HTMLElement, x: number, y: number) => {
+  const selection = window.getSelection();
+  const range = getCaretRangeFromPoint(x, y);
+
+  if (!selection || !range || !el.contains(range.startContainer)) {
+    placeCaretAtEnd(el);
+    return;
+  }
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+};
+
 const EditableText = ({
   value,
   onChange,
@@ -35,6 +138,8 @@ const EditableText = ({
   placeholder = "",
 }: EditableTextProps) => {
   const ref = useRef<EditableCommitElement>(null);
+  const pendingFocusPointRef = useRef<{ x: number; y: number } | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Treat content that is only whitespace / <br> tags as empty so the
   // CSS placeholder can show.
@@ -98,8 +203,35 @@ const EditableText = ({
     commitValue(e.currentTarget);
   };
 
+  const activateFromPointer = (e: React.PointerEvent<HTMLElement>) => {
+    if (e.button !== 0) return;
+    if (isEditing) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    pendingFocusPointRef.current = { x: e.clientX, y: e.clientY };
+    clearEditingCallbacks.forEach((clearEditing) => clearEditing());
+    setIsEditing(true);
+  };
+
+  const handleFocus = () => {
+    clearEditingCallbacks.forEach((clearEditing) => clearEditing());
+    setIsEditing(true);
+  };
+
   const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
     commitValue(e.currentTarget);
+
+    window.setTimeout(() => {
+      if (
+        findEditable(document.activeElement) ||
+        findPreserver(document.activeElement)
+      ) {
+        return;
+      }
+      setIsEditing(false);
+      clearSelection();
+    }, 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
@@ -133,6 +265,16 @@ const EditableText = ({
     };
   }, [commitValue]);
 
+  useEffect(() => registerEditableBlurHandler(), []);
+
+  useEffect(() => {
+    const clearEditing = () => setIsEditing(false);
+    clearEditingCallbacks.add(clearEditing);
+    return () => {
+      clearEditingCallbacks.delete(clearEditing);
+    };
+  }, []);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -152,11 +294,32 @@ const EditableText = ({
     el.innerHTML = sanitizeEditableHtml(value || "");
   }, [value]);
 
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !isEditing) return;
+
+    const focusPoint = pendingFocusPointRef.current;
+    pendingFocusPointRef.current = null;
+    el.focus();
+
+    if (focusPoint) {
+      placeCaretFromPoint(el, focusPoint.x, focusPoint.y);
+    } else {
+      placeCaretAtEnd(el);
+    }
+
+    document.dispatchEvent(new Event("selectionchange"));
+  }, [isEditing]);
+
   return (
     <Tag
       ref={ref as React.RefObject<HTMLDivElement>}
-      contentEditable
+      contentEditable={isEditing}
       suppressContentEditableWarning
+      data-editable-field
+      data-editing={isEditing ? "true" : undefined}
+      onPointerDown={isEditing ? undefined : activateFromPointer}
+      onFocus={handleFocus}
       onPaste={handlePaste}
       onInput={handleInput}
       onBlur={handleBlur}
