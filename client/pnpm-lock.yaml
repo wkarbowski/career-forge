@@ -45,8 +45,8 @@ importers:
         specifier: ^5.2.9
         version: 5.2.9
       '@fortawesome/fontawesome-free':
-        specifier: ^7.2.0
-        version: 7.2.0
+        specifier: ^7.3.0
+        version: 7.3.0
       dompurify:
         specifier: ^3.4.11
         version: 3.4.11
@@ -247,8 +247,8 @@ packages:
   '@fontsource/source-sans-3@5.2.9':
     resolution: {integrity: sha512-u3ymIq4rfmCCyB9MEw/sFR5lPVJ1yTNXmIMbUz+9kVCFIHvNtfzXOEBuvkg3Tk0zhmioPeJ28ZK5smZ7TurezQ==}
 
-  '@fortawesome/fontawesome-free@7.2.0':
-    resolution: {integrity: sha512-3DguDv/oUE+7vjMeTSOjCSG+KeawgVQOHrKRnvUuqYh1mfArrh7s+s8hXW3e4RerBA1+Wh+hBqf8sJNpqNrBWg==}
+  '@fortawesome/fontawesome-free@7.3.0':
+    resolution: {integrity: sha512-Yw4Qa43P6e4Xwh0TwEUkHQNRJInWaqIBo73VJmns3j2AIlZPAvUcR4yGIxCPqPRCgyJ5KIVIalF/I1GxhZ/Kgw==}
     engines: {node: '>=6'}
 
   '@jridgewell/resolve-uri@3.1.2':
@@ -1118,7 +1118,7 @@ snapshots:
 
   '@fontsource/source-sans-3@5.2.9': {}
 
-  '@fortawesome/fontawesome-free@7.2.0': {}
+  '@fortawesome/fontawesome-free@7.3.0': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
