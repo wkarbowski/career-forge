@@ -958,7 +958,8 @@
   padding: 3px 10px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.15);
-  font-size: 12px;
+  font-family: var(--body-font, "Inter", sans-serif);
+  font-size: var(--body-font-size, 13px);
   line-height: 1.4;
   color: inherit;
   position: relative;

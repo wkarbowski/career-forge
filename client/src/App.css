@@ -520,6 +520,8 @@ select option {
   padding: 26px 18px;
   position: relative;
   overflow: hidden;
+  font-family: var(--body-font, "Inter", sans-serif);
+  font-size: var(--body-font-size, 13px);
 }
 
 .main-content {
@@ -582,6 +584,11 @@ select option {
   font-family: var(--heading-font, "Rubik", sans-serif);
 }
 
+.sidebar h2 [data-editable-field],
+.sidebar h2 [data-editable-field] * {
+  font-family: inherit !important;
+}
+
 .sidebar-item-content h3 {
   font-size: var(--body-font-size, 13px);
   font-weight: 400;
@@ -599,6 +606,18 @@ select option {
   font-family: var(--body-font, "Inter", sans-serif);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-section [data-editable-field],
+.sidebar-section [data-editable-field] * {
+  font-family: inherit !important;
+}
+
+.sidebar h2,
+.sidebar h2[data-editable-field],
+.sidebar h2 [data-editable-field],
+.sidebar h2 [data-editable-field] * {
+  font-family: var(--heading-font, "Rubik", sans-serif) !important;
 }
 
 .header h1,
@@ -741,7 +760,7 @@ select option {
 }
 
 .sidebar-item-content h3 {
-  font-size: 13px;
+  font-size: var(--body-font-size, 13px);
   font-weight: 400;
   margin: 0 0 4px 0;
   color: rgba(255, 255, 255, 0.95);
