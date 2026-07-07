@@ -29,8 +29,8 @@
     "dompurify": "^3.4.11",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-easy-crop": "^6.0.2",
-    "react-router-dom": "^7.18.0"
+    "react-easy-crop": "^6.1.0",
+    "react-router-dom": "^7.18.1"
   },
   "scripts": {
     "preinstall": "node scripts/require-pnpm.cjs",

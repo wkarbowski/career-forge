@@ -230,6 +230,8 @@
     "email": "E-Mail-Adresse",
     "place": "Ort",
     "date": "Datum",
+    "today": "Heute",
+    "setToday": "Heutiges Datum setzen",
     "recipientCompany": "Firmenname",
     "recipientContact": "z. Hd. Ansprechpartner (optional)",
     "recipientStreet": "Straße und Hausnummer",
