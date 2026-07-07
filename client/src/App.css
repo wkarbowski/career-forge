@@ -1167,6 +1167,11 @@ select option {
   box-shadow: none !important;
 }
 
+[data-editable-field] a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
 .editable-placeholder[data-placeholder]::before {
   content: attr(data-placeholder);
   display: inline-block;
