@@ -25,6 +25,20 @@ const formatUrlForDisplay = (value: string): string => {
   }
 };
 
+const formatUrlForHref = (value: string): string | undefined => {
+  const cleaned = stripHtml(value);
+  if (!cleaned) return undefined;
+
+  try {
+    const href = /^[a-z][a-z\d+.-]*:\/\//i.test(cleaned)
+      ? cleaned
+      : `https://${cleaned}`;
+    return new URL(href).href;
+  } catch {
+    return undefined;
+  }
+};
+
 const btnBase = {
   background: "none",
   border: "none",
@@ -90,17 +104,26 @@ const SocialLinkEditor = ({
           }}
         >
           {url ? (
-            <span
+            <a
+              href={formatUrlForHref(url)}
+              target="_blank"
+              rel="noopener noreferrer"
               className="platform-url"
+              onClick={(event) => {
+                event.preventDefault();
+                startEditing();
+              }}
               style={{
                 display: "inline",
+                color: "inherit",
+                textDecoration: "inherit",
                 overflowWrap: "anywhere",
                 wordBreak: "break-word",
                 transition: "opacity 0.18s",
               }}
             >
               {formatUrlForDisplay(url)}
-            </span>
+            </a>
           ) : (
             <span
               className="platform-url-placeholder hide-on-print"
