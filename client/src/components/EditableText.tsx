@@ -161,9 +161,7 @@ const EditableText = ({
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
 
-    const clipboard = e.clipboardData;
-    const html = clipboard.getData("text/html");
-    const text = clipboard.getData("text/plain");
+    const text = e.clipboardData.getData("text/plain");
     const selection = window.getSelection();
     if (!selection || !selection.rangeCount) return;
     const range = selection.getRangeAt(0);
@@ -171,23 +169,12 @@ const EditableText = ({
 
     const fragment = document.createDocumentFragment();
 
-    if (html) {
-      const sanitizedHtml = sanitizeEditableHtml(html);
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(sanitizedHtml, "text/html");
-
-      Array.from(doc.body.childNodes).forEach((n) => {
-        fragment.appendChild(document.importNode(n, true));
-      });
-    } else if (text) {
-      const lines = text.split("\n");
-      lines.forEach((line, index) => {
-        fragment.appendChild(document.createTextNode(line));
-        if (index < lines.length - 1)
-          fragment.appendChild(document.createElement("br"));
-      });
-    }
+    const lines = text.split("\n");
+    lines.forEach((line, index) => {
+      fragment.appendChild(document.createTextNode(line));
+      if (index < lines.length - 1)
+        fragment.appendChild(document.createElement("br"));
+    });
 
     range.insertNode(fragment);
     range.collapse(false);
