@@ -1,0 +1,293 @@
+# Client Setup Guide
+
+> Frontend installation, development, build, and testing.
+
+---
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Development](#development)
+- [Build](#build)
+- [Testing](#testing)
+- [Configuration](#configuration)
+- [Customization](#customization)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Prerequisites
+
+- **Node.js** ≥ 20.19.x or ≥ 22.12.x
+- **pnpm** 11.5.0 via Corepack
+
+### Install on Fedora
+
+```bash
+sudo dnf install nodejs
+corepack enable
+```
+
+### Install on Ubuntu/Debian
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+corepack enable
+```
+
+### Install via nvm (recommended)
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+nvm install 20
+nvm use 20
+corepack enable
+```
+
+---
+
+## Installation
+
+```bash
+cd client
+pnpm install --frozen-lockfile
+```
+
+### Dependencies
+
+| Package                         | Version | Purpose                              |
+| ------------------------------- | ------- | ------------------------------------ |
+| `react`                         | ^19.0.0 | UI library                           |
+| `react-dom`                     | ^19.0.0 | DOM rendering                        |
+| `react-router-dom`              | ^7.15.1 | Client-side routing                  |
+| `dompurify`                     | ^3.4.5  | HTML sanitization for inline editing |
+| `react-easy-crop`               | ^5.5.7  | Profile image cropper                |
+| `html2canvas`                   | ^1.4.1  | Canvas rendering utility             |
+| `@fontsource/*`                 | 5.2.x   | 16 self-hosted font families         |
+| `@fortawesome/fontawesome-free` | ^7.2.0  | Self-hosted icon library             |
+
+**Dev dependencies (build & test):**
+
+| Package                | Version | Purpose                            |
+| ---------------------- | ------- | ---------------------------------- |
+| `vite`                 | ^8.0.14 | Build tool and dev server          |
+| `@vitejs/plugin-react` | ^6.0.2  | React fast-refresh plugin for Vite |
+| `typescript`           | ^6.0.3  | TypeScript compiler                |
+| `vitest`               | ^4.1.7  | Unit test runner                   |
+
+---
+
+## Development
+
+```bash
+pnpm start
+```
+
+Opens `http://localhost:3000` with hot module replacement (HMR). The dev server proxies `/api` requests to `http://localhost:8000` automatically (configured in `vite.config.ts`).
+
+### Environment Variables
+
+Create a `.env` file in the `client/` directory (optional):
+
+```env
+# API server URL (defaults to http://localhost:8000/api)
+VITE_API_URL=http://localhost:8000/api
+
+# Optional privacy acknowledgement banner
+VITE_GDPR=false
+```
+
+> Vite exposes `VITE_*` variables to the browser bundle through `import.meta.env`.
+
+### Proxy Setup
+
+The client communicates with the backend at `http://localhost:8000`. Start both servers:
+
+**Terminal 1 (Backend):**
+
+```bash
+cd server && source venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+```
+
+**Terminal 2 (Frontend):**
+
+```bash
+cd client && pnpm start
+```
+
+---
+
+## Build
+
+```bash
+pnpm run build
+```
+
+Creates an optimized production build in `client/build/`.
+
+The build folder contains:
+
+- Minified and bundled JavaScript
+- Optimized CSS
+- Static assets
+- `index.html` with injected script/style references
+
+### Serve Build Locally
+
+```bash
+pnpm dlx serve -s build -l 3000
+```
+
+---
+
+## Testing
+
+```bash
+pnpm test
+```
+
+Runs Vitest once in CI mode.
+
+```bash
+# Run tests in watch mode
+pnpm run test:watch
+
+# Run with coverage report
+pnpm run test:coverage
+```
+
+---
+
+## Configuration
+
+### API URL
+
+The API service layer (`src/services/api.ts`) uses:
+
+```typescript
+const API_BASE: string =
+  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+```
+
+Set `VITE_API_URL` in `client/.env` or at build time for production.
+
+### Bundled Resources
+
+All fonts and icons are **self-hosted** from bundled dependencies — no external CDN requests are made.
+
+| Resource         | Package                         | Purpose                           |
+| ---------------- | ------------------------------- | --------------------------------- |
+| 16 font families | `@fontsource/*`                 | Body text, headings, CV templates |
+| Font Awesome 7   | `@fortawesome/fontawesome-free` | UI icons                          |
+
+---
+
+## Customization
+
+### Theme Colors
+
+Edit CSS custom properties in `src/App.css`:
+
+```css
+[data-theme="dark"] {
+  --bg-primary: #0a0a0b;
+  --accent-color: #6366f1;
+  /* ... */
+}
+
+[data-theme="light"] {
+  --bg-primary: #fafafa;
+  --accent-color: #4f46e5;
+  /* ... */
+}
+```
+
+### Default Document Data
+
+Edit `src/data/initialData.ts` to change the default document content shown to new users.
+
+### Templates
+
+Add new templates in `src/data/templates.ts`:
+
+```javascript
+{
+  id: 'my-template',
+  name: 'My Template',
+  description: 'Custom template description',
+  type: 'resume',        // 'resume' or 'cover-letter'
+  category: 'creative',  // 'professional', 'modern', 'creative', 'technical'
+  preview: { colors: { primary: '#color1', secondary: '#color2', accent: '#color3' } },
+  settings: { sidebarColor1: '#...', sidebarColor2: '#...', accentColor: '#...' },
+  visibleSections: { summary: true, skills: true, /* ... */ },
+  sidebarOrder: ['summary', 'skills', 'languages', 'coreCompetencies', 'achievements', 'projects']
+}
+```
+
+### Adding a New Language
+
+1. Create `src/locales/<code>.json` with all translation keys (copy `en.json` as a starting point)
+2. Add the language to `availableLanguages` in `src/i18n.tsx`:
+   ```typescript
+   const availableLanguages = [
+     { code: "en", label: "English" },
+     { code: "de", label: "Deutsch" },
+     { code: "fr", label: "Français" }, // new
+   ];
+   ```
+
+### Adding a New CV Section
+
+1. Add default data in `src/data/initialData.ts`
+2. Add the section to `visibleSections` in `src/contexts/AppStateContext.tsx`
+3. Add rendering logic in the relevant component inside `src/components/`
+4. Add the section key to `sidebarOrder` if it belongs in the sidebar
+5. Add translation keys in both `src/locales/en.json` and `src/locales/de.json`
+6. Add a toggle in `src/components/VerticalMenu.tsx`
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Port already in use:**
+
+```bash
+# Vite reads server.port from vite.config.ts (default 3000).
+# Override at runtime:
+pnpm exec vite --port 3001
+```
+
+**Blank page after build:**
+
+- Ensure the host serves `index.html` for deep links handled by React Router.
+- If deploying to a subdirectory, configure Vite's `base` option for that path.
+
+**CORS errors with backend:**
+
+- Ensure the backend `CORS_ORIGINS` includes `http://localhost:3000`
+- Check that the API URL is correct in `.env`
+
+**pnpm install failures:**
+
+```bash
+rm -rf node_modules
+pnpm store prune
+pnpm install --frozen-lockfile
+```
+
+**Hot reload not working:**
+
+```bash
+# Stop the dev server (Ctrl+C) and restart
+pnpm start
+```
+
+**Print layout issues:**
+
+- Reset browser zoom to 100% before printing
+- Enable "Background graphics" in the print dialog

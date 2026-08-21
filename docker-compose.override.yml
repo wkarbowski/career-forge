@@ -1,0 +1,33 @@
+# Docker Compose OVERRIDE — Development mode
+#
+# This file is automatically loaded by `docker compose up`.
+# It adds dev-friendly features like hot-reload volumes and
+# exposed ports for direct backend access.
+#
+# For production, use:
+#   docker compose -f docker-compose.yml up --build -d
+# (explicitly skip this override file)
+
+services:
+  backend:
+    volumes:
+      # Mount source code for hot-reload (uvicorn --reload)
+      - ./server/app:/app/app:ro
+      - ./server/alembic:/app/alembic:ro
+      - careerforge_backend_uploads:/app/uploads
+    # Expose backend port directly for debugging
+    # Default 18000 avoids conflict with a locally-running server on 8000
+    ports:
+      - "${BACKEND_PORT:-18000}:8000"
+
+  postgres:
+    # Expose postgres directly for local DB tools
+    # Default 15432 avoids conflict with a locally-running postgres on 5432
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
+
+  redis:
+    # Expose redis directly for local debugging
+    # Default 16379 avoids conflict with a locally-running redis on 6379
+    ports:
+      - "${REDIS_PORT:-16379}:6379"

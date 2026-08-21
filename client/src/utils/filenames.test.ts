@@ -1,0 +1,68 @@
+import { describe, expect, it } from "vitest";
+import {
+  buildJsonDownloadFileName,
+  buildPdfDownloadFileName,
+  sanitizeDownloadBaseName,
+} from "./filenames";
+
+describe("download filenames", () => {
+  it("uses the document title as the JSON filename", () => {
+    expect(buildJsonDownloadFileName("WIKTOR-JAN-KARBOWSKI")).toBe(
+      "WIKTOR-JAN-KARBOWSKI.json",
+    );
+  });
+
+  it("adds the content export suffix before the JSON extension", () => {
+    expect(
+      buildJsonDownloadFileName("WIKTOR-JAN-KARBOWSKI", "cv", "content"),
+    ).toBe("WIKTOR-JAN-KARBOWSKI_content.json");
+  });
+
+  it("adds the appearance export suffix before the JSON extension", () => {
+    expect(
+      buildJsonDownloadFileName(
+        "WIKTOR-JAN-KARBOWSKI",
+        "cv",
+        "content_and_appearance",
+      ),
+    ).toBe("WIKTOR-JAN-KARBOWSKI_content_and_appearance.json");
+  });
+
+  it("does not append JSON twice", () => {
+    expect(buildJsonDownloadFileName("Cover letter.json")).toBe(
+      "Cover letter.json",
+    );
+  });
+
+  it("uses the document title as the PDF filename", () => {
+    expect(buildPdfDownloadFileName("WIKTOR-JAN-KARBOWSKI")).toBe(
+      "WIKTOR-JAN-KARBOWSKI.pdf",
+    );
+  });
+
+  it("does not append PDF twice", () => {
+    expect(buildPdfDownloadFileName("Cover letter.pdf")).toBe(
+      "Cover letter.pdf",
+    );
+  });
+
+  it("adds suffixes before an existing JSON extension", () => {
+    expect(
+      buildJsonDownloadFileName("Cover letter.json", "cover-letter", "content"),
+    ).toBe("Cover letter_content.json");
+  });
+
+  it("removes rich-text markup and unsafe filename characters", () => {
+    expect(
+      sanitizeDownloadBaseName(
+        '<span style="text-align: left; display: block"><span>WIKTOR-JAN-KARBOWSKI</span></span> / CV:*?',
+      ),
+    ).toBe("WIKTOR-JAN-KARBOWSKI CV");
+  });
+
+  it("falls back when the title is blank", () => {
+    expect(buildJsonDownloadFileName(" ", "cover-letter")).toBe(
+      "cover-letter.json",
+    );
+  });
+});
